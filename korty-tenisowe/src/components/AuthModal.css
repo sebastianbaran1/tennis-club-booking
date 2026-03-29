@@ -1,0 +1,93 @@
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(22, 33, 68, 0.8);
+  z-index: 1000;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal {
+  background-color: #fcfbf8;
+  padding: 40px;
+  border-radius: 5px;
+  width: 90%;
+  max-width: 400px;
+  position: relative;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  text-align: center;
+}
+
+.modal__close {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: #152544;
+  cursor: pointer;
+  transition: color 0.3s;
+}
+
+.modal__close:hover {
+  color: #c6a778;
+}
+
+.modal__title {
+  font-family: var(--serif-font);
+  color: #152544;
+  font-size: 2rem;
+  margin-bottom: 5px;
+}
+
+.modal__subtitle {
+  color: #666;
+  font-size: 0.9rem;
+  font-family: var(--sans-font);
+  margin-bottom: 30px;
+}
+
+.modal__form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.modal__input {
+  padding: 12px 15px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  font-size: 1rem;
+  outline: none;
+  font-family: var(--sans-font);
+  font-weight: 400;
+}
+
+.modal__input:focus {
+  border-color: var(--color-primary);
+}
+
+.modal__submit {
+  background-color: var(--color-primary);
+  color: var(--color-secoundary);
+  padding: 15px;
+  border: none;
+  border-radius: 3px;
+  font-family: var(--sans-font);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: background-color 0.3s;
+}
+
+.modal__submit:hover {
+  background-color: #b39465;
+}

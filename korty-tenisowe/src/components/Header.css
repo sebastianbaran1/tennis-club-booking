@@ -1,0 +1,60 @@
+.header {
+  background-color: var(--color-secoundary);
+  color: white;
+  padding: 10px 40px;
+}
+
+.header__container {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.header__button,
+.header__link {
+  background: none;
+  border: none;
+  font-family: var(--sans-font);
+  font-size: 1rem;
+  cursor: pointer;
+  color: white;
+  transition: all 0.3s ease;
+}
+
+.header__link {
+  padding: 10px;
+}
+
+.header__button:hover,
+.header__link:hover {
+  color: var(--color-primary);
+}
+
+.header__button--register {
+  background-color: var(--color-primary);
+  padding: 10px 18px;
+  border-radius: 8px;
+}
+
+.header__button--register:hover {
+  color: white;
+  background-color: #b39465;
+  transform: translateY(-2px);
+}
+
+.header__button--logout {
+  padding-left: 10px;
+}
+
+.header__welcome {
+  padding-right: 5px;
+  font-family: var(--sans-font);
+  font-size: 1rem;
+}
+
+span.header__divider {
+  margin: 0 10px;
+}

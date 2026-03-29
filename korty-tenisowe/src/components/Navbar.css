@@ -1,0 +1,47 @@
+.nav {
+  background-color: #f9f7e9;
+  padding: 15px 40px;
+}
+
+.nav__container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.nav__menu {
+  display: flex;
+  gap: 30px;
+}
+
+.nav__brand {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.nav__logo {
+  height: 40px;
+}
+
+.nav__name {
+  font-family: var(--serif-font);
+  font-size: 1.6rem;
+  color: #152544;
+  font-weight: bold;
+}
+
+.nav__menu-item-link {
+  font-family: var(--sans-font);
+  color: #152544;
+  font-size: 1.2rem;
+  transition: color 0.3s ease;
+  font-weight: 500;
+}
+
+.nav__menu-item-link:hover {
+  color: #c6a778;
+}
