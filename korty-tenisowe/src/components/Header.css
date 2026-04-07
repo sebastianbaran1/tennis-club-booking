@@ -58,3 +58,12 @@
 span.header__divider {
   margin: 0 10px;
 }
+
+@media (max-width: 768px) {
+  .header__container {
+    max-width: 680px;
+  }
+  .header__button {
+    font-size: 1.1rem;
+  }
+}

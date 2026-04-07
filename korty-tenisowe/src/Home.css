@@ -78,6 +78,7 @@
 .features__grid-item {
   display: flex;
   flex-direction: column;
+  justify-content: flex-start;
   align-items: center;
 }
 
@@ -159,4 +160,28 @@
 
 .staff__grid-item-description {
   display: none;
+}
+
+@media (max-width: 768px) {
+  .container {
+    max-width: 600px;
+  }
+  .features__grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 40px;
+  }
+
+  .staff__grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 40px;
+  }
+
+  .staff__grid-item-name {
+    font-size: 1.4rem;
+  }
+  .staff__grid-item-role {
+    font-size: 0.95rem;
+  }
 }

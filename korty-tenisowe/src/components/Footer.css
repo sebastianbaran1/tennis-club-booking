@@ -91,15 +91,19 @@
     text-align: center;
     gap: 0px;
     margin-bottom: 30px;
+    padding-top: 10px;
   }
 
   .footer__brand {
     flex-direction: row;
     align-items: center;
-    gap: 30px;
+    gap: 20px;
   }
   .footer__name {
     font-size: 1.6rem;
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
   }
   .footer__name br {
     display: none;
@@ -107,6 +111,9 @@
 
   .footer__menu {
     padding: 0;
+    margin-bottom: 30px;
+    font-size: 1.2rem;
+    gap: 17px;
   }
 
   .footer__socials {
@@ -115,14 +122,6 @@
 }
 
 @media (max-width: 480px) {
-  .footer__name {
-    font-size: 1.3rem;
-  }
-
-  .footer__bottom {
-    padding: 15px 10px 0;
-  }
-
   .footer__copyright {
     font-size: 0.75rem;
     line-height: 1.4;
