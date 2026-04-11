@@ -23,7 +23,7 @@ export default function Header({
             </Link>
 
             <button
-              className="header__button header__button--logout"
+              className="header__button header__button-logout"
               onClick={onLogout}
             >
               Wyloguj się
@@ -36,7 +36,7 @@ export default function Header({
             </button>
             <span className="header__divider"> | </span>
             <button
-              className="header__button header__button--register"
+              className="header__button header__button-register"
               onClick={onRegisterOpen}
             >
               Dołącz teraz

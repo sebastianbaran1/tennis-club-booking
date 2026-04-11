@@ -27,10 +27,17 @@
   width: 50px;
   height: 50px;
 }
+.footer__logo-wrapper {
+  display: flex;
+  justify-content: flex-start;
+}
 
 .footer__name {
   font-family: var(--serif-font);
   font-size: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  margin: 0;
 }
 
 .footer__menu {
@@ -82,7 +89,12 @@
 
 @media (max-width: 768px) {
   .footer {
-    padding: 0px 0 20px;
+    padding: 0 0 20px;
+  }
+
+  .footer__logo {
+    width: 40px;
+    height: 40px;
   }
 
   .footer__top {
@@ -91,7 +103,7 @@
     text-align: center;
     gap: 0px;
     margin-bottom: 30px;
-    padding-top: 10px;
+    padding-top: 30px;
   }
 
   .footer__brand {
@@ -99,14 +111,12 @@
     align-items: center;
     gap: 20px;
   }
+
   .footer__name {
     font-size: 1.6rem;
     display: flex;
     flex-direction: row;
-    gap: 8px;
-  }
-  .footer__name br {
-    display: none;
+    gap: 7px;
   }
 
   .footer__menu {

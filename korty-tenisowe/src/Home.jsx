@@ -17,7 +17,6 @@ export default function Home() {
 
   const handleReservationClick = () => {
     if (!user) {
-      alert("Musisz być zalogowany, aby zarezerwować kort!");
       setIsLoginOpen(true);
       return;
     }

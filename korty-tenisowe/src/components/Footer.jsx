@@ -15,9 +15,8 @@ export default function Footer() {
               <img src={logo} alt="logo" className="footer__logo" />
             </div>
             <h2 className="footer__name">
-              <span className="footer__name__1">Rzeszów</span>
-              <br />
-              <span className="footer__name__2">Tenis Klub</span>
+              <span className="footer__name-1">Rzeszów</span>
+              <span className="footer__name-2">Tenis Klub</span>
             </h2>
           </div>
 

@@ -10,8 +10,6 @@ export default function AuthModal({ isOpen, type, onClose, onSubmit }) {
     phone: "",
   });
 
-  if (!isOpen) return null;
-
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
@@ -24,7 +22,7 @@ export default function AuthModal({ isOpen, type, onClose, onSubmit }) {
   const isLogin = type === "login";
 
   return (
-    <div className="modal-overlay">
+    <div className={`modal-overlay ${isOpen ? "active" : ""}`}>
       <div className="modal">
         <button className="modal__close" onClick={onClose}>
           ✕

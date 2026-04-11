@@ -13,7 +13,10 @@ export default function Navbar() {
       <div className="nav__container">
         <div className="nav__brand">
           <img src={logo} alt="logo" className="nav__logo" />
-          <span className="nav__name">Klub Tenisowy Rzeszów</span>
+          <div className="nav__name-container">
+            <span className="nav__name-1">Klub Tenisowy </span>
+            <span className="nav__name-2">Rzeszów</span>
+          </div>
         </div>
 
         <button
