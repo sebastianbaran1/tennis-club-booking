@@ -14,7 +14,7 @@
 
 .nav__menu {
   display: flex;
-  gap: 30px;
+  gap: clamp(20px, calc(-3.133px + 3.012vw), 30px);
   list-style: none;
   margin: 0;
   padding: 0;
@@ -26,20 +26,20 @@
   gap: 5px;
   z-index: 100;
   font-family: var(--serif-font);
-  font-size: 1.6rem;
+  font-size: clamp(1.4rem, calc(0.937rem + 0.964vw), 1.6rem);
   color: #152544;
   font-weight: bold;
 }
 
 .nav__logo {
-  height: 40px;
+  height: clamp(35px, calc(23.434px + 1.506vw), 40px);
   margin-right: 12px;
 }
 
 .nav__menu-item-link {
   font-family: var(--sans-font);
   color: #152544;
-  font-size: 1.2rem;
+  font-size: clamp(0.9rem, calc(0.206rem + 1.446vw), 1.2rem);
   transition: color 0.3s ease;
   font-weight: 500;
 }
@@ -79,29 +79,18 @@
 }
 
 @media (max-width: 1100px) {
-  .nav__menu {
-    gap: clamp(20px, calc(-3.133px + 3.012vw), 30px);
-  }
-  .nav__menu-item-link {
-    font-size: clamp(0.9rem, calc(0.206rem + 1.446vw), 1.2rem);
-  }
   .nav__name-container {
-    font-size: clamp(1.4rem, calc(0.937rem + 0.964vw), 1.6rem);
     display: flex;
     flex-direction: column;
   }
   .nav__logo {
-    height: clamp(30px, calc(6.867px + 3.012vw), 40px);
     margin-right: 15px;
   }
 }
 
 @media (max-width: 768px) {
-  .nav__name-container {
-    font-size: 1.6rem;
-  }
-  .nav__logo {
-    height: 40px;
+  .nav {
+    padding: 15px clamp(15px, calc(-2.857px + 5.58vw), 40px);
   }
 
   .hamburger {
@@ -161,8 +150,9 @@
   }
 
   .nav__menu-item-link {
-    font-size: 2rem;
+    font-size: clamp(1.7rem, calc(1.486rem + 1.071vw), 2rem);
     padding: 10px;
     letter-spacing: 2px;
+    text-align: center;
   }
 }

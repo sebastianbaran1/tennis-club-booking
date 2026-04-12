@@ -60,16 +60,14 @@ span.header__divider {
 }
 
 @media (max-width: 768px) {
-  .header__container {
-    max-width: 680px;
+  .header__button {
+    font-size: clamp(0.9rem, calc(0.829rem + 0.357vw), 1rem);
   }
   .header__button-register {
-    padding: 9px 16px;
+    padding: clamp(8px, calc(6.571px + 0.446vw), 10px)
+      clamp(14px, calc(11.143px + 0.893vw), 18px);
   }
-}
-
-@media (max-width: 600px) {
   .header {
-    padding: 10px 30px;
+    padding: 10px clamp(10px, calc(-11.429px + 6.696vw), 40px);
   }
 }
