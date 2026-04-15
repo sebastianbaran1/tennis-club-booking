@@ -23,7 +23,7 @@
 
 .profile-user-info h3 {
   margin-top: 0;
-  color: var(--color-secoundary);
+  color: var(--color-secondary);
   border-bottom: 2px solid #edf2f7;
   padding-bottom: 10px;
   margin-bottom: 15px;
@@ -32,19 +32,19 @@
 .profile-info-row {
   display: block;
   margin-bottom: 8px;
-  color: var(--color-secoundary);
+  color: var(--color-secondary);
 }
 
 .profile-info-label {
   font-weight: 700;
-  color: var(--color-secoundary);
+  color: var(--color-secondary);
   margin-right: 5px;
 }
 
 .profile-subtitle {
   font-size: 1.5rem;
   margin-bottom: 1.5rem;
-  color: var(--color-secoundary);
+  color: var(--color-secondary);
   font-family: var(--sans-font);
 }
 
@@ -79,13 +79,13 @@
 
 .reservation-card__date {
   margin: 0 0 8px 0;
-  color: var(--color-secoundary);
+  color: var(--color-secondary);
   font-size: 1.2rem;
 }
 
 .reservation-card__detail {
   margin: 4px 0;
-  color: var(--color-secoundary);
+  color: var(--color-secondary);
   font-size: 0.95rem;
 }
 

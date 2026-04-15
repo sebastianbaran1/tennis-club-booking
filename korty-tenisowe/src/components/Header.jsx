@@ -12,22 +12,25 @@ export default function Header({
       <div className="header__container">
         {user ? (
           <div className="header__user-menu">
-            <span className="header__welcome">Cześć, {user.firstName}!</span>
-            <span className="header__divider"> | </span>
+            <span className="header__welcome">
+              Cześć,{" "}
+              <span className="header__first-name">{user.firstName}</span>!
+            </span>
+            <div className="header__right">
+              <Link to="/kalendarz" className="header__link">
+                Kalendarz
+              </Link>
+              <Link to="/profil" className="header__link">
+                Moje Konto
+              </Link>
 
-            <Link to="/kalendarz" className="header__link">
-              Kalendarz
-            </Link>
-            <Link to="/profil" className="header__link">
-              Moje Konto
-            </Link>
-
-            <button
-              className="header__button header__button-logout"
-              onClick={onLogout}
-            >
-              Wyloguj się
-            </button>
+              <button
+                className="header__button header__button-logout"
+                onClick={onLogout}
+              >
+                Wyloguj się
+              </button>
+            </div>
           </div>
         ) : (
           <div className="header__auth">

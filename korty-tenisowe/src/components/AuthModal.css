@@ -24,6 +24,9 @@
   position: relative;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .modal__close {
@@ -45,25 +48,27 @@
 .modal__title {
   font-family: var(--serif-font);
   color: #152544;
-  font-size: 2rem;
+  font-size: clamp(1.5rem, -0.024rem + 7.619vw, 2rem);
   margin-bottom: 5px;
 }
 
 .modal__subtitle {
   color: #666;
-  font-size: 0.9rem;
+  font-size: clamp(0.85rem, 0.698rem + 0.762vw, 0.9rem);
   font-family: var(--sans-font);
-  margin-bottom: 30px;
+  margin-bottom: clamp(15px, calc(-30.714px + 14.286vw), 30px);
 }
 
 .modal__form {
   display: flex;
   flex-direction: column;
+  width: 100%;
   gap: 15px;
 }
 
 .modal__input {
-  padding: 12px 15px;
+  padding: clamp(6px, calc(-12.286px + 5.714vw), 12px)
+    clamp(12px, calc(2.857px + 2.857vw), 15px);
   border: 1px solid #ccc;
   border-radius: 3px;
   font-size: 1rem;
@@ -78,15 +83,15 @@
 
 .modal__submit {
   background-color: var(--color-primary);
-  color: var(--color-secoundary);
-  padding: 15px;
+  color: var(--color-secondary);
+  padding: clamp(12px, calc(2.857px + 2.857vw), 15px);
   border: none;
   border-radius: 3px;
   font-family: var(--sans-font);
   font-weight: 700;
   letter-spacing: 1px;
   cursor: pointer;
-  margin-top: 10px;
+  margin-top: clamp(5px, calc(-10.238px + 4.762vw), 10px);
   transition: background-color 0.3s;
 }
 

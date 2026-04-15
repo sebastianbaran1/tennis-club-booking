@@ -1,5 +1,5 @@
 .header {
-  background-color: var(--color-secoundary);
+  background-color: var(--color-secondary);
   color: white;
   padding: 10px 40px;
 }
@@ -11,6 +11,12 @@
   max-width: 1200px;
   width: 100%;
   margin: 0 auto;
+}
+.header__user-menu {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
 }
 
 .header__button,
@@ -50,9 +56,19 @@
 }
 
 .header__welcome {
-  padding-right: 5px;
   font-family: var(--sans-font);
   font-size: 1rem;
+}
+
+.header__first-name {
+  display: inline-block;
+  color: var(--color-primary);
+  font-weight: 700;
+  font-size: 1.08rem;
+  margin-right: 1px;
+}
+.header__first-name::first-letter {
+  text-transform: uppercase;
 }
 
 span.header__divider {
@@ -63,6 +79,16 @@ span.header__divider {
   .header__button {
     font-size: clamp(0.9rem, calc(0.829rem + 0.357vw), 1rem);
   }
+  .header__button-logout {
+    font-size: 1rem;
+  }
+  .header__welcome {
+    font-size: 0.9rem;
+  }
+  .header__welcome-first .header__button-logout {
+    font-size: 0.9rem;
+  }
+
   .header__button-register {
     padding: clamp(8px, calc(6.571px + 0.446vw), 10px)
       clamp(14px, calc(11.143px + 0.893vw), 18px);

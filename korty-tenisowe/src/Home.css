@@ -40,7 +40,7 @@
 
 .hero__button {
   background-color: var(--color-primary);
-  color: var(--color-secoundary);
+  color: var(--color-secondary);
   font-size: clamp(0.8rem, calc(0.632rem + 0.842vw), 1rem);
   padding: clamp(11px, calc(7.632px + 1.053vw), 15px)
     clamp(29px, calc(19.737px + 2.895vw), 40px);
@@ -67,7 +67,7 @@
   font-family: var(--serif-font);
   font-size: clamp(1.7rem, calc(1.026rem + 3.368vw), 2.5rem);
   margin-bottom: 50px;
-  color: var(--color-secoundary);
+  color: var(--color-secondary);
 }
 
 .features__grid {
@@ -93,7 +93,7 @@
 .features__grid-item-title {
   font-family: var(--serif-font);
   font-size: 1.7rem;
-  color: var(--color-secoundary);
+  color: var(--color-secondary);
   margin-bottom: 15px;
 }
 
@@ -115,7 +115,7 @@
   font-family: var(--serif-font);
   font-size: clamp(1.7rem, calc(1.026rem + 3.368vw), 2.5rem);
   margin-bottom: 50px;
-  color: var(--color-secoundary);
+  color: var(--color-secondary);
 }
 
 .staff__grid {
@@ -151,7 +151,7 @@
 .staff__grid-item-name {
   font-family: var(--serif-font);
   font-size: 1.3rem;
-  color: var(--color-secoundary);
+  color: var(--color-secondary);
   margin-bottom: 15px;
 }
 
