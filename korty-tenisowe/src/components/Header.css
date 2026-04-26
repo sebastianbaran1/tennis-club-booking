@@ -85,7 +85,8 @@ span.header__divider {
   .header__welcome {
     font-size: 0.9rem;
   }
-  .header__welcome-first .header__button-logout {
+  .header__first-name,
+  .header__button-logout {
     font-size: 0.9rem;
   }
 
@@ -95,5 +96,9 @@ span.header__divider {
   }
   .header {
     padding: 10px clamp(10px, calc(-11.429px + 6.696vw), 40px);
+  }
+  .header a {
+    display: none;
+    opacity: 0;
   }
 }

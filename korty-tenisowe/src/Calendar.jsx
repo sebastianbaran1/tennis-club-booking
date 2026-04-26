@@ -42,7 +42,7 @@ export default function Calendar() {
     const fetchDayData = async () => {
       try {
         const response = await fetch(
-          `http://localhost:5005/api/reservations?date=${selectedDate}`
+          `http://localhost:5005/api/reservations?date=${selectedDate}`,
         );
         const data = await response.json();
         if (response.ok) {
@@ -100,7 +100,7 @@ export default function Calendar() {
 
   const handleCancelReservation = async (reservationId) => {
     const confirm = window.confirm(
-      "Czy na pewno chcesz odwołać tę rezerwację?"
+      "Czy na pewno chcesz odwołać tę rezerwację?",
     );
     if (!confirm) return;
 
@@ -111,7 +111,7 @@ export default function Calendar() {
           method: "DELETE",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ userId: user.id }),
-        }
+        },
       );
 
       if (response.ok) {
@@ -187,13 +187,14 @@ export default function Calendar() {
                   key={`empty-${court.id}-${slotTime}`}
                   style={{ gridRow: rIndex + 2, gridColumn: cIndex + 2 }}
                   onClick={() =>
-                    !past && handleOpenBookingModal(court.id, slotTime)
+                    console.log("Kliknięto slot", court.id, slotTime) ||
+                    (!past && handleOpenBookingModal(court.id, slotTime))
                   }
                 >
                   {past ? "Minęło" : "+ Rezerwuj"}
                 </div>
               );
-            })
+            }),
           )}
 
           {reservations.map((res) => {
@@ -237,7 +238,7 @@ export default function Calendar() {
       </div>
 
       {bookingModal.isOpen && (
-        <div className="modal-overlay">
+        <div className="modal-overlay active">
           <div className="modal">
             <button
               className="modal__close"

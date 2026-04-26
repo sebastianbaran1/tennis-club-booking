@@ -34,7 +34,7 @@ function App() {
         } catch (error) {
           console.error(
             "Brak połączenia z serwerem podczas weryfikacji:",
-            error
+            error,
           );
         }
       }
@@ -106,10 +106,12 @@ function App() {
         onRegisterOpen={() => setIsRegisterOpen(true)}
       />
 
-      <Navbar />
+      <Navbar onLogout={handleLogout} />
+
       <div className="main-content">
         <Outlet context={{ user, setIsLoginOpen }} />
       </div>
+
       <Footer />
 
       <AuthModal

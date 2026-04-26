@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import UserNavigation from "./UserNavigation";
 import "./Navbar.css";
 import logo from "../assets/logo.png";
 
-export default function Navbar() {
+export default function Navbar({ onLogout }) {
   const [isOpen, setIsOpen] = useState(false);
   const toggleMenu = () => setIsOpen((prev) => !prev);
   const closeMenu = () => setIsOpen(false);
@@ -30,6 +31,7 @@ export default function Navbar() {
         </button>
 
         <ul className={`nav__menu ${isOpen ? "active" : ""}`}>
+          <UserNavigation onLogout={onLogout} />
           <li className="nav__menu-item">
             <Link to="/" className="nav__menu-item-link" onClick={closeMenu}>
               Strona główna

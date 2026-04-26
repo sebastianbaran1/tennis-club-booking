@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import UserNavigation from "./UserNavigation";
 import "./Header.css";
 
 export default function Header({
@@ -16,21 +17,8 @@ export default function Header({
               Cześć,{" "}
               <span className="header__first-name">{user.firstName}</span>!
             </span>
-            <div className="header__right">
-              <Link to="/kalendarz" className="header__link">
-                Kalendarz
-              </Link>
-              <Link to="/profil" className="header__link">
-                Moje Konto
-              </Link>
 
-              <button
-                className="header__button header__button-logout"
-                onClick={onLogout}
-              >
-                Wyloguj się
-              </button>
-            </div>
+            <UserNavigation onLogout={onLogout} />
           </div>
         ) : (
           <div className="header__auth">
