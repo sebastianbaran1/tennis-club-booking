@@ -18,7 +18,7 @@ export default function Header({
               <span className="header__first-name">{user.firstName}</span>!
             </span>
 
-            <UserNavigation onLogout={onLogout} />
+            <UserNavigation user={user} onLogout={onLogout} />
           </div>
         ) : (
           <div className="header__auth">

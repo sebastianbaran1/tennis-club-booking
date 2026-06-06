@@ -37,7 +37,6 @@ export default function Calendar() {
     const currentMinutes = now.getHours() * 60 + now.getMinutes();
     return timeToMinutes(slotTime) <= currentMinutes;
   };
-
   useEffect(() => {
     const fetchDayData = async () => {
       try {

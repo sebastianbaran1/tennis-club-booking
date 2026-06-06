@@ -4,7 +4,7 @@ import UserNavigation from "./UserNavigation";
 import "./Navbar.css";
 import logo from "../assets/logo.png";
 
-export default function Navbar({ onLogout }) {
+export default function Navbar({ user, onLogout }) {
   const [isOpen, setIsOpen] = useState(false);
   const toggleMenu = () => setIsOpen((prev) => !prev);
   const closeMenu = () => setIsOpen(false);
@@ -31,7 +31,12 @@ export default function Navbar({ onLogout }) {
         </button>
 
         <ul className={`nav__menu ${isOpen ? "active" : ""}`}>
-          <UserNavigation onLogout={onLogout} />
+          <UserNavigation
+            user={user}
+            onLogout={onLogout}
+            closeMenu={closeMenu}
+          />
+          <li className="nav__menu-separator"></li>
           <li className="nav__menu-item">
             <Link to="/" className="nav__menu-item-link" onClick={closeMenu}>
               Strona główna

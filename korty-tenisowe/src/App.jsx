@@ -106,7 +106,7 @@ function App() {
         onRegisterOpen={() => setIsRegisterOpen(true)}
       />
 
-      <Navbar onLogout={handleLogout} />
+      <Navbar user={user} onLogout={handleLogout} />
 
       <div className="main-content">
         <Outlet context={{ user, setIsLoginOpen }} />
