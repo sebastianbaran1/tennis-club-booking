@@ -37,6 +37,7 @@ export default function Calendar() {
     const currentMinutes = now.getHours() * 60 + now.getMinutes();
     return timeToMinutes(slotTime) <= currentMinutes;
   };
+
   useEffect(() => {
     const fetchDayData = async () => {
       try {
@@ -129,19 +130,43 @@ export default function Calendar() {
     return (timeToMinutes(time) - startMin) / 30 + 2;
   };
 
+  const courtOptions = [];
+  for (let i = 0; i < courts.length; i += 4) {
+    let poczatek = i + 1;
+    let koniec = poczatek + 3;
+    if (koniec > courts.length) {
+      koniec = courts.length;
+    }
+    courtOptions.push(
+      <option value={`korty-${i}`}>
+        Korty {poczatek} - {koniec}
+      </option>,
+    );
+  }
+
   return (
     <div className="calendar-container">
       <h1 className="calendar-title">Kalendarz Rezerwacji</h1>
 
       <div className="calendar-controls">
-        <label className="calendar-date-label">Wybierz dzień: </label>
+        <label className="calendar-date-label" htmlFor="date-input">
+          Wybierz dzień:{" "}
+        </label>
         <input
           type="date"
           value={selectedDate}
           min={todayStr}
           onChange={(e) => setSelectedDate(e.target.value)}
           className="calendar-date-input"
+          id="date-input"
         />
+        <label className="calendar-court-label" htmlFor="court-select">
+          Wybierz korty:{" "}
+        </label>
+        <select name="calendar-court-select" id="court-select">
+          <option value="">Wybierz korty:</option>
+          {courtOptions}
+        </select>
       </div>
 
       <div className="calendar-grid-wrapper">
@@ -185,10 +210,10 @@ export default function Calendar() {
                   className={`empty-slot ${past ? "slot-past" : ""}`}
                   key={`empty-${court.id}-${slotTime}`}
                   style={{ gridRow: rIndex + 2, gridColumn: cIndex + 2 }}
-                  onClick={() =>
-                    console.log("Kliknięto slot", court.id, slotTime) ||
-                    (!past && handleOpenBookingModal(court.id, slotTime))
-                  }
+                  onClick={() => {
+                    console.log("Kliknięto slot", court.id, slotTime);
+                    !past && handleOpenBookingModal(court.id, slotTime);
+                  }}
                 >
                   {past ? "Minęło" : "+ Rezerwuj"}
                 </div>
@@ -207,9 +232,7 @@ export default function Calendar() {
 
             return (
               <div
-                className={`reservation-block ${
-                  isMyRes ? "res-mine" : "res-taken"
-                }`}
+                className={`reservation-block ${isMyRes ? "res-mine" : "res-taken"}`}
                 key={`res-${res.id}`}
                 style={{
                   gridRow: `${rowStart} / span ${rowSpan}`,
