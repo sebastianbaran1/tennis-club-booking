@@ -23,6 +23,8 @@ export default function Calendar() {
   const [reservations, setReservations] = useState([]);
   const todayStr = new Date().toISOString().split("T")[0];
   const [selectedDate, setSelectedDate] = useState(todayStr);
+  const [selectedCourtIndex, setSelectedCourtIndex] = useState();
+  const [courtsPerPage, setCourtsPerPage] = useState();
   const [bookingModal, setBookingModal] = useState({
     isOpen: false,
     courtId: null,
@@ -37,6 +39,25 @@ export default function Calendar() {
     const currentMinutes = now.getHours() * 60 + now.getMinutes();
     return timeToMinutes(slotTime) <= currentMinutes;
   };
+
+  useEffect(() => {
+    const handleResize = () => {
+      const width = window.innerWidth;
+      if (width < 425) {
+        setCourtsPerPage(1);
+      } else if (width >= 425 && width < 768) {
+        setCourtsPerPage(2);
+      } else {
+        setCourtsPerPage(4);
+      }
+    };
+    handleResize();
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
 
   useEffect(() => {
     const fetchDayData = async () => {
@@ -131,19 +152,26 @@ export default function Calendar() {
   };
 
   const courtOptions = [];
-  for (let i = 0; i < courts.length; i += 4) {
-    let poczatek = i + 1;
-    let koniec = poczatek + 3;
-    if (koniec > courts.length) {
-      koniec = courts.length;
+  for (let i = 0; i < courts.length; i += courtsPerPage) {
+    let start = i + 1;
+    let end = start + courtsPerPage - 1;
+    if (end > courts.length) {
+      end = courts.length;
     }
     courtOptions.push(
-      <option value={`korty-${i}`}>
-        Korty {poczatek} - {koniec}
+      <option key={`korty-${i}`} value={i}>
+        {start === end ? `Kort ${start}` : `Korty ${start} - ${end}`}
       </option>,
     );
   }
-
+  const visibleCourts = courts.slice(
+    selectedCourtIndex,
+    selectedCourtIndex + courtsPerPage,
+  );
+  console.log(courts);
+  // console.log(courtsPerPage);
+  console.log(visibleCourts);
+  //console.log(selectedCourtIndex);
   return (
     <div className="calendar-container">
       <h1 className="calendar-title">Kalendarz Rezerwacji</h1>
@@ -163,7 +191,11 @@ export default function Calendar() {
         <label className="calendar-court-label" htmlFor="court-select">
           Wybierz korty:{" "}
         </label>
-        <select name="calendar-court-select" id="court-select">
+        <select
+          name="calendar-court-select"
+          id="court-select"
+          onChange={(e) => setSelectedCourtIndex(Number(e.target.value))}
+        >
           <option value="">Wybierz korty:</option>
           {courtOptions}
         </select>
@@ -172,7 +204,7 @@ export default function Calendar() {
       <div className="calendar-grid-wrapper">
         <div
           className="calendar-grid"
-          style={{ "--court-count": courts.length }}
+          style={{ "--court-count": visibleCourts.length }}
         >
           <div
             className="grid-header grid-header-hour"
@@ -181,7 +213,7 @@ export default function Calendar() {
             Godzina
           </div>
 
-          {courts?.map((court, index) => (
+          {visibleCourts?.map((court, index) => (
             <div
               className="grid-header"
               key={court.id}
@@ -203,7 +235,7 @@ export default function Calendar() {
           ))}
 
           {timeSlots.map((slotTime, rIndex) =>
-            courts?.map((court, cIndex) => {
+            visibleCourts?.map((court, cIndex) => {
               const past = isPastSlot(slotTime);
               return (
                 <div
@@ -224,7 +256,8 @@ export default function Calendar() {
           {reservations.map((res) => {
             const rowStart = getRowIndex(res.startTime);
             const rowSpan = res.duration / 30;
-            const colIndex = courts.findIndex((c) => c.id === res.courtId) + 2;
+            const colIndex =
+              visibleCourts.findIndex((c) => c.id === res.courtId) + 2;
 
             const isMyRes = res.userId === user.id;
             const isAdmin = user.role === "ADMIN";
