@@ -23,7 +23,7 @@ export default function Calendar() {
   const [reservations, setReservations] = useState([]);
   const todayStr = new Date().toISOString().split("T")[0];
   const [selectedDate, setSelectedDate] = useState(todayStr);
-  const [selectedCourtIndex, setSelectedCourtIndex] = useState();
+  const [selectedCourtIndex, setSelectedCourtIndex] = useState(0);
   const [courtsPerPage, setCourtsPerPage] = useState();
   const [bookingModal, setBookingModal] = useState({
     isOpen: false,
@@ -51,6 +51,7 @@ export default function Calendar() {
         setCourtsPerPage(4);
       }
     };
+
     handleResize();
     window.addEventListener("resize", handleResize);
 
@@ -58,6 +59,14 @@ export default function Calendar() {
       window.removeEventListener("resize", handleResize);
     };
   }, []);
+
+  useEffect(() => {
+    if (!courtsPerPage) return;
+
+    setSelectedCourtIndex((prev) => {
+      return Math.floor(prev / courtsPerPage) * courtsPerPage;
+    });
+  }, [courtsPerPage]);
 
   useEffect(() => {
     const fetchDayData = async () => {
@@ -168,37 +177,38 @@ export default function Calendar() {
     selectedCourtIndex,
     selectedCourtIndex + courtsPerPage,
   );
-  console.log(courts);
-  // console.log(courtsPerPage);
-  console.log(visibleCourts);
-  //console.log(selectedCourtIndex);
+
   return (
     <div className="calendar-container">
       <h1 className="calendar-title">Kalendarz Rezerwacji</h1>
 
       <div className="calendar-controls">
-        <label className="calendar-date-label" htmlFor="date-input">
-          Wybierz dzień:{" "}
-        </label>
-        <input
-          type="date"
-          value={selectedDate}
-          min={todayStr}
-          onChange={(e) => setSelectedDate(e.target.value)}
-          className="calendar-date-input"
-          id="date-input"
-        />
-        <label className="calendar-court-label" htmlFor="court-select">
-          Wybierz korty:{" "}
-        </label>
-        <select
-          name="calendar-court-select"
-          id="court-select"
-          onChange={(e) => setSelectedCourtIndex(Number(e.target.value))}
-        >
-          <option value="">Wybierz korty:</option>
-          {courtOptions}
-        </select>
+        <div className="calendar-date-wrapper">
+          <label className="calendar-date-label" htmlFor="date-input">
+            Wybierz dzień:{" "}
+          </label>
+          <input
+            type="date"
+            value={selectedDate}
+            min={todayStr}
+            onChange={(e) => setSelectedDate(e.target.value)}
+            className="calendar-date-input"
+            id="date-input"
+          />
+        </div>
+        <div className="calendar-court-wrapper">
+          <label className="calendar-court-label" htmlFor="court-select">
+            Wybierz korty:{" "}
+          </label>
+          <select
+            className="calendar-court-select"
+            id="court-select"
+            value={selectedCourtIndex}
+            onChange={(e) => setSelectedCourtIndex(Number(e.target.value))}
+          >
+            {courtOptions}
+          </select>
+        </div>
       </div>
 
       <div className="calendar-grid-wrapper">
@@ -243,7 +253,6 @@ export default function Calendar() {
                   key={`empty-${court.id}-${slotTime}`}
                   style={{ gridRow: rIndex + 2, gridColumn: cIndex + 2 }}
                   onClick={() => {
-                    console.log("Kliknięto slot", court.id, slotTime);
                     !past && handleOpenBookingModal(court.id, slotTime);
                   }}
                 >
