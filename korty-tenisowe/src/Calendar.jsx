@@ -25,6 +25,15 @@ export default function Calendar() {
   const [selectedDate, setSelectedDate] = useState(todayStr);
   const [selectedCourtIndex, setSelectedCourtIndex] = useState(0);
   const [courtsPerPage, setCourtsPerPage] = useState();
+  const [adminTab, setAdminTab] = useState("");
+  const [searchClient, setSearchClient] = useState("");
+  const [selectedClientId, setSelectedClientId] = useState();
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [clientList, setClientList] = useState([
+    { id: 1, firstName: "Jan", lastName: "Kowalski", phone: "500-111-222" },
+    { id: 2, firstName: "Janek", lastName: "Jankowski", phone: "600-222-333" },
+    { id: 3, firstName: "Janusz", lastName: "Nowak", phone: "700-333-444" },
+  ]);
   const [bookingModal, setBookingModal] = useState({
     isOpen: false,
     courtId: null,
@@ -113,13 +122,11 @@ export default function Calendar() {
         }),
       });
       const data = await response.json();
-
+      console.log(startTime);
+      console.log(data);
       if (response.ok) {
         setBookingModal({ isOpen: false, courtId: null, startTime: null });
-        setReservations([
-          ...reservations,
-          { ...data.reservation, user: { firstName: user.firstName } },
-        ]);
+        setReservations([...reservations, { ...data.reservation }]);
       } else {
         alert(data.error);
       }
@@ -127,7 +134,8 @@ export default function Calendar() {
       alert("Błąd połączenia z serwerem.");
     }
   };
-
+  console.log(reservations);
+  console.log(user);
   const handleCancelReservation = async (reservationId) => {
     const confirm = window.confirm(
       "Czy na pewno chcesz odwołać tę rezerwację?",
@@ -159,7 +167,6 @@ export default function Calendar() {
     const startMin = timeToMinutes("08:00");
     return (timeToMinutes(time) - startMin) / 30 + 2;
   };
-
   const courtOptions = [];
   for (let i = 0; i < courts.length; i += courtsPerPage) {
     let start = i + 1;
@@ -318,13 +325,97 @@ export default function Calendar() {
             </button>
             <h2 className="modal__title">Potwierdź rezerwację</h2>
             <p className="modal__subtitle">
-              Rezerwujesz kort od{" "}
+              Rezerwujesz{" "}
+              <span className="modal__court-highlight">
+                {courts.find((c) => c.id === bookingModal.courtId)?.name}
+              </span>{" "}
+              od{" "}
               <span className="modal__time-highlight">
                 {bookingModal.startTime}
               </span>{" "}
               ({selectedDate}).
             </p>
             <form className="modal__form" onSubmit={confirmBooking}>
+              {user.role === "ADMIN" && (
+                <div className="modal__form-admin">
+                  <button
+                    type="button"
+                    className={`admin-tabs ${adminTab === "existing" ? "active" : ""}`}
+                    onClick={() => setAdminTab("existing")}
+                  >
+                    Klient z bazy
+                  </button>
+                  <button
+                    type="button"
+                    className={`admin-tabs ${adminTab === "new" ? "active" : ""}`}
+                    onClick={() => setAdminTab("new")}
+                  >
+                    Nowy klient
+                  </button>
+                  {adminTab === "existing" && (
+                    <div className="tabs-existing-wrapper">
+                      <div className="tabs-existing-clients">
+                        <label htmlFor="admin-clients-input">
+                          Wyszukaj klienta:
+                        </label>
+                        <input
+                          type="text"
+                          id="admin-clients-input"
+                          className="admin-clients-input"
+                          value={searchClient}
+                          onChange={(e) => {
+                            setSearchClient(e.target.value);
+                            setIsDropdownOpen(true);
+                          }}
+                        />
+                        {isDropdownOpen === true && (
+                          <div className="admin-dropdown-wrapper">
+                            <ul className="admin-dropdown-list">
+                              {searchClient !== "" &&
+                                clientList
+                                  .filter((client) => {
+                                    const fullName =
+                                      `${client.firstName} ${client.lastName} ${client.phone}`.toLowerCase();
+                                    return fullName.includes(
+                                      searchClient.toLowerCase(),
+                                    );
+                                  })
+                                  .map((client) => (
+                                    <li
+                                      key={client.id}
+                                      className="dropdown-client"
+                                      onClick={() => {
+                                        setSelectedClientId(client.id);
+                                        setSearchClient(
+                                          `${client.firstName} ${client.lastName} ${client.phone}`,
+                                        );
+                                        setIsDropdownOpen(false);
+                                      }}
+                                    >
+                                      <div className="dropdown-client-info">
+                                        {client.firstName} {client.lastName}{" "}
+                                        {client.phone}
+                                      </div>
+                                    </li>
+                                  ))}
+                              {clientList.filter((client) => {
+                                const fullName =
+                                  `${client.firstName} ${client.lastName} ${client.phone}`.toLowerCase();
+                                return fullName.includes(
+                                  searchClient.toLowerCase(),
+                                );
+                              }).length === 0 && (
+                                <li className="dropdown-empty">Brak wyników</li>
+                              )}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                  {adminTab === "new" && <div>new</div>}
+                </div>
+              )}
               <div className="modal__form-group">
                 <label className="modal__form-label">Czas trwania gry:</label>
                 <div className="modal__radio-group">
@@ -348,6 +439,7 @@ export default function Calendar() {
                   </label>
                 </div>
               </div>
+
               <button type="submit" className="modal__submit">
                 Zarezerwuj i graj!
               </button>

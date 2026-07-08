@@ -121,21 +121,19 @@
 }
 
 .res-mine {
-  background-color: #c6f6d5;
+  background-color: #93f0b0;
   color: #22543d;
-  border-left: 4px solid #48bb78;
   cursor: pointer;
 }
 
 .res-mine:hover {
   transform: scale(0.98);
-  background-color: #9ae6b4;
+  background-color: #86d9a3;
 }
 
 .res-taken {
   background-color: #fed7d7;
   color: #822727;
-  border-left: 4px solid #f56565;
   cursor: not-allowed;
 }
 
@@ -147,7 +145,6 @@
   margin-bottom: 20px;
   text-align: left;
   padding: 15px;
-  background: #f8f9fa;
   border-radius: 8px;
   font-family: var(--sans-font);
   font-size: 1rem;
@@ -169,10 +166,12 @@
   cursor: pointer;
   display: flex;
   align-items: center;
+  font-size: clamp(0.85rem, 0.37rem + 2.4vw, 1rem);
   gap: 8px;
   color: #4a5568;
 }
-.modal__time-highlight {
+.modal__time-highlight,
+.modal__court-highlight {
   font-weight: 700;
   color: #2c3e50;
 }
