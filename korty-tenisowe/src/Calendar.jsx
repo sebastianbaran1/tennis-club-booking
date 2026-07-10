@@ -25,10 +25,16 @@ export default function Calendar() {
   const [selectedDate, setSelectedDate] = useState(todayStr);
   const [selectedCourtIndex, setSelectedCourtIndex] = useState(0);
   const [courtsPerPage, setCourtsPerPage] = useState();
-  const [adminTab, setAdminTab] = useState("");
+  const [adminTab, setAdminTab] = useState("existing");
   const [searchClient, setSearchClient] = useState("");
-  const [selectedClientId, setSelectedClientId] = useState();
+  const [selectedClientId, setSelectedClientId] = useState(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [newClient, setNewClient] = useState({
+    firstName: "",
+    lastName: "",
+    phone: "",
+    email: "",
+  });
   const [clientList, setClientList] = useState([
     { id: 1, firstName: "Jan", lastName: "Kowalski", phone: "500-111-222" },
     { id: 2, firstName: "Janek", lastName: "Jankowski", phone: "600-222-333" },
@@ -103,12 +109,29 @@ export default function Calendar() {
 
   const handleOpenBookingModal = (courtId, startTime) => {
     setBookingModal({ isOpen: true, courtId, startTime });
+    setSearchClient("");
+    setNewClient({
+      firstName: "",
+      lastName: "",
+      phone: "",
+      email: "",
+    });
+    setSelectedClientId(null);
     setBookingDuration(60);
   };
 
   const confirmBooking = async (e) => {
     e.preventDefault();
+
     const { courtId, startTime } = bookingModal;
+    const userId =
+      adminTab == "existing" ? (selectedClientId ?? user.id) : null;
+
+    if (isAdminSelectionInvalid) {
+      alert("Wybierz klienta z rozwijanej listy!");
+      return;
+    }
+
     try {
       const response = await fetch("http://localhost:5005/api/reservations", {
         method: "POST",
@@ -118,7 +141,8 @@ export default function Calendar() {
           date: selectedDate,
           startTime,
           duration: bookingDuration,
-          userId: user.id,
+          userId,
+          newClient,
         }),
       });
       const data = await response.json();
@@ -126,6 +150,7 @@ export default function Calendar() {
       console.log(data);
       if (response.ok) {
         setBookingModal({ isOpen: false, courtId: null, startTime: null });
+        setSelectedClientId(null);
         setReservations([...reservations, { ...data.reservation }]);
       } else {
         alert(data.error);
@@ -184,6 +209,9 @@ export default function Calendar() {
     selectedCourtIndex,
     selectedCourtIndex + courtsPerPage,
   );
+
+  const isAdminSelectionInvalid =
+    user.role === "ADMIN" && adminTab === "existing" && !selectedClientId;
 
   return (
     <div className="calendar-container">
@@ -341,14 +369,34 @@ export default function Calendar() {
                   <button
                     type="button"
                     className={`admin-tabs ${adminTab === "existing" ? "active" : ""}`}
-                    onClick={() => setAdminTab("existing")}
+                    onClick={() => {
+                      setAdminTab("existing");
+                      setSearchClient("");
+                      setSelectedClientId(null);
+                      setNewClient({
+                        firstName: "",
+                        lastName: "",
+                        phone: "",
+                        email: "",
+                      });
+                    }}
                   >
                     Klient z bazy
                   </button>
                   <button
                     type="button"
                     className={`admin-tabs ${adminTab === "new" ? "active" : ""}`}
-                    onClick={() => setAdminTab("new")}
+                    onClick={() => {
+                      setAdminTab("new");
+                      setSearchClient("");
+                      setSelectedClientId(null);
+                      setNewClient({
+                        firstName: "",
+                        lastName: "",
+                        phone: "",
+                        email: "",
+                      });
+                    }}
                   >
                     Nowy klient
                   </button>
@@ -362,10 +410,15 @@ export default function Calendar() {
                           type="text"
                           id="admin-clients-input"
                           className="admin-clients-input"
+                          required
                           value={searchClient}
                           onChange={(e) => {
                             setSearchClient(e.target.value);
                             setIsDropdownOpen(true);
+                          }}
+                          onFocus={() => {
+                            setSearchClient("");
+                            setSelectedClientId(null);
                           }}
                         />
                         {isDropdownOpen === true && (
@@ -413,7 +466,78 @@ export default function Calendar() {
                       </div>
                     </div>
                   )}
-                  {adminTab === "new" && <div>new</div>}
+                  {adminTab === "new" && (
+                    <div className="tabs-new-wrapper">
+                      <div className="tabs-new-client">
+                        <label htmlFor="new-client-input-firstname">Imię</label>
+                        <input
+                          type="text"
+                          id="new-client-input-firstname"
+                          className="new-client-input"
+                          required
+                          value={newClient.firstName}
+                          onChange={(e) =>
+                            setNewClient({
+                              ...newClient,
+                              firstName: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
+                      <div className="tabs-new-client">
+                        <label htmlFor="new-client-input-lastname">
+                          Nazwisko
+                        </label>
+                        <input
+                          type="text"
+                          id="new-client-input-lastname"
+                          className="new-client-input"
+                          required
+                          value={newClient.lastName}
+                          onChange={(e) =>
+                            setNewClient({
+                              ...newClient,
+                              lastName: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
+                      <div className="tabs-new-client">
+                        <label htmlFor="new-client-input-phone">
+                          Numer Telefonu
+                        </label>
+                        <input
+                          type="tel"
+                          id="new-client-input-phone"
+                          className="new-client-input"
+                          required
+                          value={newClient.phone}
+                          onChange={(e) =>
+                            setNewClient({
+                              ...newClient,
+                              phone: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
+                      <div className="tabs-new-client">
+                        <label htmlFor="new-client-input-email">E-mail</label>
+                        <input
+                          type="email"
+                          id="new-client-input-email"
+                          className="new-client-input"
+                          required
+                          value={newClient.email}
+                          onChange={(e) =>
+                            setNewClient({
+                              ...newClient,
+                              email: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
               <div className="modal__form-group">
@@ -440,8 +564,17 @@ export default function Calendar() {
                 </div>
               </div>
 
-              <button type="submit" className="modal__submit">
-                Zarezerwuj i graj!
+              <button
+                type="submit"
+                className="modal__submit"
+                onClick={(e) => {
+                  if (isAdminSelectionInvalid) {
+                    e.preventDefault();
+                    alert("Proszę wybrać klienta z listy!");
+                  }
+                }}
+              >
+                {user.role === "ADMIN" ? "Zarezerwuj" : "Zarezerwuj i graj!"}
               </button>
             </form>
           </div>

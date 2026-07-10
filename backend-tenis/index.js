@@ -16,6 +16,11 @@ const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
+const timeToMinutes = (timeString) => {
+  const [hours, minutes] = timeString.split(":").map(Number);
+  return hours * 60 + minutes;
+};
+
 app.use(cors());
 app.use(express.json());
 
@@ -88,7 +93,7 @@ app.post("/api/login", async (req, res) => {
     const token = jwt.sign(
       { userId: user.id, email: user.email },
       process.env.JWT_SECRET,
-      { expiresIn: "24h" }
+      { expiresIn: "24h" },
     );
 
     res.status(200).json({
@@ -139,11 +144,6 @@ app.get("/api/verify", async (req, res) => {
   }
 });
 
-const timeToMinutes = (timeString) => {
-  const [hours, minutes] = timeString.split(":").map(Number);
-  return hours * 60 + minutes;
-};
-
 app.get("/api/reservations", async (req, res) => {
   const { date } = req.query;
 
@@ -168,7 +168,7 @@ app.post("/api/reservations", async (req, res) => {
   try {
     const now = new Date();
     const polishTime = new Date(
-      now.toLocaleString("en-US", { timeZone: "Europe/Warsaw" })
+      now.toLocaleString("en-US", { timeZone: "Europe/Warsaw" }),
     );
 
     const todayStr = polishTime.toISOString().split("T")[0];
@@ -204,12 +204,10 @@ app.post("/api/reservations", async (req, res) => {
     });
 
     if (hasCollision) {
-      return res
-        .status(400)
-        .json({
-          error:
-            "Niestety, ten termin nakłada się na inną rezerwację na tym korcie.",
-        });
+      return res.status(400).json({
+        error:
+          "Niestety, ten termin nakłada się na inną rezerwację na tym korcie.",
+      });
     }
 
     const newReservation = await prisma.reservation.create({
