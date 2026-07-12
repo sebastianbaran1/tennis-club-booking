@@ -35,11 +35,7 @@ export default function Calendar() {
     phone: "",
     email: "",
   });
-  const [clientList, setClientList] = useState([
-    { id: 1, firstName: "Jan", lastName: "Kowalski", phone: "500-111-222" },
-    { id: 2, firstName: "Janek", lastName: "Jankowski", phone: "600-222-333" },
-    { id: 3, firstName: "Janusz", lastName: "Nowak", phone: "700-333-444" },
-  ]);
+  const [clientList, setClientList] = useState([]);
   const [bookingModal, setBookingModal] = useState({
     isOpen: false,
     courtId: null,
@@ -73,6 +69,23 @@ export default function Calendar() {
     return () => {
       window.removeEventListener("resize", handleResize);
     };
+  }, []);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const response = await fetch(`http://localhost:5005/api/users`);
+        const data = await response.json();
+        if (response.ok) {
+          setClientList(data.users || []);
+        } else {
+          setClientList([]);
+        }
+      } catch (error) {
+        setClientList([]);
+      }
+    };
+    fetchUsers();
   }, []);
 
   useEffect(() => {
@@ -159,8 +172,7 @@ export default function Calendar() {
       alert("Błąd połączenia z serwerem.");
     }
   };
-  console.log(reservations);
-  console.log(user);
+
   const handleCancelReservation = async (reservationId) => {
     const confirm = window.confirm(
       "Czy na pewno chcesz odwołać tę rezerwację?",

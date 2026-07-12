@@ -32,18 +32,42 @@ app.post("/api/register", async (req, res) => {
   try {
     const { email, password, firstName, lastName, phone } = req.body;
 
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+
     const existingUser = await prisma.user.findUnique({
       where: { email },
     });
 
     if (existingUser) {
+      if (existingUser.role === "GUEST") {
+        const guestToUser = await prisma.user.update({
+          where: { id: existingUser.id },
+          data: { password: hashedPassword, role: "USER" },
+        });
+
+        const token = jwt.sign(
+          { userId: guestToUser.id, email: guestToUser.email },
+          process.env.JWT_SECRET,
+          { expiresIn: "24h" },
+        );
+
+        return res.status(201).json({
+          message: "Rejestracja przebiegla pomyslnie!",
+          token,
+          user: {
+            id: guestToUser.id,
+            email: guestToUser.email,
+            firstName: guestToUser.firstName,
+            role: guestToUser.role,
+          },
+        });
+      }
+
       return res
         .status(400)
-        .json({ error: "Użytkownik z tym adresem e-mail już istnieje." });
+        .json({ error: "Uzytkownik z tym adresem e-mail juz istnieje" });
     }
-
-    const saltRounds = 10;
-    const hashedPassword = await bcrypt.hash(password, saltRounds);
 
     const newUser = await prisma.user.create({
       data: {
@@ -55,11 +79,20 @@ app.post("/api/register", async (req, res) => {
       },
     });
 
+    const token = jwt.sign(
+      { userId: newUser.id, email: newUser.email },
+      process.env.JWT_SECRET,
+      { expiresIn: "24h" },
+    );
+
     res.status(201).json({
+      message: "Rejestracja przebiegla pomyslnie!",
+      token,
       user: {
         id: newUser.id,
         email: newUser.email,
         firstName: newUser.firstName,
+        role: newUser.role,
       },
     });
   } catch (error) {
@@ -163,7 +196,7 @@ app.get("/api/reservations", async (req, res) => {
 });
 
 app.post("/api/reservations", async (req, res) => {
-  const { courtId, date, startTime, duration, userId } = req.body;
+  const { courtId, date, startTime, duration, userId, newClient } = req.body;
 
   try {
     const now = new Date();
@@ -210,13 +243,39 @@ app.post("/api/reservations", async (req, res) => {
       });
     }
 
+    let finalUserId = userId;
+
+    if (userId === null) {
+      const existingUser = await prisma.user.findFirst({
+        where: {
+          email: newClient.email,
+        },
+      });
+
+      if (existingUser !== null) {
+        return res.status(400).json({
+          error: "Taki uzytkownik juz istnieje, uzyj zakladki klient z bazy",
+        });
+      }
+      const guestData = await prisma.user.create({
+        data: {
+          role: "GUEST",
+          phone: newClient.phone,
+          firstName: newClient.firstName,
+          lastName: newClient.lastName,
+          email: newClient.email,
+        },
+      });
+      finalUserId = guestData.id;
+    }
+
     const newReservation = await prisma.reservation.create({
       data: {
         courtId: parseInt(courtId),
         date,
         startTime,
         duration: parseInt(duration),
-        userId: parseInt(userId),
+        userId: parseInt(finalUserId),
       },
     });
 
@@ -262,6 +321,17 @@ app.delete("/api/reservations/:id", async (req, res) => {
     res.json({ message: "Rezerwacja została anulowana." });
   } catch (error) {
     res.status(500).json({ error: "Wystąpił błąd serwera podczas usuwania." });
+  }
+});
+
+app.get("/api/users", async (req, res) => {
+  try {
+    const users = await prisma.user.findMany({
+      select: { id: true, firstName: true, lastName: true, phone: true },
+    });
+    res.json({ users });
+  } catch (error) {
+    res.status(500).json({ error: "Błąd pobierania uzytkownikow" });
   }
 });
 

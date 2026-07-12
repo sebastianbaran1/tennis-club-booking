@@ -88,6 +88,8 @@ function App() {
       const data = await response.json();
 
       if (response.ok) {
+        localStorage.setItem("token", data.token);
+        setUser(data.user);
         setIsRegisterOpen(false);
       } else {
         alert("Błąd: " + data.error);
