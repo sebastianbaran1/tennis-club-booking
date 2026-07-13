@@ -50,6 +50,9 @@ export default function Calendar() {
     const currentMinutes = now.getHours() * 60 + now.getMinutes();
     return timeToMinutes(slotTime) <= currentMinutes;
   };
+  const isTooLate = (slotTime) => {
+    return timeToMinutes(slotTime) > timeToMinutes("21:00");
+  };
 
   useEffect(() => {
     const handleResize = () => {
@@ -129,6 +132,7 @@ export default function Calendar() {
       phone: "",
       email: "",
     });
+    setIsDropdownOpen(true);
     setSelectedClientId(null);
     setBookingDuration(60);
   };
@@ -294,57 +298,62 @@ export default function Calendar() {
           {timeSlots.map((slotTime, rIndex) =>
             visibleCourts?.map((court, cIndex) => {
               const past = isPastSlot(slotTime);
+              const late = isTooLate(slotTime);
               return (
                 <div
-                  className={`empty-slot ${past ? "slot-past" : ""}`}
+                  className={`empty-slot ${past ? "slot-past" : ""} ${late ? "slot-late" : ""}`}
                   key={`empty-${court.id}-${slotTime}`}
                   style={{ gridRow: rIndex + 2, gridColumn: cIndex + 2 }}
                   onClick={() => {
-                    !past && handleOpenBookingModal(court.id, slotTime);
+                    !past &&
+                      !late &&
+                      handleOpenBookingModal(court.id, slotTime);
                   }}
                 >
-                  {past ? "Minęło" : "+ Rezerwuj"}
+                  {past ? "Minęło" : late ? "Zbyt późno" : "+ Rezerwuj"}
                 </div>
               );
             }),
           )}
 
-          {reservations.map((res) => {
-            const rowStart = getRowIndex(res.startTime);
-            const rowSpan = res.duration / 30;
-            const colIndex =
-              visibleCourts.findIndex((c) => c.id === res.courtId) + 2;
+          {reservations
+            .filter((res) => visibleCourts.some((c) => c.id === res.courtId))
+            .map((res) => {
+              const rowStart = getRowIndex(res.startTime);
+              const rowSpan = res.duration / 30;
+              const colIndex =
+                visibleCourts.findIndex((c) => c.id === res.courtId) + 2;
 
-            const isMyRes = res.userId === user.id;
-            const isAdmin = user.role === "ADMIN";
-            const canCancel = isMyRes || isAdmin;
+              const isMyRes = res.userId === user.id;
+              const isAdmin = user.role === "ADMIN";
+              const canCancel = isMyRes || isAdmin;
 
-            return (
-              <div
-                className={`reservation-block ${isMyRes ? "res-mine" : "res-taken"}`}
-                key={`res-${res.id}`}
-                style={{
-                  gridRow: `${rowStart} / span ${rowSpan}`,
-                  gridColumn: colIndex,
-                  cursor: canCancel ? "pointer" : "not-allowed",
-                }}
-                onClick={() => canCancel && handleCancelReservation(res.id)}
-              >
-                <span>{isMyRes ? "Twoja gra" : "Zajęte"}</span>
+              return (
+                <div
+                  className={`reservation-block ${isMyRes ? "res-mine" : "res-taken"}`}
+                  key={`res-${res.id}`}
+                  style={{
+                    gridRow: `${rowStart} / span ${rowSpan}`,
+                    gridColumn: colIndex,
+                    cursor: canCancel ? "pointer" : "not-allowed",
+                  }}
+                  onClick={() => canCancel && handleCancelReservation(res.id)}
+                >
+                  <span>{isMyRes ? "Twoja gra" : "Zajęte"}</span>
 
-                {isAdmin ? (
-                  <span className="reservation-admin-details">
-                    {res.user?.firstName} {res.user?.lastName} <br />
-                    Nr. tel: {res.user?.phone}
-                  </span>
-                ) : (
-                  <span className="reservation-user-details">
-                    {isMyRes ? "(kliknij by usunąć)" : res.user?.firstName}
-                  </span>
-                )}
-              </div>
-            );
-          })}
+                  {isAdmin ? (
+                    <span className="reservation-admin-details">
+                      {res.user?.firstName} {res.user?.lastName} <br />
+                      Nr. tel: {res.user?.phone}
+                    </span>
+                  ) : (
+                    <span className="reservation-user-details">
+                      {isMyRes ? "(kliknij by usunąć)" : res.user?.firstName}
+                    </span>
+                  )}
+                </div>
+              );
+            })}
         </div>
       </div>
 
@@ -378,51 +387,54 @@ export default function Calendar() {
             <form className="modal__form" onSubmit={confirmBooking}>
               {user.role === "ADMIN" && (
                 <div className="modal__form-admin">
-                  <button
-                    type="button"
-                    className={`admin-tabs ${adminTab === "existing" ? "active" : ""}`}
-                    onClick={() => {
-                      setAdminTab("existing");
-                      setSearchClient("");
-                      setSelectedClientId(null);
-                      setNewClient({
-                        firstName: "",
-                        lastName: "",
-                        phone: "",
-                        email: "",
-                      });
-                    }}
-                  >
-                    Klient z bazy
-                  </button>
-                  <button
-                    type="button"
-                    className={`admin-tabs ${adminTab === "new" ? "active" : ""}`}
-                    onClick={() => {
-                      setAdminTab("new");
-                      setSearchClient("");
-                      setSelectedClientId(null);
-                      setNewClient({
-                        firstName: "",
-                        lastName: "",
-                        phone: "",
-                        email: "",
-                      });
-                    }}
-                  >
-                    Nowy klient
-                  </button>
+                  <div className="modal__form-buttons">
+                    <button
+                      type="button"
+                      className={`admin-tabs ${adminTab === "existing" ? "active" : ""}`}
+                      onClick={() => {
+                        setAdminTab("existing");
+                        setSearchClient("");
+                        setSelectedClientId(null);
+                        setNewClient({
+                          firstName: "",
+                          lastName: "",
+                          phone: "",
+                          email: "",
+                        });
+                      }}
+                    >
+                      Klient z bazy
+                    </button>
+                    <button
+                      type="button"
+                      className={`admin-tabs ${adminTab === "new" ? "active" : ""}`}
+                      onClick={() => {
+                        setAdminTab("new");
+                        setSearchClient("");
+                        setSelectedClientId(null);
+                        setNewClient({
+                          firstName: "",
+                          lastName: "",
+                          phone: "",
+                          email: "",
+                        });
+                      }}
+                    >
+                      Nowy klient
+                    </button>
+                  </div>
                   {adminTab === "existing" && (
                     <div className="tabs-existing-wrapper">
                       <div className="tabs-existing-clients">
                         <label htmlFor="admin-clients-input">
-                          Wyszukaj klienta:
+                          Wyszukaj klienta
                         </label>
                         <input
                           type="text"
                           id="admin-clients-input"
                           className="admin-clients-input"
                           required
+                          placeholder="Imię, nazwisko, telefon"
                           value={searchClient}
                           onChange={(e) => {
                             setSearchClient(e.target.value);
@@ -431,6 +443,7 @@ export default function Calendar() {
                           onFocus={() => {
                             setSearchClient("");
                             setSelectedClientId(null);
+                            setIsDropdownOpen(true);
                           }}
                         />
                         {isDropdownOpen === true && (
@@ -564,15 +577,18 @@ export default function Calendar() {
                     />
                     60 minut
                   </label>
-                  <label className="modal__radio-label">
-                    <input
-                      type="radio"
-                      value={90}
-                      checked={bookingDuration === 90}
-                      onChange={() => setBookingDuration(90)}
-                    />
-                    90 minut
-                  </label>
+                  {console.log(bookingModal.startTime)}
+                  {bookingModal.startTime !== "21:00" && (
+                    <label className="modal__radio-label">
+                      <input
+                        type="radio"
+                        value={90}
+                        checked={bookingDuration === 90}
+                        onChange={() => setBookingDuration(90)}
+                      />
+                      90 minut
+                    </label>
+                  )}
                 </div>
               </div>
 

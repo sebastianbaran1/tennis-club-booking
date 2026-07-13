@@ -106,6 +106,12 @@
   color: #cbd5e1;
 }
 
+.empty-slot.slot-late {
+  background-color: #f1f5f9;
+  cursor: not-allowed;
+  color: #cbd5e1;
+}
+
 .reservation-block {
   z-index: 2;
   margin: 3px;
@@ -180,6 +186,136 @@
   font-family: var(--sans-font);
   font-size: 0.9rem;
 }
+.modal__form {
+  margin-top: -10px;
+}
+.modal__form-admin {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  min-height: 265px;
+}
+
+.modal__form-buttons {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  margin-bottom: 20px;
+  border-bottom: grey solid 0.5px;
+  width: 100%;
+}
+
+.admin-tabs {
+  border: none;
+  background-color: transparent;
+  font-size: clamp(0.75rem, -0.012rem + 3.81vw, 1rem);
+  font-family: inherit;
+  color: var(--color-secondary);
+  padding: 7px 17px;
+  border-bottom: transparent none 3px;
+  transition:
+    border-bottom 0.2s,
+    color 0.2s;
+}
+
+.admin-tabs.active {
+  border-bottom: var(--color-primary) solid 3px;
+  color: var(--color-primary);
+}
+
+.admin-tabs:hover {
+  color: var(--color-primary);
+  cursor: pointer;
+}
+.tabs-existing-wrapper {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+.tabs-existing-clients {
+  color: var(--color-secondary);
+  display: flex;
+  flex-direction: column;
+  width: 90%;
+  gap: 5px;
+  font-size: clamp(0.9rem, 0.595rem + 1.524vw, 1rem);
+  justify-content: flex-start;
+}
+
+.admin-dropdown-wrapper {
+  height: 150px;
+  overflow: scroll;
+  overflow-x: hidden;
+  overscroll-behavior-y: contain;
+  margin: 0 -10px;
+}
+
+.admin-dropdown-wrapper::-webkit-scrollbar {
+  width: 4px;
+}
+.admin-dropdown-wrapper::-webkit-scrollbar-track {
+  background: transparent;
+}
+.admin-dropdown-wrapper::-webkit-scrollbar-thumb {
+  background-color: var(--color-primary);
+}
+
+.admin-dropdown-list li {
+  color: var(--color-secondary);
+  transition: color 0.3s;
+  cursor: pointer;
+  padding-left: 10px;
+  text-align: left;
+}
+
+.admin-dropdown-list li:hover {
+  color: var(--color-primary);
+}
+.admin-clients-input {
+  font-size: 1rem;
+  background-color: transparent;
+  border: gray solid 1px;
+  border-radius: 3px;
+  padding: 1px 5px;
+}
+.admin-clients-input::placeholder {
+  font-size: 0.9rem;
+}
+
+.admin-clients-input:focus {
+  outline: none;
+  border: var(--color-primary) solid 1px;
+}
+
+.tabs-new-wrapper {
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+  gap: 10px;
+  width: 90%;
+}
+.tabs-new-client {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  font-size: clamp(0.9rem, 0.595rem + 1.524vw, 1rem);
+  color: var(--color-secondary);
+  width: 100%;
+}
+.tabs-new-client input {
+  font-size: 0.9rem;
+  background-color: transparent;
+  border: gray solid 1px;
+  padding: 1px 1px;
+  border-radius: 3px;
+  width: 100%;
+}
+
+.tabs-new-client input:focus {
+  outline: none;
+  border: var(--color-primary) solid 1px;
+}
 
 @media (max-width: 768px) {
   .calendar-container {
@@ -198,5 +334,8 @@
   .calendar-controls {
     flex-direction: column;
     gap: 20px;
+  }
+  .modal__form {
+    gap: 5px;
   }
 }
