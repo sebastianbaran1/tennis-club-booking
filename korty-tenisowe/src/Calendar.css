@@ -189,7 +189,7 @@
 .modal__form {
   margin-top: -10px;
 }
-.modal__form-admin {
+.modal__form-staff {
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
@@ -206,7 +206,7 @@
   width: 100%;
 }
 
-.admin-tabs {
+.staff-tabs {
   border: none;
   background-color: transparent;
   font-size: clamp(0.75rem, -0.012rem + 3.81vw, 1rem);
@@ -219,12 +219,12 @@
     color 0.2s;
 }
 
-.admin-tabs.active {
+.staff-tabs.active {
   border-bottom: var(--color-primary) solid 3px;
   color: var(--color-primary);
 }
 
-.admin-tabs:hover {
+.staff-tabs:hover {
   color: var(--color-primary);
   cursor: pointer;
 }
@@ -243,7 +243,7 @@
   justify-content: flex-start;
 }
 
-.admin-dropdown-wrapper {
+.staff-dropdown-wrapper {
   height: 150px;
   overflow: scroll;
   overflow-x: hidden;
@@ -251,17 +251,17 @@
   margin: 0 -10px;
 }
 
-.admin-dropdown-wrapper::-webkit-scrollbar {
+.staff-dropdown-wrapper::-webkit-scrollbar {
   width: 4px;
 }
-.admin-dropdown-wrapper::-webkit-scrollbar-track {
+.staff-dropdown-wrapper::-webkit-scrollbar-track {
   background: transparent;
 }
-.admin-dropdown-wrapper::-webkit-scrollbar-thumb {
+.staff-dropdown-wrapper::-webkit-scrollbar-thumb {
   background-color: var(--color-primary);
 }
 
-.admin-dropdown-list li {
+.staff-dropdown-list li {
   color: var(--color-secondary);
   transition: color 0.3s;
   cursor: pointer;
@@ -269,21 +269,21 @@
   text-align: left;
 }
 
-.admin-dropdown-list li:hover {
+.staff-dropdown-list li:hover {
   color: var(--color-primary);
 }
-.admin-clients-input {
+.staff-clients-input {
   font-size: 1rem;
   background-color: transparent;
   border: gray solid 1px;
   border-radius: 3px;
   padding: 1px 5px;
 }
-.admin-clients-input::placeholder {
+.staff-clients-input::placeholder {
   font-size: 0.9rem;
 }
 
-.admin-clients-input:focus {
+.staff-clients-input:focus {
   outline: none;
   border: var(--color-primary) solid 1px;
 }

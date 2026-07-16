@@ -352,6 +352,43 @@ app.get("/api/users/:userId/reservations", async (req, res) => {
   }
 });
 
+app.put("/api/settings", async (req, res) => {
+  try {
+    const { schedule } = req.body;
+
+    const settings = await prisma.settings.upsert({
+      create: {
+        id: 1,
+        schedule: schedule,
+      },
+      update: {
+        schedule: schedule,
+      },
+      where: {
+        id: 1,
+      },
+    });
+
+    res.status(200).json(settings);
+  } catch (error) {
+    res.status(500).json({ error: "Błąd serwera podczas zapisywania" });
+  }
+});
+
+app.get("/api/settings", async (req, res) => {
+  try {
+    const settings = await prisma.settings.findUnique({ where: { id: 1 } });
+
+    if (settings) {
+      res.status(200).json(settings);
+    } else {
+      res.status(404).json({ error: "Brak ustawień" });
+    }
+  } catch (error) {
+    res.status(500).json({ error: "Błąd serwera" });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Serwer działa na porcie http://localhost:${PORT}`);
 });

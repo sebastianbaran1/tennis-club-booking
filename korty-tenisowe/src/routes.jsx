@@ -2,6 +2,7 @@ import App from "./App.jsx";
 import Home from "./Home.jsx";
 import Calendar from "./Calendar.jsx";
 import Profile from "./Profile.jsx";
+import Admin from "./Admin.jsx";
 
 const routes = [
   {
@@ -19,6 +20,10 @@ const routes = [
       {
         path: "profil",
         element: <Profile />,
+      },
+      {
+        path: "admin",
+        element: <Admin />,
       },
     ],
   },

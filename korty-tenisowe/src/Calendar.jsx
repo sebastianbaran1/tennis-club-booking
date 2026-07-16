@@ -15,17 +15,19 @@ const generateTimeSlots = () => {
   }
   return slots;
 };
+
 const timeSlots = generateTimeSlots();
 
 export default function Calendar() {
   const { user } = useOutletContext();
   const [courts, setCourts] = useState([]);
   const [reservations, setReservations] = useState([]);
+  const [refresh, setRefresh] = useState(0);
   const todayStr = new Date().toISOString().split("T")[0];
   const [selectedDate, setSelectedDate] = useState(todayStr);
   const [selectedCourtIndex, setSelectedCourtIndex] = useState(0);
   const [courtsPerPage, setCourtsPerPage] = useState();
-  const [adminTab, setAdminTab] = useState("existing");
+  const [staffTab, setStaffTab] = useState("existing");
   const [searchClient, setSearchClient] = useState("");
   const [selectedClientId, setSelectedClientId] = useState(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -50,6 +52,7 @@ export default function Calendar() {
     const currentMinutes = now.getHours() * 60 + now.getMinutes();
     return timeToMinutes(slotTime) <= currentMinutes;
   };
+
   const isTooLate = (slotTime) => {
     return timeToMinutes(slotTime) > timeToMinutes("21:00");
   };
@@ -119,9 +122,11 @@ export default function Calendar() {
       }
     };
     fetchDayData();
-  }, [selectedDate]);
+  }, [selectedDate, refresh]);
 
-  if (!user) return <Navigate to="/" />;
+  if (!user) {
+    return <Navigate to="/" replace={true} />;
+  }
 
   const handleOpenBookingModal = (courtId, startTime) => {
     setBookingModal({ isOpen: true, courtId, startTime });
@@ -142,9 +147,9 @@ export default function Calendar() {
 
     const { courtId, startTime } = bookingModal;
     const userId =
-      adminTab == "existing" ? (selectedClientId ?? user.id) : null;
+      staffTab == "existing" ? (selectedClientId ?? user.id) : null;
 
-    if (isAdminSelectionInvalid) {
+    if (isStaffSelectionInvalid) {
       alert("Wybierz klienta z rozwijanej listy!");
       return;
     }
@@ -163,12 +168,10 @@ export default function Calendar() {
         }),
       });
       const data = await response.json();
-      console.log(startTime);
-      console.log(data);
       if (response.ok) {
         setBookingModal({ isOpen: false, courtId: null, startTime: null });
         setSelectedClientId(null);
-        setReservations([...reservations, { ...data.reservation }]);
+        setRefresh((prev) => prev + 1);
       } else {
         alert(data.error);
       }
@@ -194,7 +197,7 @@ export default function Calendar() {
       );
 
       if (response.ok) {
-        setReservations(reservations.filter((r) => r.id !== reservationId));
+        setRefresh((prev) => prev + 1);
       } else {
         const data = await response.json();
         alert(data.error);
@@ -208,7 +211,9 @@ export default function Calendar() {
     const startMin = timeToMinutes("08:00");
     return (timeToMinutes(time) - startMin) / 30 + 2;
   };
+
   const courtOptions = [];
+
   for (let i = 0; i < courts.length; i += courtsPerPage) {
     let start = i + 1;
     let end = start + courtsPerPage - 1;
@@ -221,13 +226,16 @@ export default function Calendar() {
       </option>,
     );
   }
+
   const visibleCourts = courts.slice(
     selectedCourtIndex,
     selectedCourtIndex + courtsPerPage,
   );
 
-  const isAdminSelectionInvalid =
-    user.role === "ADMIN" && adminTab === "existing" && !selectedClientId;
+  const isStaffSelectionInvalid =
+    (user.role === "ADMIN" || user.role === "STAFF") &&
+    staffTab === "existing" &&
+    !selectedClientId;
 
   return (
     <div className="calendar-container">
@@ -238,6 +246,8 @@ export default function Calendar() {
           <label className="calendar-date-label" htmlFor="date-input">
             Wybierz dzień:{" "}
           </label>
+          {console.log("Selected Date:", selectedDate)}
+          {console.log("Today String:", todayStr)}
           <input
             type="date"
             value={selectedDate}
@@ -325,8 +335,8 @@ export default function Calendar() {
                 visibleCourts.findIndex((c) => c.id === res.courtId) + 2;
 
               const isMyRes = res.userId === user.id;
-              const isAdmin = user.role === "ADMIN";
-              const canCancel = isMyRes || isAdmin;
+              const isStaff = user.role === "ADMIN" || user.role === "STAFF";
+              const canCancel = isMyRes || isStaff;
 
               return (
                 <div
@@ -341,8 +351,8 @@ export default function Calendar() {
                 >
                   <span>{isMyRes ? "Twoja gra" : "Zajęte"}</span>
 
-                  {isAdmin ? (
-                    <span className="reservation-admin-details">
+                  {isStaff ? (
+                    <span className="reservation-staff-details">
                       {res.user?.firstName} {res.user?.lastName} <br />
                       Nr. tel: {res.user?.phone}
                     </span>
@@ -385,14 +395,14 @@ export default function Calendar() {
               ({selectedDate}).
             </p>
             <form className="modal__form" onSubmit={confirmBooking}>
-              {user.role === "ADMIN" && (
-                <div className="modal__form-admin">
+              {(user.role === "ADMIN" || user.role === "STAFF") && (
+                <div className="modal__form-staff">
                   <div className="modal__form-buttons">
                     <button
                       type="button"
-                      className={`admin-tabs ${adminTab === "existing" ? "active" : ""}`}
+                      className={`staff-tabs ${staffTab === "existing" ? "active" : ""}`}
                       onClick={() => {
-                        setAdminTab("existing");
+                        setStaffTab("existing");
                         setSearchClient("");
                         setSelectedClientId(null);
                         setNewClient({
@@ -407,9 +417,9 @@ export default function Calendar() {
                     </button>
                     <button
                       type="button"
-                      className={`admin-tabs ${adminTab === "new" ? "active" : ""}`}
+                      className={`staff-tabs ${staffTab === "new" ? "active" : ""}`}
                       onClick={() => {
-                        setAdminTab("new");
+                        setStaffTab("new");
                         setSearchClient("");
                         setSelectedClientId(null);
                         setNewClient({
@@ -423,16 +433,16 @@ export default function Calendar() {
                       Nowy klient
                     </button>
                   </div>
-                  {adminTab === "existing" && (
+                  {staffTab === "existing" && (
                     <div className="tabs-existing-wrapper">
                       <div className="tabs-existing-clients">
-                        <label htmlFor="admin-clients-input">
+                        <label htmlFor="staff-clients-input">
                           Wyszukaj klienta
                         </label>
                         <input
                           type="text"
-                          id="admin-clients-input"
-                          className="admin-clients-input"
+                          id="staff-clients-input"
+                          className="staff-clients-input"
                           required
                           placeholder="Imię, nazwisko, telefon"
                           value={searchClient}
@@ -447,8 +457,8 @@ export default function Calendar() {
                           }}
                         />
                         {isDropdownOpen === true && (
-                          <div className="admin-dropdown-wrapper">
-                            <ul className="admin-dropdown-list">
+                          <div className="staff-dropdown-wrapper">
+                            <ul className="staff-dropdown-list">
                               {searchClient !== "" &&
                                 clientList
                                   .filter((client) => {
@@ -491,7 +501,7 @@ export default function Calendar() {
                       </div>
                     </div>
                   )}
-                  {adminTab === "new" && (
+                  {staffTab === "new" && (
                     <div className="tabs-new-wrapper">
                       <div className="tabs-new-client">
                         <label htmlFor="new-client-input-firstname">Imię</label>
@@ -577,7 +587,6 @@ export default function Calendar() {
                     />
                     60 minut
                   </label>
-                  {console.log(bookingModal.startTime)}
                   {bookingModal.startTime !== "21:00" && (
                     <label className="modal__radio-label">
                       <input
@@ -596,13 +605,15 @@ export default function Calendar() {
                 type="submit"
                 className="modal__submit"
                 onClick={(e) => {
-                  if (isAdminSelectionInvalid) {
+                  if (isStaffSelectionInvalid) {
                     e.preventDefault();
                     alert("Proszę wybrać klienta z listy!");
                   }
                 }}
               >
-                {user.role === "ADMIN" ? "Zarezerwuj" : "Zarezerwuj i graj!"}
+                {user.role === "ADMIN" || user.role === "STAFF"
+                  ? "Zarezerwuj"
+                  : "Zarezerwuj i graj!"}
               </button>
             </form>
           </div>
