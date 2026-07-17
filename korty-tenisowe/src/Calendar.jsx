@@ -246,8 +246,6 @@ export default function Calendar() {
           <label className="calendar-date-label" htmlFor="date-input">
             Wybierz dzień:{" "}
           </label>
-          {console.log("Selected Date:", selectedDate)}
-          {console.log("Today String:", todayStr)}
           <input
             type="date"
             value={selectedDate}

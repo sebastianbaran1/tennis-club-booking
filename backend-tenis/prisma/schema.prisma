@@ -21,7 +21,8 @@ model User {
 model Court {
   id           Int           @id @default(autoincrement())
   name         String        
-  surface      String        
+  surface      String    
+  isActive     Boolean      @default(true)
   reservations Reservation[]
 }
 

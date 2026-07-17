@@ -352,6 +352,20 @@ app.get("/api/users/:userId/reservations", async (req, res) => {
   }
 });
 
+app.get("/api/settings", async (req, res) => {
+  try {
+    const settings = await prisma.settings.findUnique({ where: { id: 1 } });
+
+    if (settings) {
+      res.status(200).json(settings);
+    } else {
+      res.status(404).json({ error: "Brak ustawień" });
+    }
+  } catch (error) {
+    res.status(500).json({ error: "Błąd serwera" });
+  }
+});
+
 app.put("/api/settings", async (req, res) => {
   try {
     const { schedule } = req.body;
@@ -375,15 +389,59 @@ app.put("/api/settings", async (req, res) => {
   }
 });
 
-app.get("/api/settings", async (req, res) => {
+app.get("/api/courts", async (req, res) => {
   try {
-    const settings = await prisma.settings.findUnique({ where: { id: 1 } });
+    const courts = await prisma.court.findMany({
+      orderBy: { id: "asc" },
+      where: { isActive: true },
+    });
 
-    if (settings) {
-      res.status(200).json(settings);
-    } else {
-      res.status(404).json({ error: "Brak ustawień" });
-    }
+    res.status(200).json(courts);
+  } catch (error) {
+    res.status(500).json({ error: "Błąd serwera" });
+  }
+});
+
+app.delete("/api/courts/:id", async (req, res) => {
+  const courtId = parseInt(req.params.id);
+
+  try {
+    const court = await prisma.court.update({
+      where: { id: courtId },
+      data: {
+        isActive: false,
+      },
+    });
+
+    res.status(200).json(court);
+  } catch (error) {
+    res.status(500).json({ error: "Błąd serwera" });
+  }
+});
+
+app.put("/api/courts/:id", async (req, res) => {
+  const courtId = parseInt(req.params.id);
+  const { name, surface } = req.body;
+  try {
+    const court = await prisma.court.update({
+      where: { id: courtId },
+      data: { name, surface },
+    });
+
+    res.status(200).json(court);
+  } catch (error) {
+    res.status(500).json({ error: "Błąd serwera" });
+  }
+});
+
+app.post("/api/courts", async (req, res) => {
+  const { name, surface } = req.body;
+  try {
+    const court = await prisma.court.create({
+      data: { name, surface },
+    });
+
+    res.status(201).json(court);
   } catch (error) {
     res.status(500).json({ error: "Błąd serwera" });
   }
