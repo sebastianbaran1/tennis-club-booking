@@ -23,6 +23,8 @@ model Court {
   name         String        
   surface      String    
   isActive     Boolean      @default(true)
+  isBlocked    Boolean      @default(false)
+  blockReason  String?      
   reservations Reservation[]
 }
 

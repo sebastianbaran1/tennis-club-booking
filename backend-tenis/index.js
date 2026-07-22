@@ -335,6 +335,25 @@ app.get("/api/users", async (req, res) => {
   }
 });
 
+app.get("/api/usersAdmin", async (req, res) => {
+  try {
+    const users = await prisma.user.findMany({
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        phone: true,
+        role: true,
+        createdAt: true,
+      },
+    });
+    res.json({ users });
+  } catch (error) {
+    res.status(500).json({ error: "Błąd pobierania uzytkownikow" });
+  }
+});
+
 app.get("/api/users/:userId/reservations", async (req, res) => {
   const userId = parseInt(req.params.userId);
 
@@ -421,11 +440,11 @@ app.delete("/api/courts/:id", async (req, res) => {
 
 app.put("/api/courts/:id", async (req, res) => {
   const courtId = parseInt(req.params.id);
-  const { name, surface } = req.body;
+  const { name, surface, isBlocked, blockReason } = req.body;
   try {
     const court = await prisma.court.update({
       where: { id: courtId },
-      data: { name, surface },
+      data: { name, surface, isBlocked, blockReason },
     });
 
     res.status(200).json(court);

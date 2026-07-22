@@ -15,9 +15,29 @@ export default function Admin() {
   });
 
   const [courts, setCourts] = useState([
-    { id: 1, name: "Kort 1", surface: "Mączka" },
+    {
+      id: 1,
+      name: "Kort 1",
+      surface: "Mączka",
+      isBlocked: false,
+      blockReason: "",
+    },
   ]);
+
+  const [users, setUsers] = useState([
+    {
+      id: 1,
+      firstName: "Sebastian",
+      lastName: "Baran",
+      email: "sbaran@test.pl",
+      phone: "123123123",
+      role: "USER",
+      createdAt: "2026-07-22T20:05:48.000Z",
+    },
+  ]);
+
   const [refreshCourts, setRefreshCourts] = useState(0);
+  const [refreshUsers, setRefreshUsers] = useState(0);
 
   const handleTimeChange = (key, fieldName, newValue) => {
     setSchedule({
@@ -83,6 +103,8 @@ export default function Admin() {
           body: JSON.stringify({
             name: courtToUpdate.name,
             surface: courtToUpdate.surface,
+            isBlocked: courtToUpdate.isBlocked,
+            blockReason: courtToUpdate.blockReason,
           }),
         },
       );
@@ -131,6 +153,21 @@ export default function Admin() {
     };
     fetchSchedule();
   }, []);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const response = await fetch("http://localhost:5005/api/usersAdmin");
+        const data = await response.json();
+        if (response.ok) {
+          setUsers(data.users);
+        }
+      } catch (error) {
+        alert("Błąd połączenia z serwerem.");
+      }
+    };
+    fetchUsers();
+  }, [refreshUsers]);
 
   useEffect(() => {
     const fetchCourts = async () => {
@@ -193,6 +230,44 @@ export default function Admin() {
                 handleCourtsChange(court.id, "surface", e.target.value)
               }
             />
+            <fieldset className="court__fieldset-block">
+              <label htmlFor={`court-${court.id}-avalible`}>
+                <input
+                  type="radio"
+                  name={`status-${court.id}`}
+                  id={`court-${court.id}-avalible`}
+                  checked={court.isBlocked === false}
+                  onChange={() =>
+                    handleCourtsChange(court.id, "isBlocked", false)
+                  }
+                />
+                Dostępny
+              </label>
+              <label htmlFor={`court-${court.id}-blocked`}>
+                <input
+                  type="radio"
+                  name={`status-${court.id}`}
+                  id={`court-${court.id}-blocked`}
+                  checked={court.isBlocked === true}
+                  onChange={() =>
+                    handleCourtsChange(court.id, "isBlocked", true)
+                  }
+                />{" "}
+                Zablokowany
+              </label>
+            </fieldset>
+            <label htmlFor={`court-${court.id}-block-reason`}>
+              Powód blokady:
+            </label>
+            <input
+              type="text"
+              name={`block-reason-${court.id}`}
+              id={`court-${court.id}-block-reason`}
+              value={court.blockReason || ""}
+              onChange={(e) =>
+                handleCourtsChange(court.id, "blockReason", e.target.value)
+              }
+            />
             <button
               className="court__button-save"
               type="button"
@@ -215,6 +290,18 @@ export default function Admin() {
         >
           Dodaj kort
         </button>
+      </div>
+      <div className="users">
+        {users.map((user, index) => (
+          <div className="users__user" key={user.id}>
+            <div className="users__user-name">{user.firstName}</div>
+            <div className="users__user-name">{user.lastName}</div>
+            <div className="users__user-name">{user.email}</div>
+            <div className="users__user-name">{user.phone}</div>
+            <div className="users__user-name">{user.role}</div>
+            <div className="users__user-name">{user.createdAt}</div>
+          </div>
+        ))}
       </div>
     </div>
   );
