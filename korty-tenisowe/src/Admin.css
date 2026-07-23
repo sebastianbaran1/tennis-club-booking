@@ -1,0 +1,67 @@
+.admin-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 30px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+.admin__content-container {
+  display: grid;
+  height: 80vh;
+  width: 100%;
+  grid-template-columns: 3fr 1fr;
+  grid-template-rows: auto;
+  gap: 40px;
+}
+.schedule {
+  grid-column: 3 / 4;
+  grid-row: 1 / 3;
+  border: 2px solid black;
+}
+.courts {
+  height: 400px;
+  overflow: auto;
+  grid-column: 1 / 3;
+  grid-row: 1 / 2;
+  border: 2px solid black;
+}
+.users {
+  height: 400px;
+  overflow: auto;
+  grid-column: 1 / 3;
+  grid-row: 2 / 3;
+  border: 2px solid black;
+}
+.courts {
+  display: flex;
+  flex-direction: column;
+}
+.courts__header {
+  display: flex;
+  justify-content: space-between;
+}
+.courts__list-header,
+.court {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+}
+.court-edit {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+}
+.court-edit input {
+  height: 30px;
+}
+.court__fieldset-block {
+  display: flex;
+  flex-direction: column;
+  border: none;
+}
+.court__actions-block {
+  display: flex;
+  flex-direction: column;
+}
+.court__actions-block input {
+  height: 50px;
+}
