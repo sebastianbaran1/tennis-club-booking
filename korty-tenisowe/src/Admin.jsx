@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import "./Admin.css";
-
+import bin from "./assets/bin.png";
+import edit from "./assets/edit.png";
 const daysOrder = [1, 2, 3, 4, 5, 6, 0];
 
 export default function Admin() {
@@ -232,7 +233,7 @@ export default function Admin() {
               type="button"
               onClick={() => handleAddCourt()}
             >
-              Dodaj kort
+              <span className="courts__button-add-plus">+</span> DODAJ NOWY KORT
             </button>
           </div>
           <div className="courts__list">
@@ -247,23 +248,40 @@ export default function Admin() {
                 <div className="court" key={court.id}>
                   <div className="court__info">{court.name}</div>
                   <div className="court__info">{court.surface}</div>
-                  <div className="court__info">
-                    {court.isBlocked === false ? "Dostępny" : "Zablokowany"}
+                  <div
+                    className={`court__info-status ${court.isBlocked === false ? "available" : "blocked"}`}
+                  >
+                    {court.isBlocked === false ? (
+                      <span className="court__info-status-available">
+                        Dostępny
+                      </span>
+                    ) : (
+                      <div className="court__info-status-blocked-wrapper">
+                        <span className="court__info-status-blocked">
+                          Zablokowany
+                        </span>
+                        <span className="court__info-status-blocked-reason">
+                          {court.blockReason}
+                        </span>
+                      </div>
+                    )}
                   </div>
                   <div className="court__actions">
                     <button
-                      className="edit"
+                      className="court__actions-button-edit"
                       type="button"
                       onClick={() => {
                         toggleEdit(court);
                       }}
                     >
-                      Edytuj
-                    </button>{" "}
+                      <img src={edit} alt="Edytuj" className="edit-icon" />
+                      {court.id === courtToEdit ? "Anuluj" : "Edytuj"}
+                    </button>
                     <button
-                      className="court__button-delete"
+                      className="court__actions-button-delete"
                       onClick={() => handleDeleteCourt(court.id)}
                     >
+                      <img src={bin} alt="Usuń" className="delete-icon" />
                       Usuń
                     </button>
                   </div>
@@ -291,7 +309,7 @@ export default function Admin() {
                       }
                     />
                     <fieldset className="court__fieldset-block">
-                      <label htmlFor={`court-${court.id}-avalible`}>
+                      <div className="court__fieldset-block-false">
                         <input
                           type="radio"
                           name={`status-${court.id}`}
@@ -303,10 +321,12 @@ export default function Admin() {
                               isBlocked: false,
                             })
                           }
-                        />
-                        Dostępny
-                      </label>
-                      <label htmlFor={`court-${court.id}-blocked`}>
+                        />{" "}
+                        <label htmlFor={`court-${court.id}-avalible`}>
+                          Dostępny
+                        </label>
+                      </div>
+                      <div className="court__fieldset-block-true">
                         <input
                           type="radio"
                           name={`status-${court.id}`}
@@ -319,8 +339,10 @@ export default function Admin() {
                             })
                           }
                         />{" "}
-                        Zablokowany
-                      </label>
+                        <label htmlFor={`court-${court.id}-blocked`}>
+                          Zablokowany
+                        </label>
+                      </div>
                     </fieldset>
                     <div className="court__actions-block">
                       <label htmlFor={`court-${court.id}-block-reason`}>
