@@ -193,198 +193,269 @@ export default function Admin() {
       <h1 className="admin__header">Panel administratora</h1>
       <div className="admin__content-container">
         <div className="schedule">
-          {daysOrder.map((key) => {
-            const dayData = schedule[key];
-            return (
-              <div key={key}>
-                {dayData.name}
-                <input
-                  type="time"
-                  className="schedule__input-open"
-                  value={dayData.open}
-                  onChange={(e) =>
-                    handleTimeChange(key, "open", e.target.value)
-                  }
-                />
-                <input
-                  type="time"
-                  className="schedule__input-close"
-                  value={dayData.close}
-                  onChange={(e) =>
-                    handleTimeChange(key, "close", e.target.value)
-                  }
-                />
-              </div>
-            );
-          })}
-          <div className="schedule__button-submit">
-            <button type="button" onClick={handleSubmitSchedule}>
+          <div className="schedule-title">
+            <h2>Harmonogram</h2>
+          </div>{" "}
+          <div className="schedule__day-list">
+            {daysOrder.map((key) => {
+              const dayData = schedule[key];
+              return (
+                <div className="schedule__day" key={key}>
+                  <div className="schedule__day-name">{dayData.name}</div>
+                  <div className="schedule__day-settings">
+                    <input
+                      type="time"
+                      className="schedule__input-open"
+                      value={dayData.open}
+                      onChange={(e) =>
+                        handleTimeChange(key, "open", e.target.value)
+                      }
+                    />
+                    <div className="schedule__separator">-</div>
+                    <input
+                      type="time"
+                      className="schedule__input-close"
+                      value={dayData.close}
+                      onChange={(e) =>
+                        handleTimeChange(key, "close", e.target.value)
+                      }
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <div className="schedule__button-submit-wrapper">
+            <button
+              className="schedule__button-submit"
+              type="button"
+              onClick={handleSubmitSchedule}
+            >
               Zapisz zmiany
             </button>
           </div>
         </div>
-        <div className="courts">
-          <div className="courts__header">
-            <div className="courts__header-title">
-              <h2>Lista kortów</h2>
+        <div className="courts-wrapper">
+          <div className="courts">
+            <div className="courts__header">
+              <div className="courts__header-title">
+                <h2>Lista kortów</h2>
+              </div>
+              <button
+                className="courts__button-add"
+                type="button"
+                onClick={() => handleAddCourt()}
+              >
+                <span className="courts__button-add-plus">+</span> DODAJ NOWY
+                KORT
+              </button>
             </div>
-            <button
-              className="courts__button-add"
-              type="button"
-              onClick={() => handleAddCourt()}
-            >
-              <span className="courts__button-add-plus">+</span> DODAJ NOWY KORT
-            </button>
-          </div>
-          <div className="courts__list">
-            <div className="courts__list-header">
-              <h3>Nazwa Kortu</h3>
-              <h3>Nawierzchnia</h3>
-              <h3>Status</h3>
-              <h3>Akcje</h3>
-            </div>
-            {courts.map((court, index) => (
-              <div className="court-wrapper">
-                <div className="court" key={court.id}>
-                  <div className="court__info">{court.name}</div>
-                  <div className="court__info">{court.surface}</div>
-                  <div
-                    className={`court__info-status ${court.isBlocked === false ? "available" : "blocked"}`}
-                  >
-                    {court.isBlocked === false ? (
-                      <span className="court__info-status-available">
-                        Dostępny
-                      </span>
-                    ) : (
-                      <div className="court__info-status-blocked-wrapper">
-                        <span className="court__info-status-blocked">
-                          Zablokowany
-                        </span>
-                        <span className="court__info-status-blocked-reason">
-                          {court.blockReason}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                  <div className="court__actions">
-                    <button
-                      className="court__actions-button-edit"
-                      type="button"
-                      onClick={() => {
-                        toggleEdit(court);
-                      }}
+            <div className="courts__list">
+              <div className="courts__list-header">
+                <h3>Nazwa Kortu</h3>
+                <h3>Nawierzchnia</h3>
+                <h3>Status</h3>
+                <h3>Akcje</h3>
+              </div>
+              {courts.map((court, index) => (
+                <div className="court-wrapper">
+                  <div className="court" key={court.id}>
+                    <div className="court__info">{court.name}</div>
+                    <div className="court__info">{court.surface}</div>
+                    <div
+                      className={`court__info-status ${court.isBlocked === false ? "available" : "blocked"}`}
                     >
-                      <img src={edit} alt="Edytuj" className="edit-icon" />
-                      {court.id === courtToEdit ? "Anuluj" : "Edytuj"}
-                    </button>
-                    <button
-                      className="court__actions-button-delete"
-                      onClick={() => handleDeleteCourt(court.id)}
-                    >
-                      <img src={bin} alt="Usuń" className="delete-icon" />
-                      Usuń
-                    </button>
-                  </div>
-                </div>
-                {courtToEdit === court.id && (
-                  <div className="court-edit">
-                    <input
-                      type="text"
-                      value={editFormData.name}
-                      onChange={(e) =>
-                        setEditFormData({
-                          ...editFormData,
-                          name: e.target.value,
-                        })
-                      }
-                    />
-                    <input
-                      type="text"
-                      value={editFormData.surface}
-                      onChange={(e) =>
-                        setEditFormData({
-                          ...editFormData,
-                          surface: e.target.value,
-                        })
-                      }
-                    />
-                    <fieldset className="court__fieldset-block">
-                      <div className="court__fieldset-block-false">
-                        <input
-                          type="radio"
-                          name={`status-${court.id}`}
-                          id={`court-${court.id}-avalible`}
-                          checked={editFormData.isBlocked === false}
-                          onChange={() =>
-                            setEditFormData({
-                              ...editFormData,
-                              isBlocked: false,
-                            })
-                          }
-                        />{" "}
-                        <label htmlFor={`court-${court.id}-avalible`}>
+                      {court.isBlocked === false ? (
+                        <span className="court__info-status-available">
                           Dostępny
-                        </label>
-                      </div>
-                      <div className="court__fieldset-block-true">
-                        <input
-                          type="radio"
-                          name={`status-${court.id}`}
-                          id={`court-${court.id}-blocked`}
-                          checked={editFormData.isBlocked === true}
-                          onChange={() =>
-                            setEditFormData({
-                              ...editFormData,
-                              isBlocked: true,
-                            })
-                          }
-                        />{" "}
-                        <label htmlFor={`court-${court.id}-blocked`}>
-                          Zablokowany
-                        </label>
-                      </div>
-                    </fieldset>
-                    <div className="court__actions-block">
-                      <label htmlFor={`court-${court.id}-block-reason`}>
-                        Powód blokady:
-                      </label>
-                      <input
-                        type="text"
-                        name={`block-reason-${court.id}`}
-                        id={`court-${court.id}-block-reason`}
-                        value={editFormData.blockReason || ""}
-                        onChange={(e) =>
-                          setEditFormData({
-                            ...editFormData,
-                            blockReason: e.target.value,
-                          })
-                        }
-                      />
+                        </span>
+                      ) : (
+                        <div className="court__info-status-blocked-wrapper">
+                          <span className="court__info-status-blocked">
+                            Zablokowany
+                          </span>
+                          <span className="court__info-status-blocked-reason">
+                            {court.blockReason}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="court__actions">
                       <button
-                        className="court__button-save"
+                        className="court__actions-button-edit"
                         type="button"
-                        onClick={() => handleSaveCourt(court.id)}
+                        onClick={() => {
+                          toggleEdit(court);
+                        }}
                       >
-                        Zapisz
+                        <img src={edit} alt="Edytuj" className="edit-icon" />
+                        {court.id === courtToEdit ? "Anuluj" : "Edytuj"}
+                      </button>
+                      <button
+                        className="court__actions-button-delete"
+                        onClick={() => handleDeleteCourt(court.id)}
+                      >
+                        <img src={bin} alt="Usuń" className="delete-icon" />
+                        Usuń
                       </button>
                     </div>
                   </div>
-                )}
+                  {courtToEdit === court.id && (
+                    <div className="court-edit-wrapper">
+                      <div className="court-edit">
+                        <div className="court-edit-text-input-wrapper">
+                          <input
+                            type="text"
+                            value={editFormData.name}
+                            className="court-edit-text-input"
+                            onChange={(e) =>
+                              setEditFormData({
+                                ...editFormData,
+                                name: e.target.value,
+                              })
+                            }
+                          />
+                        </div>
+                        <div className="court-edit-text-input-wrapper">
+                          <input
+                            type="text"
+                            value={editFormData.surface}
+                            className="court-edit-text-input"
+                            onChange={(e) =>
+                              setEditFormData({
+                                ...editFormData,
+                                surface: e.target.value,
+                              })
+                            }
+                          />
+                        </div>
+                        <fieldset className="court__fieldset-block">
+                          <div className="court__fieldset-block-false">
+                            <input
+                              type="radio"
+                              name={`status-${court.id}`}
+                              id={`court-${court.id}-avalible`}
+                              checked={editFormData.isBlocked === false}
+                              onChange={() =>
+                                setEditFormData({
+                                  ...editFormData,
+                                  isBlocked: false,
+                                })
+                              }
+                            />{" "}
+                            <label htmlFor={`court-${court.id}-avalible`}>
+                              Dostępny
+                            </label>
+                          </div>
+                          <div className="court__fieldset-block-true">
+                            <input
+                              type="radio"
+                              name={`status-${court.id}`}
+                              id={`court-${court.id}-blocked`}
+                              checked={editFormData.isBlocked === true}
+                              onChange={() =>
+                                setEditFormData({
+                                  ...editFormData,
+                                  isBlocked: true,
+                                })
+                              }
+                            />{" "}
+                            <label htmlFor={`court-${court.id}-blocked`}>
+                              Zablokowany
+                            </label>
+                          </div>
+                        </fieldset>
+                        <div className="court__actions-block">
+                          <label htmlFor={`court-${court.id}-block-reason`}>
+                            Powód blokady:
+                          </label>
+                          <input
+                            type="text"
+                            name={`block-reason-${court.id}`}
+                            id={`court-${court.id}-block-reason`}
+                            value={editFormData.blockReason || ""}
+                            onChange={(e) =>
+                              setEditFormData({
+                                ...editFormData,
+                                blockReason: e.target.value,
+                              })
+                            }
+                          />
+                          <button
+                            className="court__button-save"
+                            type="button"
+                            onClick={() => handleSaveCourt(court.id)}
+                          >
+                            Zapisz
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+        <div className="users-wrapper">
+          <div className="users">
+            <div className="users__header">
+              <div className="users__header-title">
+                <h2>Lista użytkowników</h2>
+              </div>
+              <div className="users__header-filters">
+                <div className="users__header-search">
+                  <label htmlFor="users__search">Wyszukaj klienta</label>
+                  <input
+                    type="text"
+                    name="users__search"
+                    id="users__search"
+                    placeholder="Imię, nazwisko, telefon, e-mail"
+                  />
+                </div>
+                <div className="users__header-dropdown">
+                  <label htmlFor="users__select">Wybierz role</label>
+                  <select name="users__select" id="users__select">
+                    <option value="all">Wszystkie role</option>
+                    <option value="GUEST">Gość</option>
+                    <option value="USER">Użytkownik</option>
+                    <option value="RECEPTIONIST">Recepcjonista</option>
+                    <option value="ADMIN">Administrator</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div className="users__list-header">
+              <h3>Imię</h3>
+              <h3>Nazwisko</h3>
+              <h3>E-mail</h3>
+              <h3>Telefon</h3>
+              <h3>Rola</h3>
+              <h3>Dołączył(a)</h3>
+              <h3>Akcje</h3>
+            </div>
+            {users.map((user, index) => (
+              <div className="users__list-user" key={user.id}>
+                <div className="user__name">{user.firstName}</div>
+                <div className="user__lastname">{user.lastName}</div>
+                <div className="user__email">{user.email}</div>
+                <div className="user__phone">{user.phone}</div>
+                <div className="user__role">{user.role}</div>
+                <div className="user__createdat">{user.createdAt}</div>
+                <div className="user__actions">
+                  <button className="user__actions-button-edit" type="button">
+                    <img src={edit} alt="Edytuj" className="edit-icon" />
+                    Edytuj
+                  </button>
+                  <button className="user__actions-button-delete" type="button">
+                    <img src={bin} alt="Usuń" className="delete-icon" />
+                    Usuń
+                  </button>
+                </div>
               </div>
             ))}
           </div>
-        </div>
-        <div className="users">
-          {users.map((user, index) => (
-            <div className="users__user" key={user.id}>
-              <div className="users__user-name">{user.firstName}</div>
-              <div className="users__user-name">{user.lastName}</div>
-              <div className="users__user-name">{user.email}</div>
-              <div className="users__user-name">{user.phone}</div>
-              <div className="users__user-name">{user.role}</div>
-              <div className="users__user-name">{user.createdAt}</div>
-            </div>
-          ))}
         </div>
       </div>
     </div>
