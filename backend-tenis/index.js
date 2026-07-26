@@ -371,6 +371,36 @@ app.get("/api/users/:userId/reservations", async (req, res) => {
   }
 });
 
+app.put("/api/user/:id", async (req, res) => {
+  const userId = parseInt(req.params.id);
+  const { firstName, lastName, email, phone, role } = req.body;
+  try {
+    const user = await prisma.user.update({
+      where: { id: userId },
+      data: { firstName, lastName, email, phone, role },
+    });
+
+    res.status(200).json(user);
+  } catch (error) {
+    res.status(500).json({ error: "Błąd serwera" });
+  }
+});
+
+app.delete("/api/user/:id", async (req, res) => {
+  const userId = parseInt(req.params.id);
+  const randomEmail = `deleted_user_${userId}_${Date.now()}@klubRzeszow.com`;
+
+  try {
+    const user = await prisma.user.update({
+      where: { id: userId },
+      data: { isActive: false, email: randomEmail },
+    });
+    res.status(200).json(user);
+  } catch (error) {
+    res.status(500).json({ error: "Błąd serwera" });
+  }
+});
+
 app.get("/api/settings", async (req, res) => {
   try {
     const settings = await prisma.settings.findUnique({ where: { id: 1 } });

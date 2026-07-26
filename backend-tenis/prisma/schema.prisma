@@ -13,13 +13,14 @@ model User {
   firstName String 
   lastName  String
   phone     String
-  role         String        @default("USER")
-  createdAt DateTime @default(now())
+  role      String        @default("USER")
+  isActive  Boolean       @default(true)
+  createdAt DateTime      @default(now())
   reservations Reservation[]
 }
 
 model Court {
-  id           Int           @id @default(autoincrement())
+  id           Int          @id @default(autoincrement())
   name         String        
   surface      String    
   isActive     Boolean      @default(true)

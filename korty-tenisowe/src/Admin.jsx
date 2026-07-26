@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import "./Admin.css";
 import bin from "./assets/bin.png";
 import edit from "./assets/edit.png";
@@ -40,13 +40,25 @@ export default function Admin() {
   const [refreshCourts, setRefreshCourts] = useState(0);
   const [refreshUsers, setRefreshUsers] = useState(0);
   const [courtToEdit, setCourtToEdit] = useState(null);
-  const [editFormData, setEditFormData] = useState({});
-  const toggleEdit = (court) => {
+  const [userToEdit, setUserToEdit] = useState(null);
+  const [courtEditFormData, setCourtEditFormData] = useState({});
+  const [userEditFormData, setUserEditFormData] = useState({});
+
+  const userEdit = (user) => {
+    if (userToEdit === user.id) {
+      setUserToEdit(null);
+    } else {
+      setUserToEdit(user.id);
+      setUserEditFormData(user);
+    }
+  };
+
+  const courtEdit = (court) => {
     if (court.id === courtToEdit) {
       setCourtToEdit(null);
     } else {
       setCourtToEdit(court.id);
-      setEditFormData(court);
+      setCourtEditFormData(court);
     }
   };
 
@@ -103,10 +115,10 @@ export default function Admin() {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            name: editFormData.name,
-            surface: editFormData.surface,
-            isBlocked: editFormData.isBlocked,
-            blockReason: editFormData.blockReason,
+            name: courtEditFormData.name,
+            surface: courtEditFormData.surface,
+            isBlocked: courtEditFormData.isBlocked,
+            blockReason: courtEditFormData.blockReason,
           }),
         },
       );
@@ -114,7 +126,7 @@ export default function Admin() {
         alert("Kort został zaktualizowany!");
         setRefreshCourts((prev) => prev + 1);
         setCourtToEdit(null);
-        setEditFormData({});
+        setCourtEditFormData({});
       } else {
         const data = await response.json();
         alert(data.error);
@@ -134,6 +146,50 @@ export default function Admin() {
       if (response.ok) {
         const newCourt = await response.json();
         setRefreshCourts((prev) => prev + 1);
+      } else {
+        const data = await response.json();
+        alert(data.error);
+      }
+    } catch (error) {
+      alert("Błąd serwera.");
+    }
+  };
+
+  const handleSaveUser = async (userId) => {
+    try {
+      const response = await fetch(`http://localhost:5005/api/user/${userId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          firstName: userEditFormData.firstName,
+          lastName: userEditFormData.lastName,
+          email: userEditFormData.email,
+          phone: userEditFormData.phone,
+          role: userEditFormData.role,
+        }),
+      });
+      if (response.ok) {
+        alert("Uzytkownik został zaktualizowany!");
+        setRefreshUsers((prev) => prev + 1);
+        setUserToEdit(null);
+        setUserEditFormData({});
+      } else {
+        const data = await response.json();
+        alert(data.error);
+      }
+    } catch (error) {
+      alert("Błąd serwera.");
+    }
+  };
+
+  const handleDeleteUser = async (userId) => {
+    try {
+      const response = await fetch(`http://localhost:5005/api/user/${userId}`, {
+        method: "DELETE",
+      });
+      if (response.ok) {
+        alert("Uzytkownik został usunięty!");
+        setRefreshUsers((prev) => prev + 1);
       } else {
         const data = await response.json();
         alert(data.error);
@@ -258,8 +314,8 @@ export default function Admin() {
                 <h3>Akcje</h3>
               </div>
               {courts.map((court, index) => (
-                <div className="court-wrapper">
-                  <div className="court" key={court.id}>
+                <div className="court-wrapper" key={court.id}>
+                  <div className="court">
                     <div className="court__info">{court.name}</div>
                     <div className="court__info">{court.surface}</div>
                     <div
@@ -285,7 +341,7 @@ export default function Admin() {
                         className="court__actions-button-edit"
                         type="button"
                         onClick={() => {
-                          toggleEdit(court);
+                          courtEdit(court);
                         }}
                       >
                         <img src={edit} alt="Edytuj" className="edit-icon" />
@@ -306,11 +362,11 @@ export default function Admin() {
                         <div className="court-edit-text-input-wrapper">
                           <input
                             type="text"
-                            value={editFormData.name}
+                            value={courtEditFormData.name}
                             className="court-edit-text-input"
                             onChange={(e) =>
-                              setEditFormData({
-                                ...editFormData,
+                              setCourtEditFormData({
+                                ...editCourtFormData,
                                 name: e.target.value,
                               })
                             }
@@ -319,11 +375,11 @@ export default function Admin() {
                         <div className="court-edit-text-input-wrapper">
                           <input
                             type="text"
-                            value={editFormData.surface}
+                            value={courtEditFormData.surface}
                             className="court-edit-text-input"
                             onChange={(e) =>
-                              setEditFormData({
-                                ...editFormData,
+                              setCourtEditFormData({
+                                ...courtEditFormData,
                                 surface: e.target.value,
                               })
                             }
@@ -335,10 +391,10 @@ export default function Admin() {
                               type="radio"
                               name={`status-${court.id}`}
                               id={`court-${court.id}-avalible`}
-                              checked={editFormData.isBlocked === false}
+                              checked={courtEditFormData.isBlocked === false}
                               onChange={() =>
-                                setEditFormData({
-                                  ...editFormData,
+                                setCourtEditFormData({
+                                  ...courtEditFormData,
                                   isBlocked: false,
                                 })
                               }
@@ -352,10 +408,10 @@ export default function Admin() {
                               type="radio"
                               name={`status-${court.id}`}
                               id={`court-${court.id}-blocked`}
-                              checked={editFormData.isBlocked === true}
+                              checked={courtEditFormData.isBlocked === true}
                               onChange={() =>
-                                setEditFormData({
-                                  ...editFormData,
+                                setCourtEditFormData({
+                                  ...courtEditFormData,
                                   isBlocked: true,
                                 })
                               }
@@ -373,10 +429,10 @@ export default function Admin() {
                             type="text"
                             name={`block-reason-${court.id}`}
                             id={`court-${court.id}-block-reason`}
-                            value={editFormData.blockReason || ""}
+                            value={courtEditFormData.blockReason || ""}
                             onChange={(e) =>
-                              setEditFormData({
-                                ...editFormData,
+                              setCourtEditFormData({
+                                ...courtEditFormData,
                                 blockReason: e.target.value,
                               })
                             }
@@ -425,7 +481,6 @@ export default function Admin() {
                 </div>
               </div>
             </div>
-
             <div className="users__list-header">
               <h3>Imię</h3>
               <h3>Nazwisko</h3>
@@ -435,26 +490,119 @@ export default function Admin() {
               <h3>Dołączył(a)</h3>
               <h3>Akcje</h3>
             </div>
-            {users.map((user, index) => (
-              <div className="users__list-user" key={user.id}>
-                <div className="user__name">{user.firstName}</div>
-                <div className="user__lastname">{user.lastName}</div>
-                <div className="user__email">{user.email}</div>
-                <div className="user__phone">{user.phone}</div>
-                <div className="user__role">{user.role}</div>
-                <div className="user__createdat">{user.createdAt}</div>
-                <div className="user__actions">
-                  <button className="user__actions-button-edit" type="button">
-                    <img src={edit} alt="Edytuj" className="edit-icon" />
-                    Edytuj
-                  </button>
-                  <button className="user__actions-button-delete" type="button">
-                    <img src={bin} alt="Usuń" className="delete-icon" />
-                    Usuń
-                  </button>
+            {users.map((user, index) => {
+              const roleOptions = ["USER", "RECEPTIONIST", "ADMIN"];
+              return (
+                <div className="users__list-wrapper" key={user.id}>
+                  <div className="users__list-user">
+                    <div className="user__name">{user.firstName}</div>
+                    <div className="user__lastname">{user.lastName}</div>
+                    <div className="user__email">{user.email}</div>
+                    <div className="user__phone">{user.phone}</div>
+                    <div className="user__role">{user.role}</div>
+                    <div className="user__createdat">{user.createdAt}</div>
+                    <div className="user__actions">
+                      <button
+                        className="user__actions-button-edit"
+                        type="button"
+                        onClick={() => userEdit(user)}
+                      >
+                        <img src={edit} alt="Edytuj" className="edit-icon" />
+                        Edytuj
+                      </button>
+                      {user.role !== "ADMIN" && (
+                        <button
+                          className="user__actions-button-delete"
+                          type="button"
+                          onClick={() => handleDeleteUser(user.id)}
+                        >
+                          <img src={bin} alt="Usuń" className="delete-icon" />
+                          Usuń
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                  {userToEdit === user.id && (
+                    <div className="users__list-edit">
+                      <input
+                        type="text"
+                        placeholder="Imię"
+                        value={userEditFormData.firstName}
+                        onChange={(e) =>
+                          setUserEditFormData({
+                            ...userEditFormData,
+                            firstName: e.target.value,
+                          })
+                        }
+                      />
+                      <input
+                        type="text"
+                        placeholder="Nazwisko"
+                        value={userEditFormData.lastName}
+                        onChange={(e) =>
+                          setUserEditFormData({
+                            ...userEditFormData,
+                            lastName: e.target.value,
+                          })
+                        }
+                      />
+                      <input
+                        type="text"
+                        placeholder="E-mail"
+                        value={userEditFormData.email}
+                        onChange={(e) =>
+                          setUserEditFormData({
+                            ...userEditFormData,
+                            email: e.target.value,
+                          })
+                        }
+                      />
+                      <input
+                        type="text"
+                        placeholder="Telefon"
+                        value={userEditFormData.phone}
+                        onChange={(e) =>
+                          setUserEditFormData({
+                            ...userEditFormData,
+                            phone: e.target.value,
+                          })
+                        }
+                      />
+                      <select
+                        value={userEditFormData.role}
+                        onChange={(e) =>
+                          setUserEditFormData({
+                            ...userEditFormData,
+                            role: e.target.value,
+                          })
+                        }
+                        disabled={userEditFormData.role === "GUEST"}
+                      >
+                        <option value={userEditFormData.role}>
+                          {userEditFormData.role}
+                        </option>{" "}
+                        {roleOptions
+                          .filter((role) => role !== userEditFormData.role)
+                          .map((role) => (
+                            <option key={role} value={role}>
+                              {role}
+                            </option>
+                          ))}
+                      </select>{" "}
+                      {userEditFormData.role === "GUEST" && (
+                        <span>Zmiana roli gościa niemozliwa</span>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => handleSaveUser(user.id)}
+                      >
+                        Zapisz
+                      </button>
+                    </div>
+                  )}
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </div>

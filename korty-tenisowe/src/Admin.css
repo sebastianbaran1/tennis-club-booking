@@ -411,3 +411,6 @@
   gap: 30px;
   align-items: center;
 }
+.users__list-edit {
+  background-color: #cdcfd25a;
+}
