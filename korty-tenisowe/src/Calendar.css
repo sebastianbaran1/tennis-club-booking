@@ -1,5 +1,5 @@
 .calendar-container {
-  padding: 3rem 1rem;
+  padding: 2rem 1rem;
   max-width: 1200px;
   margin: 0 auto;
   text-align: center;
@@ -29,6 +29,11 @@
   border: 1px solid #ccc;
   border-radius: 6px;
   background-color: white;
+}
+.calendar-date-input:focus,
+.calendar-court-select:focus {
+  outline: none;
+  border: var(--color-primary) solid 1px;
 }
 
 .calendar-grid-wrapper {

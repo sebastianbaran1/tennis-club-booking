@@ -338,6 +338,7 @@ app.get("/api/users", async (req, res) => {
 app.get("/api/usersAdmin", async (req, res) => {
   try {
     const users = await prisma.user.findMany({
+      where: { isActive: true },
       select: {
         id: true,
         firstName: true,

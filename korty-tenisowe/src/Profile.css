@@ -1,11 +1,11 @@
 .profile-container {
-  padding: 4rem 1rem;
+  padding: 2rem 1rem;
   max-width: 800px;
   margin: 0 auto;
 }
 
 .profile-title {
-  font-family: var(--serif-font);
+  font-family: var(--sans-font);
   color: var(--color-primary);
   text-align: center;
   font-size: 2.5rem;
@@ -103,7 +103,9 @@
   border-radius: 8px;
   cursor: pointer;
   font-weight: bold;
-  transition: background-color 0.2s, transform 0.1s;
+  transition:
+    background-color 0.2s,
+    transform 0.1s;
 }
 
 .btn-cancel:hover {

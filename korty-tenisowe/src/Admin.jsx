@@ -43,6 +43,9 @@ export default function Admin() {
   const [userToEdit, setUserToEdit] = useState(null);
   const [courtEditFormData, setCourtEditFormData] = useState({});
   const [userEditFormData, setUserEditFormData] = useState({});
+  const [userSearch, setUserSearch] = useState("");
+  const [userRoleFilter, setUserRoleFilter] = useState("all");
+  const [userDateSort, setUserDateSort] = useState("ASC");
 
   const userEdit = (user) => {
     if (userToEdit === user.id) {
@@ -197,6 +200,10 @@ export default function Admin() {
     } catch (error) {
       alert("Błąd serwera.");
     }
+  };
+
+  const toggleSort = () => {
+    userDateSort === "ASC" ? setUserDateSort("DESC") : setUserDateSort("ASC");
   };
 
   useEffect(() => {
@@ -461,17 +468,20 @@ export default function Admin() {
               </div>
               <div className="users__header-filters">
                 <div className="users__header-search">
-                  <label htmlFor="users__search">Wyszukaj klienta</label>
                   <input
                     type="text"
                     name="users__search"
                     id="users__search"
-                    placeholder="Imię, nazwisko, telefon, e-mail"
+                    placeholder="Szukaj (Imię, nazwisko, telefon, e-mail)..."
+                    onChange={(e) => setUserSearch(e.target.value)}
                   />
                 </div>
                 <div className="users__header-dropdown">
-                  <label htmlFor="users__select">Wybierz role</label>
-                  <select name="users__select" id="users__select">
+                  <select
+                    name="users__select"
+                    id="users__select"
+                    onChange={(e) => setUserRoleFilter(e.target.value)}
+                  >
                     <option value="all">Wszystkie role</option>
                     <option value="GUEST">Gość</option>
                     <option value="USER">Użytkownik</option>
@@ -487,122 +497,161 @@ export default function Admin() {
               <h3>E-mail</h3>
               <h3>Telefon</h3>
               <h3>Rola</h3>
-              <h3>Dołączył(a)</h3>
+              <h3 onClick={() => toggleSort()}>
+                Dołączył(a)
+                <span className="sort-icon">
+                  {userDateSort === "DESC" ? "▼" : "▲"}
+                </span>
+              </h3>
               <h3>Akcje</h3>
             </div>
-            {users.map((user, index) => {
-              const roleOptions = ["USER", "RECEPTIONIST", "ADMIN"];
-              return (
-                <div className="users__list-wrapper" key={user.id}>
-                  <div className="users__list-user">
-                    <div className="user__name">{user.firstName}</div>
-                    <div className="user__lastname">{user.lastName}</div>
-                    <div className="user__email">{user.email}</div>
-                    <div className="user__phone">{user.phone}</div>
-                    <div className="user__role">{user.role}</div>
-                    <div className="user__createdat">{user.createdAt}</div>
-                    <div className="user__actions">
-                      <button
-                        className="user__actions-button-edit"
-                        type="button"
-                        onClick={() => userEdit(user)}
-                      >
-                        <img src={edit} alt="Edytuj" className="edit-icon" />
-                        Edytuj
-                      </button>
-                      {user.role !== "ADMIN" && (
+            {users
+              .sort((a, b) =>
+                userDateSort === "DESC"
+                  ? new Date(b.createdAt) - new Date(a.createdAt)
+                  : new Date(a.createdAt) - new Date(b.createdAt),
+              )
+              .filter((user) => {
+                const userFilter =
+                  `${user.firstName} ${user.lastName} ${user.email} ${user.phone}`.toLowerCase();
+                return (
+                  userFilter.includes(userSearch.toLowerCase()) &&
+                  (userRoleFilter === "all" || userRoleFilter === user.role)
+                );
+              })
+              .map((user, index) => {
+                const roleOptions = ["USER", "RECEPTIONIST", "ADMIN"];
+                return (
+                  <div className="users__list-wrapper" key={user.id}>
+                    <div className="users__list-user">
+                      <div className="user__info">{user.firstName}</div>
+                      <div className="user__info">{user.lastName}</div>
+                      <div className="user__info">{user.email}</div>
+                      <div className="user__info">{user.phone}</div>
+                      <div className="user__info">{user.role}</div>
+                      <div className="user__info">
+                        {user.createdAt.split("T")[0]}
+                      </div>
+                      <div className="user__actions">
                         <button
-                          className="user__actions-button-delete"
+                          className="user__actions-button-edit"
                           type="button"
-                          onClick={() => handleDeleteUser(user.id)}
+                          onClick={() => userEdit(user)}
                         >
-                          <img src={bin} alt="Usuń" className="delete-icon" />
-                          Usuń
+                          <img src={edit} alt="Edytuj" className="edit-icon" />
+                          Edytuj
                         </button>
-                      )}
+                        {user.role !== "ADMIN" && (
+                          <button
+                            className="user__actions-button-delete"
+                            type="button"
+                            onClick={() => handleDeleteUser(user.id)}
+                          >
+                            <img src={bin} alt="Usuń" className="delete-icon" />
+                            Usuń
+                          </button>
+                        )}
+                      </div>
                     </div>
+                    {userToEdit === user.id && (
+                      <div className="users__list-edit">
+                        <div className="user-edit-text-input-wrapper first-name">
+                          <input
+                            type="text"
+                            placeholder="Imię"
+                            className="user-edit-text-input"
+                            value={userEditFormData.firstName}
+                            onChange={(e) =>
+                              setUserEditFormData({
+                                ...userEditFormData,
+                                firstName: e.target.value,
+                              })
+                            }
+                          />
+                        </div>
+                        <div className="user-edit-text-input-wrapper last-name">
+                          <input
+                            type="text"
+                            placeholder="Nazwisko"
+                            className="user-edit-text-input"
+                            value={userEditFormData.lastName}
+                            onChange={(e) =>
+                              setUserEditFormData({
+                                ...userEditFormData,
+                                lastName: e.target.value,
+                              })
+                            }
+                          />
+                        </div>
+                        <div className="user-edit-text-input-wrapper email">
+                          <input
+                            type="text"
+                            placeholder="E-mail"
+                            className="user-edit-text-input"
+                            value={userEditFormData.email}
+                            onChange={(e) =>
+                              setUserEditFormData({
+                                ...userEditFormData,
+                                email: e.target.value,
+                              })
+                            }
+                          />
+                        </div>
+                        <div className="user-edit-text-input-wrapper phone">
+                          <input
+                            type="text"
+                            placeholder="Telefon"
+                            className="user-edit-text-input"
+                            value={userEditFormData.phone}
+                            onChange={(e) =>
+                              setUserEditFormData({
+                                ...userEditFormData,
+                                phone: e.target.value,
+                              })
+                            }
+                          />
+                        </div>
+                        <div className="user-edit-select-wrapper">
+                          <select
+                            value={userEditFormData.role}
+                            className="user-edit-select"
+                            onChange={(e) =>
+                              setUserEditFormData({
+                                ...userEditFormData,
+                                role: e.target.value,
+                              })
+                            }
+                            disabled={userEditFormData.role === "GUEST"}
+                          >
+                            <option value={userEditFormData.role}>
+                              {userEditFormData.role}
+                            </option>{" "}
+                            {roleOptions
+                              .filter((role) => role !== userEditFormData.role)
+                              .map((role) => (
+                                <option key={role} value={role}>
+                                  {role}
+                                </option>
+                              ))}
+                          </select>{" "}
+                          {userEditFormData.role === "GUEST" && (
+                            <span>Zmiana roli gościa niemozliwa</span>
+                          )}
+                        </div>
+                        <div className="user-edit-button-wrapper">
+                          <button
+                            type="button"
+                            className="user-edit-button-save"
+                            onClick={() => handleSaveUser(user.id)}
+                          >
+                            Zapisz
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
-                  {userToEdit === user.id && (
-                    <div className="users__list-edit">
-                      <input
-                        type="text"
-                        placeholder="Imię"
-                        value={userEditFormData.firstName}
-                        onChange={(e) =>
-                          setUserEditFormData({
-                            ...userEditFormData,
-                            firstName: e.target.value,
-                          })
-                        }
-                      />
-                      <input
-                        type="text"
-                        placeholder="Nazwisko"
-                        value={userEditFormData.lastName}
-                        onChange={(e) =>
-                          setUserEditFormData({
-                            ...userEditFormData,
-                            lastName: e.target.value,
-                          })
-                        }
-                      />
-                      <input
-                        type="text"
-                        placeholder="E-mail"
-                        value={userEditFormData.email}
-                        onChange={(e) =>
-                          setUserEditFormData({
-                            ...userEditFormData,
-                            email: e.target.value,
-                          })
-                        }
-                      />
-                      <input
-                        type="text"
-                        placeholder="Telefon"
-                        value={userEditFormData.phone}
-                        onChange={(e) =>
-                          setUserEditFormData({
-                            ...userEditFormData,
-                            phone: e.target.value,
-                          })
-                        }
-                      />
-                      <select
-                        value={userEditFormData.role}
-                        onChange={(e) =>
-                          setUserEditFormData({
-                            ...userEditFormData,
-                            role: e.target.value,
-                          })
-                        }
-                        disabled={userEditFormData.role === "GUEST"}
-                      >
-                        <option value={userEditFormData.role}>
-                          {userEditFormData.role}
-                        </option>{" "}
-                        {roleOptions
-                          .filter((role) => role !== userEditFormData.role)
-                          .map((role) => (
-                            <option key={role} value={role}>
-                              {role}
-                            </option>
-                          ))}
-                      </select>{" "}
-                      {userEditFormData.role === "GUEST" && (
-                        <span>Zmiana roli gościa niemozliwa</span>
-                      )}
-                      <button
-                        type="button"
-                        onClick={() => handleSaveUser(user.id)}
-                      >
-                        Zapisz
-                      </button>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
+                );
+              })}
           </div>
         </div>
       </div>
