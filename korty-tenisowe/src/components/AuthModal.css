@@ -12,7 +12,9 @@
 
   opacity: 0;
   visibility: hidden;
-  transition: opacity 0.3s ease, visibility 0.3s ease;
+  transition:
+    opacity 0.3s ease,
+    visibility 0.3s ease;
 }
 
 .modal {
@@ -53,7 +55,7 @@
 }
 
 .modal__subtitle {
-  color: #666;
+  color: #181818;
   font-size: clamp(0.85rem, 0.698rem + 0.762vw, 0.9rem);
   font-family: var(--sans-font);
   margin-bottom: clamp(15px, calc(-30.714px + 14.286vw), 30px);

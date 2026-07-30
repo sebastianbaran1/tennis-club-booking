@@ -37,6 +37,14 @@ export default function Admin() {
     },
   ]);
 
+  const [deleteModal, setDeleteModal] = useState({
+    isOpen: false,
+    id: null,
+    type: null,
+    title: "",
+    name: "",
+  });
+
   const [refreshCourts, setRefreshCourts] = useState(0);
   const [refreshUsers, setRefreshUsers] = useState(0);
   const [courtToEdit, setCourtToEdit] = useState(null);
@@ -46,6 +54,9 @@ export default function Admin() {
   const [userSearch, setUserSearch] = useState("");
   const [userRoleFilter, setUserRoleFilter] = useState("all");
   const [userDateSort, setUserDateSort] = useState("ASC");
+  const [activeTab, setActiveTab] = useState("weekly");
+  const [newClosedDay, setNewClosedDay] = useState("");
+  const [closedDays, setClosedDays] = useState([]);
 
   const userEdit = (user) => {
     if (userToEdit === user.id) {
@@ -72,7 +83,24 @@ export default function Admin() {
     });
   };
 
+  const isScheduleValid = (openString, closeString) => {
+    return timeToMinutes(closeString) - timeToMinutes(openString) > 0;
+  };
+
+  const timeToMinutes = (timeString) => {
+    if (timeString === "00:00") return 24 * 60;
+    const [hours, minutes] = timeString.split(":").map(Number);
+    return hours * 60 + minutes;
+  };
+
   const handleSubmitSchedule = async () => {
+    for (let i = 0; i <= 6; i++) {
+      if (isScheduleValid(schedule[i].open, schedule[i].close) === false) {
+        alert("Godzina zamknięcia musi być późniejsza niż godzina otwarcia!");
+        return;
+      }
+    }
+
     try {
       const response = await fetch("http://localhost:5005/api/settings", {
         method: "PUT",
@@ -202,6 +230,42 @@ export default function Admin() {
     }
   };
 
+  const handleOpenModal = (id, type, name) => {
+    setDeleteModal({
+      isOpen: true,
+      id: id,
+      type: type,
+      title: type === "court" ? "Usuwanie kortu" : "Usuwanie uzytkownika",
+      name: name,
+    });
+  };
+  const handleCloseModal = () => {
+    setDeleteModal({
+      isOpen: false,
+      id: null,
+      type: null,
+      title: "",
+      name: "",
+    });
+  };
+
+  const handleConfirmDelete = async () => {
+    if (deleteModal.type === "court") {
+      await handleDeleteCourt(deleteModal.id);
+    } else {
+      await handleDeleteUser(deleteModal.id);
+    }
+    handleCloseModal();
+  };
+
+  const handleAddNewClosedDay = () => {
+    if (newClosedDay === "") return alert("Wybierz dzień");
+    if (closedDays.includes(newClosedDay))
+      return alert("Ten dzień juz jest na liście ");
+    setClosedDays([...closedDays, newClosedDay]);
+    setNewClosedDay("");
+  };
+
   const toggleSort = () => {
     userDateSort === "ASC" ? setUserDateSort("DESC") : setUserDateSort("ASC");
   };
@@ -258,45 +322,96 @@ export default function Admin() {
         <div className="schedule">
           <div className="schedule-title">
             <h2>Harmonogram</h2>
-          </div>{" "}
-          <div className="schedule__day-list">
-            {daysOrder.map((key) => {
-              const dayData = schedule[key];
-              return (
-                <div className="schedule__day" key={key}>
-                  <div className="schedule__day-name">{dayData.name}</div>
-                  <div className="schedule__day-settings">
-                    <input
-                      type="time"
-                      className="schedule__input-open"
-                      value={dayData.open}
-                      onChange={(e) =>
-                        handleTimeChange(key, "open", e.target.value)
-                      }
-                    />
-                    <div className="schedule__separator">-</div>
-                    <input
-                      type="time"
-                      className="schedule__input-close"
-                      value={dayData.close}
-                      onChange={(e) =>
-                        handleTimeChange(key, "close", e.target.value)
-                      }
-                    />
-                  </div>
-                </div>
-              );
-            })}
           </div>
-          <div className="schedule__button-submit-wrapper">
+          <div className="schedule-tabs">
             <button
-              className="schedule__button-submit"
               type="button"
-              onClick={handleSubmitSchedule}
+              className={`schedule-tab ${activeTab === "weekly" ? "active" : ""}`}
+              onClick={() => setActiveTab("weekly")}
             >
-              Zapisz zmiany
+              Tydzień
+            </button>
+            <button
+              type="button"
+              className={`schedule-tab ${activeTab === "exceptions" ? "active" : ""}`}
+              onClick={() => setActiveTab("exceptions")}
+            >
+              Dni wolne
             </button>
           </div>
+          {activeTab === "weekly" ? (
+            <div className="schedule__weekly">
+              <div className="schedule__day-list">
+                {daysOrder.map((key) => {
+                  const dayData = schedule[key];
+                  return (
+                    <div className="schedule__day" key={key}>
+                      <div className="schedule__day-name">{dayData.name}</div>
+                      <div className="schedule__day-settings">
+                        <input
+                          type="time"
+                          className="schedule__input-open"
+                          value={dayData.open}
+                          onChange={(e) =>
+                            handleTimeChange(key, "open", e.target.value)
+                          }
+                        />
+                        <div className="schedule__separator">-</div>
+                        <input
+                          type="time"
+                          className="schedule__input-close"
+                          value={dayData.close}
+                          onChange={(e) =>
+                            handleTimeChange(key, "close", e.target.value)
+                          }
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="schedule__button-submit-wrapper">
+                <button
+                  className="schedule__button-submit"
+                  type="button"
+                  onClick={handleSubmitSchedule}
+                >
+                  Zapisz zmiany
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="schedule__exceptions">
+              <div className="schedule__exceptions-add">
+                <input
+                  type="date"
+                  name="exception-date"
+                  id="schedule__exceptions-input"
+                  onChange={(e) => setNewClosedDay(e.target.value)}
+                />
+                <button
+                  type="button"
+                  className="schedule__exceptions-button"
+                  onClick={() => handleAddNewClosedDay()}
+                >
+                  Dodaj
+                </button>
+              </div>
+              <div className="schedule__exceptions-list">
+                {closedDays.map((day) => (
+                  <div className="schedule__exceptions-item" key={day}>
+                    <div className="schedule__exceptions-date">{day}</div>
+                    <button
+                      type="button"
+                      className="schedule__exceptions-button-delete"
+                    >
+                      X
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
         <div className="courts-wrapper">
           <div className="courts">
@@ -356,7 +471,13 @@ export default function Admin() {
                       </button>
                       <button
                         className="court__actions-button-delete"
-                        onClick={() => handleDeleteCourt(court.id)}
+                        onClick={() =>
+                          handleOpenModal(
+                            court.id,
+                            "court",
+                            `${court.name} ${court.surface}`,
+                          )
+                        }
                       >
                         <img src={bin} alt="Usuń" className="delete-icon" />
                         Usuń
@@ -399,12 +520,13 @@ export default function Admin() {
                               name={`status-${court.id}`}
                               id={`court-${court.id}-avalible`}
                               checked={courtEditFormData.isBlocked === false}
-                              onChange={() =>
+                              onChange={() => {
                                 setCourtEditFormData({
                                   ...courtEditFormData,
                                   isBlocked: false,
-                                })
-                              }
+                                  blockReason: "",
+                                });
+                              }}
                             />{" "}
                             <label htmlFor={`court-${court.id}-avalible`}>
                               Dostępny
@@ -539,13 +661,19 @@ export default function Admin() {
                           onClick={() => userEdit(user)}
                         >
                           <img src={edit} alt="Edytuj" className="edit-icon" />
-                          Edytuj
+                          {user.id === userToEdit ? "Anuluj" : "Edytuj"}
                         </button>
                         {user.role !== "ADMIN" && (
                           <button
                             className="user__actions-button-delete"
                             type="button"
-                            onClick={() => handleDeleteUser(user.id)}
+                            onClick={() =>
+                              handleOpenModal(
+                                user.id,
+                                "user",
+                                `${user.firstName} ${user.lastName}`,
+                              )
+                            }
                           >
                             <img src={bin} alt="Usuń" className="delete-icon" />
                             Usuń
@@ -554,7 +682,9 @@ export default function Admin() {
                       </div>
                     </div>
                     {userToEdit === user.id && (
-                      <div className="users__list-edit">
+                      <div
+                        className={`users__list-edit ${userEditFormData.role === "GUEST" ? "guest" : ""}`}
+                      >
                         <div className="user-edit-text-input-wrapper first-name">
                           <input
                             type="text"
@@ -633,9 +763,9 @@ export default function Admin() {
                                   {role}
                                 </option>
                               ))}
-                          </select>{" "}
+                          </select>
                           {userEditFormData.role === "GUEST" && (
-                            <span>Zmiana roli gościa niemozliwa</span>
+                            <div>Zmiana roli gościa niemozliwa</div>
                           )}
                         </div>
                         <div className="user-edit-button-wrapper">
@@ -655,6 +785,48 @@ export default function Admin() {
           </div>
         </div>
       </div>
+      {deleteModal.isOpen && (
+        <div className="modal-overlay active">
+          <div className="modal">
+            <button
+              className="modal__close"
+              onClick={() =>
+                setDeleteModal({
+                  isOpen: false,
+                  id: null,
+                  type: null,
+                })
+              }
+            >
+              ✕
+            </button>
+            <h2 className="modal__title">{deleteModal.title}</h2>
+            <p className="modal__subtitle">
+              Czy na pewno chcesz usunąć:{" "}
+              <span className="modal__subtitle-highlight">
+                {deleteModal.name}
+              </span>
+              ? <br />
+              Tej operacji nie można cofnąć.
+            </p>
+
+            <div className="modal__buttons">
+              <button
+                className="modal__button-cancel"
+                onClick={() => handleCloseModal()}
+              >
+                Anuluj
+              </button>
+              <button
+                className="modal__button-confirm"
+                onClick={() => handleConfirmDelete()}
+              >
+                Usuń {deleteModal.type === "user" ? "użytkownika" : "kort"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -317,12 +317,38 @@
   width: 100%;
   padding-bottom: 15px;
 }
+.schedule-tabs {
+  display: flex;
+  width: 100%;
+  border-bottom: 1px solid rgba(128, 128, 128, 0.689);
+}
+.schedule-tab {
+  flex: 1;
+  font-size: 1.17rem;
+  line-height: 1.5;
+  font-weight: bold;
+  font-family: var(--sans-font);
+  color: var(--color-secondary);
+  background-color: transparent;
+  border: none;
+  padding: 10px 0 8px 0;
+  margin-bottom: -1px;
+  border-bottom: 3px solid transparent;
+}
+.schedule-tab.active {
+  border-bottom: 3px solid #b39465;
+}
 
+.schedule__weekly {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
 .schedule__day {
   display: grid;
   grid-template-columns: 3fr 5fr;
   align-items: center;
-  padding: 10px 0;
+  padding: 7.5px 0;
   border-bottom: 0.5px solid rgba(128, 128, 128, 0.689);
 }
 
@@ -379,7 +405,7 @@
   border: none;
   width: 90%;
   border-radius: 5px;
-  padding: 13px;
+  padding: 10px;
   cursor: pointer;
   font-weight: bold;
   font-size: 1rem;
@@ -449,6 +475,9 @@
   box-shadow: inset 0 3px 6px rgba(0, 0, 0, 0.04);
   animation: slideDownFadeIn 0.2s ease-out forwards;
 }
+.users__list-edit.guest {
+  padding: 20px 10px 25px 10px;
+}
 
 .sort-icon {
   margin-left: 5px;
@@ -489,7 +518,20 @@
   grid-column: 4 / 5;
 }
 .user-edit-select-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   grid-column: 5 / 6;
+  overflow: visible;
+  position: relative;
+}
+.user-edit-select-wrapper div {
+  font-size: 0.85rem;
+  white-space: nowrap;
+  color: red;
+  position: absolute;
+  top: 105%;
+  left: 6.5%;
 }
 .user-edit-select {
   height: 30px;
@@ -513,6 +555,7 @@
   background-color: rgb(26, 168, 26);
   color: #f8f9fa;
   border: none;
+  height: 32.5px;
   width: 90%;
   border-radius: 5px;
   padding: 7px;
@@ -553,4 +596,47 @@
 .users__header-dropdown select:focus {
   outline: none;
   border: var(--color-primary) solid 1px;
+}
+
+.modal {
+  max-width: 450px;
+}
+.modal__title {
+  font-size: 1.8rem;
+}
+.modal__subtitle-highlight {
+  font-weight: bold;
+}
+.modal__buttons {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  margin-top: 20px;
+}
+.modal__button-cancel {
+  border: none;
+  border-radius: 3px;
+  height: 45px;
+  width: 150px;
+  font-weight: bold;
+  background-color: #dadde2;
+  color: var(--color-secondary);
+  cursor: pointer;
+}
+
+.modal__button-confirm {
+  border: none;
+  border-radius: 3px;
+  height: 45px;
+  width: 150px;
+  font-weight: bold;
+  background-color: #f82b2b;
+  color: #fcfbf8;
+  cursor: pointer;
+}
+.modal__button-confirm:hover {
+  background-color: #ca1e1e;
+}
+.modal__button-cancel:hover {
+  background-color: #bfc2c4;
 }
