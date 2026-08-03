@@ -402,12 +402,14 @@ app.delete("/api/user/:id", async (req, res) => {
   }
 });
 
-app.get("/api/settings", async (req, res) => {
+app.get("/api/settings/schedule", async (req, res) => {
   try {
-    const settings = await prisma.settings.findUnique({ where: { id: 1 } });
+    const settings = await prisma.settings.findUnique({
+      where: { id: 1 },
+    });
 
     if (settings) {
-      res.status(200).json(settings);
+      res.status(200).json(settings.schedule);
     } else {
       res.status(404).json({ error: "Brak ustawień" });
     }
@@ -416,7 +418,23 @@ app.get("/api/settings", async (req, res) => {
   }
 });
 
-app.put("/api/settings", async (req, res) => {
+app.get("/api/settings/exceptions", async (req, res) => {
+  try {
+    const settings = await prisma.settings.findUnique({
+      where: { id: 1 },
+    });
+
+    if (settings) {
+      res.status(200).json(settings.exceptions);
+    } else {
+      res.status(404).json({ error: "Brak ustawień" });
+    }
+  } catch (error) {
+    res.status(500).json({ error: "Błąd serwera" });
+  }
+});
+
+app.put("/api/settings/schedule", async (req, res) => {
   try {
     const { schedule } = req.body;
 
@@ -427,6 +445,29 @@ app.put("/api/settings", async (req, res) => {
       },
       update: {
         schedule: schedule,
+      },
+      where: {
+        id: 1,
+      },
+    });
+
+    res.status(200).json(settings);
+  } catch (error) {
+    res.status(500).json({ error: "Błąd serwera podczas zapisywania" });
+  }
+});
+
+app.put("/api/settings/exceptions", async (req, res) => {
+  try {
+    const { closedDays } = req.body;
+
+    const settings = await prisma.settings.upsert({
+      create: {
+        id: 1,
+        exceptions: closedDays,
+      },
+      update: {
+        exceptions: closedDays,
       },
       where: {
         id: 1,

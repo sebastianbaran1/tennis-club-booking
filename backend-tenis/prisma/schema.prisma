@@ -46,5 +46,6 @@ model Reservation {
 
 model Settings {
   id Int @id @default(1)
-  schedule Json
+  schedule Json @default("{}")
+  exceptions Json @default("[]")
 }

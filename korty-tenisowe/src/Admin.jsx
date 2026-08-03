@@ -1,4 +1,4 @@
-import { useState, useEffect, use } from "react";
+import { useState, useEffect } from "react";
 import "./Admin.css";
 import bin from "./assets/bin.png";
 import edit from "./assets/edit.png";
@@ -102,14 +102,38 @@ export default function Admin() {
     }
 
     try {
-      const response = await fetch("http://localhost:5005/api/settings", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ schedule }),
-      });
+      const response = await fetch(
+        "http://localhost:5005/api/settings/schedule",
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ schedule }),
+        },
+      );
       const data = await response.json();
       if (response.ok) {
         alert("Harmonogram został zaktualizowany!");
+      } else {
+        alert(data.error);
+      }
+    } catch (error) {
+      alert("Błąd połączenia z serwerem.");
+    }
+  };
+
+  const handleSubmitExceptions = async () => {
+    try {
+      const response = await fetch(
+        "http://localhost:5005/api/settings/exceptions",
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ closedDays }),
+        },
+      );
+      const data = await response.json();
+      if (response.ok) {
+        alert("Dni wolne zostały zaktualizowane!");
       } else {
         alert(data.error);
       }
@@ -262,7 +286,10 @@ export default function Admin() {
     if (newClosedDay === "") return alert("Wybierz dzień");
     if (closedDays.includes(newClosedDay))
       return alert("Ten dzień juz jest na liście ");
-    setClosedDays([...closedDays, newClosedDay]);
+
+    setClosedDays(
+      [...closedDays, newClosedDay].sort((a, b) => new Date(a) - new Date(b)),
+    );
     setNewClosedDay("");
   };
 
@@ -273,16 +300,35 @@ export default function Admin() {
   useEffect(() => {
     const fetchSchedule = async () => {
       try {
-        const response = await fetch("http://localhost:5005/api/settings");
+        const response = await fetch(
+          "http://localhost:5005/api/settings/schedule",
+        );
         const data = await response.json();
         if (response.ok) {
-          setSchedule(data.schedule);
+          setSchedule(data);
         }
       } catch (error) {
         alert("Błąd połączenia z serwerem.");
       }
     };
     fetchSchedule();
+  }, []);
+
+  useEffect(() => {
+    const fetchExceptions = async () => {
+      try {
+        const response = await fetch(
+          "http://localhost:5005/api/settings/exceptions",
+        );
+        const data = await response.json();
+        if (response.ok) {
+          setClosedDays(data);
+        }
+      } catch (error) {
+        alert("Błąd połączenia z serwerem.");
+      }
+    };
+    fetchExceptions();
   }, []);
 
   useEffect(() => {
@@ -404,11 +450,23 @@ export default function Admin() {
                     <button
                       type="button"
                       className="schedule__exceptions-button-delete"
+                      onClick={() =>
+                        setClosedDays(closedDays.filter((d) => d !== day))
+                      }
                     >
-                      X
+                      ✕
                     </button>
                   </div>
                 ))}
+              </div>
+              <div className="schedule__exceptions-button-submit-wrapper">
+                <button
+                  className="schedule__exceptions-button-submit"
+                  type="button"
+                  onClick={handleSubmitExceptions}
+                >
+                  Zapisz zmiany
+                </button>
               </div>
             </div>
           )}
@@ -494,7 +552,7 @@ export default function Admin() {
                             className="court-edit-text-input"
                             onChange={(e) =>
                               setCourtEditFormData({
-                                ...editCourtFormData,
+                                ...courtEditFormData,
                                 name: e.target.value,
                               })
                             }

@@ -640,3 +640,97 @@
 .modal__button-cancel:hover {
   background-color: #bfc2c4;
 }
+
+.schedule__exceptions {
+  width: 100%;
+}
+.schedule__exceptions-add {
+  padding: 10px 0;
+  margin-bottom: 5px;
+  display: flex;
+  justify-content: space-between;
+}
+.schedule__exceptions-item {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  width: 90%;
+  height: 37px;
+  background-color: #e3e8f0;
+  border: 1px solid #cdd5e0;
+  padding: 5px 10px;
+  border-radius: 6px;
+}
+
+#schedule__exceptions-input {
+  height: 42px;
+  width: 72%;
+  padding: 8px 12px;
+  font-size: 1rem;
+  font-family: inherit;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background-color: white;
+}
+.schedule__exceptions-button {
+  background-color: var(--color-primary);
+  color: var(--color-secondary);
+  width: 25%;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 1rem;
+  padding: 1px 10px;
+}
+.schedule__exceptions-list {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-auto-rows: max-content;
+  gap: 15px;
+  height: 257px;
+  overflow-y: scroll;
+  overscroll-behavior-y: contain;
+}
+.schedule__exceptions-list::-webkit-scrollbar {
+  width: 6px;
+}
+.schedule__exceptions-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+.schedule__exceptions-list::-webkit-scrollbar-thumb {
+  background-color: var(--color-primary);
+  border-radius: 4px;
+}
+
+.schedule__exceptions-button-delete {
+  border: none;
+  background: transparent;
+  color: #f82b2b;
+  font-weight: bold;
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+.schedule__exceptions-item:nth-child(odd) {
+  justify-self: end;
+}
+.schedule__exceptions-item:nth-child(even) {
+  justify-self: start;
+}
+.schedule__exceptions-button-submit-wrapper {
+  display: flex;
+  justify-content: center;
+}
+.schedule__exceptions-button-submit {
+  background-color: rgb(26, 168, 26);
+  color: #f8f9fa;
+  border: none;
+  width: 90%;
+  border-radius: 5px;
+  padding: 10px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 1rem;
+  align-self: center;
+}
