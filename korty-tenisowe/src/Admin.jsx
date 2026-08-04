@@ -496,11 +496,20 @@ export default function Admin() {
               {courts.map((court, index) => (
                 <div className="court-wrapper" key={court.id}>
                   <div className="court">
-                    <div className="court__info">{court.name}</div>
-                    <div className="court__info">{court.surface}</div>
+                    <div className="court__info">
+                      <span className="mobile-label">Nazwa Kortu</span>
+                      {court.name}
+                    </div>
+
+                    <div className="court__info">
+                      {" "}
+                      <span className="mobile-label">Nazwierzchnia</span>
+                      {court.surface}
+                    </div>
                     <div
                       className={`court__info-status ${court.isBlocked === false ? "available" : "blocked"}`}
                     >
+                      <span className="mobile-label">Status</span>
                       {court.isBlocked === false ? (
                         <span className="court__info-status-available">
                           Dostępny
@@ -517,29 +526,32 @@ export default function Admin() {
                       )}
                     </div>
                     <div className="court__actions">
-                      <button
-                        className="court__actions-button-edit"
-                        type="button"
-                        onClick={() => {
-                          courtEdit(court);
-                        }}
-                      >
-                        <img src={edit} alt="Edytuj" className="edit-icon" />
-                        {court.id === courtToEdit ? "Anuluj" : "Edytuj"}
-                      </button>
-                      <button
-                        className="court__actions-button-delete"
-                        onClick={() =>
-                          handleOpenModal(
-                            court.id,
-                            "court",
-                            `${court.name} ${court.surface}`,
-                          )
-                        }
-                      >
-                        <img src={bin} alt="Usuń" className="delete-icon" />
-                        Usuń
-                      </button>
+                      <span className="mobile-label">Akcje</span>
+                      <div className="court__actions-buttons">
+                        <button
+                          className="court__actions-button-edit"
+                          type="button"
+                          onClick={() => {
+                            courtEdit(court);
+                          }}
+                        >
+                          <img src={edit} alt="Edytuj" className="edit-icon" />
+                          {court.id === courtToEdit ? "Anuluj" : "Edytuj"}
+                        </button>
+                        <button
+                          className="court__actions-button-delete"
+                          onClick={() =>
+                            handleOpenModal(
+                              court.id,
+                              "court",
+                              `${court.name} ${court.surface}`,
+                            )
+                          }
+                        >
+                          <img src={bin} alt="Usuń" className="delete-icon" />
+                          Usuń
+                        </button>
+                      </div>
                     </div>
                   </div>
                   {courtToEdit === court.id && (
@@ -685,161 +697,192 @@ export default function Admin() {
               </h3>
               <h3>Akcje</h3>
             </div>
-            {users
-              .sort((a, b) =>
-                userDateSort === "DESC"
-                  ? new Date(b.createdAt) - new Date(a.createdAt)
-                  : new Date(a.createdAt) - new Date(b.createdAt),
-              )
-              .filter((user) => {
-                const userFilter =
-                  `${user.firstName} ${user.lastName} ${user.email} ${user.phone}`.toLowerCase();
-                return (
-                  userFilter.includes(userSearch.toLowerCase()) &&
-                  (userRoleFilter === "all" || userRoleFilter === user.role)
-                );
-              })
-              .map((user, index) => {
-                const roleOptions = ["USER", "RECEPTIONIST", "ADMIN"];
-                return (
-                  <div className="users__list-wrapper" key={user.id}>
-                    <div className="users__list-user">
-                      <div className="user__info">{user.firstName}</div>
-                      <div className="user__info">{user.lastName}</div>
-                      <div className="user__info">{user.email}</div>
-                      <div className="user__info">{user.phone}</div>
-                      <div className="user__info">{user.role}</div>
-                      <div className="user__info">
-                        {user.createdAt.split("T")[0]}
+            <div className="users__list-wrapper">
+              {users
+                .sort((a, b) =>
+                  userDateSort === "DESC"
+                    ? new Date(b.createdAt) - new Date(a.createdAt)
+                    : new Date(a.createdAt) - new Date(b.createdAt),
+                )
+                .filter((user) => {
+                  const userFilter =
+                    `${user.firstName} ${user.lastName} ${user.email} ${user.phone}`.toLowerCase();
+                  return (
+                    userFilter.includes(userSearch.toLowerCase()) &&
+                    (userRoleFilter === "all" || userRoleFilter === user.role)
+                  );
+                })
+                .map((user, index) => {
+                  const roleOptions = ["USER", "RECEPTIONIST", "ADMIN"];
+                  return (
+                    <div className="users__list-user-wrapper" key={user.id}>
+                      <div className="users__list-user">
+                        <div className="user__info">
+                          <span className="mobile-label">Imię</span>
+                          {user.firstName}
+                        </div>
+                        <div className="user__info">
+                          <span className="mobile-label">Nazwisko</span>
+                          {user.lastName}
+                        </div>
+                        <div className="user__info">
+                          <span className="mobile-label">E-mail</span>
+                          {user.email}
+                        </div>
+                        <div className="user__info">
+                          <span className="mobile-label">Telefon</span>
+                          {user.phone}
+                        </div>
+                        <div className="user__info">
+                          <span className="mobile-label">Rola</span>
+                          {user.role}
+                        </div>
+                        <div className="user__info">
+                          <span className="mobile-label">Dołączył(a)</span>
+                          {user.createdAt.split("T")[0]}
+                        </div>
+                        <div className="user__actions">
+                          <span className="mobile-label">Akcje</span>
+                          <div className="user__actions-buttons">
+                            <button
+                              className="user__actions-button-edit"
+                              type="button"
+                              onClick={() => userEdit(user)}
+                            >
+                              <img
+                                src={edit}
+                                alt="Edytuj"
+                                className="edit-icon"
+                              />
+                              {user.id === userToEdit ? "Anuluj" : "Edytuj"}
+                            </button>
+                            {user.role !== "ADMIN" && (
+                              <button
+                                className="user__actions-button-delete"
+                                type="button"
+                                onClick={() =>
+                                  handleOpenModal(
+                                    user.id,
+                                    "user",
+                                    `${user.firstName} ${user.lastName}`,
+                                  )
+                                }
+                              >
+                                <img
+                                  src={bin}
+                                  alt="Usuń"
+                                  className="delete-icon"
+                                />
+                                Usuń
+                              </button>
+                            )}
+                          </div>
+                        </div>
                       </div>
-                      <div className="user__actions">
-                        <button
-                          className="user__actions-button-edit"
-                          type="button"
-                          onClick={() => userEdit(user)}
+                      {userToEdit === user.id && (
+                        <div
+                          className={`users__list-edit ${userEditFormData.role === "GUEST" ? "guest" : ""}`}
                         >
-                          <img src={edit} alt="Edytuj" className="edit-icon" />
-                          {user.id === userToEdit ? "Anuluj" : "Edytuj"}
-                        </button>
-                        {user.role !== "ADMIN" && (
-                          <button
-                            className="user__actions-button-delete"
-                            type="button"
-                            onClick={() =>
-                              handleOpenModal(
-                                user.id,
-                                "user",
-                                `${user.firstName} ${user.lastName}`,
-                              )
-                            }
-                          >
-                            <img src={bin} alt="Usuń" className="delete-icon" />
-                            Usuń
-                          </button>
-                        )}
-                      </div>
+                          <div className="user-edit-text-input-wrapper first-name">
+                            <input
+                              type="text"
+                              placeholder="Imię"
+                              className="user-edit-text-input"
+                              value={userEditFormData.firstName}
+                              onChange={(e) =>
+                                setUserEditFormData({
+                                  ...userEditFormData,
+                                  firstName: e.target.value,
+                                })
+                              }
+                            />
+                          </div>
+                          <div className="user-edit-text-input-wrapper last-name">
+                            <input
+                              type="text"
+                              placeholder="Nazwisko"
+                              className="user-edit-text-input"
+                              value={userEditFormData.lastName}
+                              onChange={(e) =>
+                                setUserEditFormData({
+                                  ...userEditFormData,
+                                  lastName: e.target.value,
+                                })
+                              }
+                            />
+                          </div>
+                          <div className="user-edit-text-input-wrapper email">
+                            <input
+                              type="text"
+                              placeholder="E-mail"
+                              className="user-edit-text-input"
+                              value={userEditFormData.email}
+                              onChange={(e) =>
+                                setUserEditFormData({
+                                  ...userEditFormData,
+                                  email: e.target.value,
+                                })
+                              }
+                            />
+                          </div>
+                          <div className="user-edit-text-input-wrapper phone">
+                            <input
+                              type="text"
+                              placeholder="Telefon"
+                              className="user-edit-text-input"
+                              value={userEditFormData.phone}
+                              onChange={(e) =>
+                                setUserEditFormData({
+                                  ...userEditFormData,
+                                  phone: e.target.value,
+                                })
+                              }
+                            />
+                          </div>
+                          <div className="user-edit-select-wrapper">
+                            <select
+                              value={userEditFormData.role}
+                              className="user-edit-select"
+                              onChange={(e) =>
+                                setUserEditFormData({
+                                  ...userEditFormData,
+                                  role: e.target.value,
+                                })
+                              }
+                              disabled={userEditFormData.role === "GUEST"}
+                            >
+                              <option value={userEditFormData.role}>
+                                {userEditFormData.role}
+                              </option>{" "}
+                              {roleOptions
+                                .filter(
+                                  (role) => role !== userEditFormData.role,
+                                )
+                                .map((role) => (
+                                  <option key={role} value={role}>
+                                    {role}
+                                  </option>
+                                ))}
+                            </select>
+                            {userEditFormData.role === "GUEST" && (
+                              <div>Zmiana roli gościa niemozliwa</div>
+                            )}
+                          </div>
+                          <div className="user-edit-button-wrapper">
+                            <button
+                              type="button"
+                              className="user-edit-button-save"
+                              onClick={() => handleSaveUser(user.id)}
+                            >
+                              Zapisz
+                            </button>
+                          </div>
+                        </div>
+                      )}
                     </div>
-                    {userToEdit === user.id && (
-                      <div
-                        className={`users__list-edit ${userEditFormData.role === "GUEST" ? "guest" : ""}`}
-                      >
-                        <div className="user-edit-text-input-wrapper first-name">
-                          <input
-                            type="text"
-                            placeholder="Imię"
-                            className="user-edit-text-input"
-                            value={userEditFormData.firstName}
-                            onChange={(e) =>
-                              setUserEditFormData({
-                                ...userEditFormData,
-                                firstName: e.target.value,
-                              })
-                            }
-                          />
-                        </div>
-                        <div className="user-edit-text-input-wrapper last-name">
-                          <input
-                            type="text"
-                            placeholder="Nazwisko"
-                            className="user-edit-text-input"
-                            value={userEditFormData.lastName}
-                            onChange={(e) =>
-                              setUserEditFormData({
-                                ...userEditFormData,
-                                lastName: e.target.value,
-                              })
-                            }
-                          />
-                        </div>
-                        <div className="user-edit-text-input-wrapper email">
-                          <input
-                            type="text"
-                            placeholder="E-mail"
-                            className="user-edit-text-input"
-                            value={userEditFormData.email}
-                            onChange={(e) =>
-                              setUserEditFormData({
-                                ...userEditFormData,
-                                email: e.target.value,
-                              })
-                            }
-                          />
-                        </div>
-                        <div className="user-edit-text-input-wrapper phone">
-                          <input
-                            type="text"
-                            placeholder="Telefon"
-                            className="user-edit-text-input"
-                            value={userEditFormData.phone}
-                            onChange={(e) =>
-                              setUserEditFormData({
-                                ...userEditFormData,
-                                phone: e.target.value,
-                              })
-                            }
-                          />
-                        </div>
-                        <div className="user-edit-select-wrapper">
-                          <select
-                            value={userEditFormData.role}
-                            className="user-edit-select"
-                            onChange={(e) =>
-                              setUserEditFormData({
-                                ...userEditFormData,
-                                role: e.target.value,
-                              })
-                            }
-                            disabled={userEditFormData.role === "GUEST"}
-                          >
-                            <option value={userEditFormData.role}>
-                              {userEditFormData.role}
-                            </option>{" "}
-                            {roleOptions
-                              .filter((role) => role !== userEditFormData.role)
-                              .map((role) => (
-                                <option key={role} value={role}>
-                                  {role}
-                                </option>
-                              ))}
-                          </select>
-                          {userEditFormData.role === "GUEST" && (
-                            <div>Zmiana roli gościa niemozliwa</div>
-                          )}
-                        </div>
-                        <div className="user-edit-button-wrapper">
-                          <button
-                            type="button"
-                            className="user-edit-button-save"
-                            onClick={() => handleSaveUser(user.id)}
-                          >
-                            Zapisz
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
+                  );
+                })}
+            </div>
           </div>
         </div>
       </div>
