@@ -45,27 +45,38 @@
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.235);
 }
 .courts {
+  display: flex;
+  flex-direction: column;
   height: 100%;
-  overflow: scroll;
+  padding: 15px;
+  border-radius: 12px;
+  background-color: #f8f9fa;
+}
+.courts__list-header {
+  position: sticky;
+  top: 0;
+  background-color: #f8f9fa;
+}
+.courts__list {
+  overflow-y: scroll;
   overflow-x: hidden;
   scrollbar-gutter: stable;
   overscroll-behavior-y: contain;
-  padding: 15px;
-  background-color: #f8f9fa;
-  clip-path: inset(0 round 12px);
+  margin-right: -15px;
+  padding-right: 15px;
 }
 
-.courts::-webkit-scrollbar,
-.users::-webkit-scrollbar {
+.courts__list::-webkit-scrollbar,
+.users__list-wrapper::-webkit-scrollbar {
   width: 6px;
 }
-.courts::-webkit-scrollbar-track,
-.users::-webkit-scrollbar-track {
+.courts__list::-webkit-scrollbar-track,
+.users__list-wrapper::-webkit-scrollbar-track {
   background: transparent;
 }
 
-.courts::-webkit-scrollbar-thumb,
-.users::-webkit-scrollbar-thumb {
+.courts__list::-webkit-scrollbar-thumb,
+.users__list-wrapper::-webkit-scrollbar-thumb {
   background-color: var(--color-primary);
   border-radius: 4px;
 }
@@ -80,13 +91,19 @@
 
 .users {
   height: 100%;
-  overflow: scroll;
+  display: flex;
+  flex-direction: column;
+  padding: 15px;
+  background-color: #f8f9fa;
+  border-radius: 12px;
+}
+.users__list-wrapper {
+  overflow-y: scroll;
   overflow-x: hidden;
   scrollbar-gutter: stable;
   overscroll-behavior-y: contain;
-  padding: 15px;
-  background-color: #f8f9fa;
-  clip-path: inset(0 round 12px);
+  margin-right: -15px;
+  padding-right: 15px;
 }
 
 .courts__header {
@@ -95,6 +112,11 @@
   padding: 0 3px 0 0;
   padding-bottom: 15px;
   border-bottom: 1px solid rgba(128, 128, 128, 0.689);
+}
+.courts__header-title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .courts__list-header,
 .court {
@@ -343,7 +365,8 @@
 .schedule__weekly {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  flex: 1;
+  width: 100%;
 }
 .schedule__day {
   display: grid;
@@ -376,12 +399,9 @@
   cursor: pointer;
 }
 
-.schedule__day-list {
-  width: 100%;
-}
 .schedule__day-settings {
   display: grid;
-  grid-template-columns: 3fr 1fr 2fr;
+  grid-template-columns: 2fr 1fr 2fr;
   align-items: center;
   gap: 7px;
 }
@@ -390,11 +410,10 @@
   font-weight: bold;
 }
 .schedule__button-submit-wrapper {
-  height: 100%;
   width: 100%;
   display: flex;
   justify-content: center;
-  align-items: center;
+  margin-top: auto;
 }
 .schedule__button-submit:hover {
   background-color: rgb(20, 129, 20);
@@ -643,8 +662,13 @@
 }
 
 .schedule__exceptions {
+  display: flex;
+  flex-direction: column;
   width: 100%;
+  flex: 1;
+  min-height: 0;
 }
+
 .schedule__exceptions-add {
   padding: 10px 0;
   margin-bottom: 5px;
@@ -685,14 +709,20 @@
   font-size: 1rem;
   padding: 1px 10px;
 }
+.schedule__exceptions-add-list-wrapper {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
 .schedule__exceptions-list {
   display: grid;
   grid-template-columns: 1fr 1fr;
   grid-auto-rows: max-content;
   gap: 15px;
-  height: 257px;
   overflow-y: scroll;
   overscroll-behavior-y: contain;
+  margin-bottom: 5px;
 }
 .schedule__exceptions-list::-webkit-scrollbar {
   width: 6px;
@@ -721,7 +751,9 @@
 }
 .schedule__exceptions-button-submit-wrapper {
   display: flex;
+  width: 100%;
   justify-content: center;
+  margin-top: auto;
 }
 .schedule__exceptions-button-submit {
   background-color: rgb(26, 168, 26);
@@ -743,11 +775,19 @@
 .mobile-label {
   display: none;
 }
+#users__search {
+  width: clamp(200px, calc(-57.143px + 57.143vw), 400px);
+}
+.users__header-title,
+.courts__header-title {
+  font-size: clamp(0.75rem, calc(0.429rem + 1.143vw), 1rem);
+}
 @media (max-width: 1100px) {
   .mobile-label {
     display: inline-block;
     font-weight: bold;
     color: var(--color-primary);
+    white-space: nowrap;
   }
   .courts__list-header,
   .users__list-header {
@@ -778,6 +818,7 @@
     justify-content: space-between;
     align-items: center;
     padding: 5px 0;
+    gap: 50px;
   }
   .court__info-status {
     padding: 6px 0;
@@ -827,6 +868,8 @@
     justify-content: space-between;
     align-items: center;
     padding: 5px 0;
+    gap: 50px;
+    align-items: center;
   }
   .user__actions-buttons {
     display: flex;
@@ -858,5 +901,100 @@
   }
   .user-edit-button-save {
     width: 85%;
+  }
+}
+@media (max-width: 920px) {
+  .users__header-filters {
+    flex-direction: column-reverse;
+    align-items: flex-end;
+  }
+}
+@media (max-width: 880px) {
+  .courts__button-add {
+    width: 155px;
+  }
+}
+@media (max-width: 800px) {
+  .admin__content-container {
+    grid-template-columns: 1fr;
+  }
+  .admin-container {
+    padding: 1.5rem 1.5rem 0 1.5rem;
+  }
+  .courts-wrapper {
+    grid-column: 1 / 2;
+    grid-row: 1 / 2;
+  }
+  .schedule {
+    grid-column: 1 / 2;
+    grid-row: 2 / 3;
+  }
+
+  .users-wrapper {
+    grid-column: 1 / 2;
+    grid-row: 3 / 4;
+  }
+
+  .courts__button-add {
+    width: auto;
+  }
+}
+@media (max-width: 450px) {
+  .admin-container {
+    padding: 1rem 1rem 0 1rem;
+  }
+  .admin__header {
+    font-size: 1.8rem;
+    margin-bottom: 1rem;
+  }
+  .users__header {
+    flex-direction: column;
+    gap: 10px;
+  }
+  .users__header-filters {
+    display: flex;
+    width: 100%;
+    justify-content: center;
+    align-items: center;
+  }
+  .users__header-search {
+    width: 100%;
+  }
+  #users__search {
+    width: 100%;
+  }
+  .courts-wrapper,
+  .schedule {
+    min-width: 300px;
+  }
+  .courts__header {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+  .schedule {
+    height: 670px;
+  }
+  .schedule__day {
+    grid-template-columns: 1fr;
+  }
+  .schedule__day-settings {
+    gap: 0px;
+  }
+  .schedule__exceptions-list {
+    grid-template-columns: 1fr;
+  }
+  .schedule__exceptions-item:nth-child(odd),
+  .schedule__exceptions-item:nth-child(even) {
+    justify-self: center;
+  }
+  .court__fieldset-block {
+    flex-direction: column;
+  }
+}
+@media (max-width: 332px) {
+  .admin-container {
+    padding: 1rem 0.5rem 0 0.5rem;
   }
 }

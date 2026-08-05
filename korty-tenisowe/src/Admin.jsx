@@ -428,36 +428,38 @@ export default function Admin() {
             </div>
           ) : (
             <div className="schedule__exceptions">
-              <div className="schedule__exceptions-add">
-                <input
-                  type="date"
-                  name="exception-date"
-                  id="schedule__exceptions-input"
-                  onChange={(e) => setNewClosedDay(e.target.value)}
-                />
-                <button
-                  type="button"
-                  className="schedule__exceptions-button"
-                  onClick={() => handleAddNewClosedDay()}
-                >
-                  Dodaj
-                </button>
-              </div>
-              <div className="schedule__exceptions-list">
-                {closedDays.map((day) => (
-                  <div className="schedule__exceptions-item" key={day}>
-                    <div className="schedule__exceptions-date">{day}</div>
-                    <button
-                      type="button"
-                      className="schedule__exceptions-button-delete"
-                      onClick={() =>
-                        setClosedDays(closedDays.filter((d) => d !== day))
-                      }
-                    >
-                      ✕
-                    </button>
-                  </div>
-                ))}
+              <div className="schedule__exceptions-add-list-wrapper">
+                <div className="schedule__exceptions-add">
+                  <input
+                    type="date"
+                    name="exception-date"
+                    id="schedule__exceptions-input"
+                    onChange={(e) => setNewClosedDay(e.target.value)}
+                  />
+                  <button
+                    type="button"
+                    className="schedule__exceptions-button"
+                    onClick={() => handleAddNewClosedDay()}
+                  >
+                    Dodaj
+                  </button>
+                </div>
+                <div className="schedule__exceptions-list">
+                  {closedDays.map((day) => (
+                    <div className="schedule__exceptions-item" key={day}>
+                      <div className="schedule__exceptions-date">{day}</div>
+                      <button
+                        type="button"
+                        className="schedule__exceptions-button-delete"
+                        onClick={() =>
+                          setClosedDays(closedDays.filter((d) => d !== day))
+                        }
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                </div>
               </div>
               <div className="schedule__exceptions-button-submit-wrapper">
                 <button
@@ -486,13 +488,13 @@ export default function Admin() {
                 KORT
               </button>
             </div>
+            <div className="courts__list-header">
+              <h3>Nazwa Kortu</h3>
+              <h3>Nawierzchnia</h3>
+              <h3>Status</h3>
+              <h3>Akcje</h3>
+            </div>
             <div className="courts__list">
-              <div className="courts__list-header">
-                <h3>Nazwa Kortu</h3>
-                <h3>Nawierzchnia</h3>
-                <h3>Status</h3>
-                <h3>Akcje</h3>
-              </div>
               {courts.map((court, index) => (
                 <div className="court-wrapper" key={court.id}>
                   <div className="court">
