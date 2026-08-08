@@ -116,6 +116,11 @@
   cursor: not-allowed;
   color: #cbd5e1;
 }
+.empty-slot.slot-blocked {
+  background-color: #f1f5f9;
+  cursor: not-allowed;
+  color: rgb(185, 192, 202);
+}
 
 .reservation-block {
   z-index: 2;

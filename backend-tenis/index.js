@@ -181,7 +181,6 @@ app.get("/api/reservations", async (req, res) => {
   const { date } = req.query;
 
   try {
-    const courts = await prisma.court.findMany();
     const reservations = await prisma.reservation.findMany({
       where: { date: date },
       include: {
@@ -189,7 +188,7 @@ app.get("/api/reservations", async (req, res) => {
       },
     });
 
-    res.json({ courts, reservations });
+    res.json({ reservations });
   } catch (error) {
     res.status(500).json({ error: "Błąd pobierania kalendarza." });
   }
@@ -418,22 +417,6 @@ app.get("/api/settings/schedule", async (req, res) => {
   }
 });
 
-app.get("/api/settings/exceptions", async (req, res) => {
-  try {
-    const settings = await prisma.settings.findUnique({
-      where: { id: 1 },
-    });
-
-    if (settings) {
-      res.status(200).json(settings.exceptions);
-    } else {
-      res.status(404).json({ error: "Brak ustawień" });
-    }
-  } catch (error) {
-    res.status(500).json({ error: "Błąd serwera" });
-  }
-});
-
 app.put("/api/settings/schedule", async (req, res) => {
   try {
     const { schedule } = req.body;
@@ -454,6 +437,22 @@ app.put("/api/settings/schedule", async (req, res) => {
     res.status(200).json(settings);
   } catch (error) {
     res.status(500).json({ error: "Błąd serwera podczas zapisywania" });
+  }
+});
+
+app.get("/api/settings/exceptions", async (req, res) => {
+  try {
+    const settings = await prisma.settings.findUnique({
+      where: { id: 1 },
+    });
+
+    if (settings) {
+      res.status(200).json(settings.exceptions);
+    } else {
+      res.status(404).json({ error: "Brak ustawień" });
+    }
+  } catch (error) {
+    res.status(500).json({ error: "Błąd serwera" });
   }
 });
 

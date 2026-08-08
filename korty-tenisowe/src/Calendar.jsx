@@ -3,25 +3,19 @@ import { useState, useEffect } from "react";
 import "./Calendar.css";
 
 const timeToMinutes = (timeString) => {
+  if (!timeString || typeof timeString !== "string") {
+    return 0;
+  }
   const [hours, minutes] = timeString.split(":").map(Number);
   return hours * 60 + minutes;
 };
-
-const generateTimeSlots = () => {
-  const slots = [];
-  for (let h = 8; h <= 21; h++) {
-    slots.push(`${h.toString().padStart(2, "0")}:00`);
-    slots.push(`${h.toString().padStart(2, "0")}:30`);
-  }
-  return slots;
-};
-
-const timeSlots = generateTimeSlots();
 
 export default function Calendar() {
   const { user } = useOutletContext();
   const [courts, setCourts] = useState([]);
   const [reservations, setReservations] = useState([]);
+  const [exceptions, setExceptions] = useState([]);
+  const [schedule, setSchedule] = useState([]);
   const [refresh, setRefresh] = useState(0);
   const todayStr = new Date().toISOString().split("T")[0];
   const [selectedDate, setSelectedDate] = useState(todayStr);
@@ -45,6 +39,31 @@ export default function Calendar() {
   });
   const [bookingDuration, setBookingDuration] = useState(60);
 
+  const generateTimeSlots = () => {
+    if (!schedule || schedule.length === 0) return [];
+
+    const today = schedule[new Date(selectedDate).getDay()];
+    if (!today || !today.open || !today.close) return [];
+
+    const [openHour, openMinute] = today.open.split(":").map(Number);
+    const [closeHour, closeMinute] = today.close.split(":").map(Number);
+
+    const startSlot = openHour * 2 + (openMinute === 30 ? 1 : 0);
+    const closeSlot = closeHour * 2 + (closeMinute === 30 ? 1 : 0);
+
+    const slots = [];
+    for (let h = startSlot; h <= closeSlot; h++) {
+      const hourStr = Math.floor(h / 2)
+        .toString()
+        .padStart(2, "0");
+      const minStr = h % 2 === 0 ? "00" : "30";
+
+      slots.push(`${hourStr}:${minStr}`);
+    }
+    return slots;
+  };
+  const timeSlots = generateTimeSlots();
+
   const isPastSlot = (slotTime) => {
     if (selectedDate < todayStr) return true;
     if (selectedDate > todayStr) return false;
@@ -54,8 +73,19 @@ export default function Calendar() {
   };
 
   const isTooLate = (slotTime) => {
-    return timeToMinutes(slotTime) > timeToMinutes("21:00");
+    if (!schedule || schedule.length === 0) return true;
+    const today = schedule[new Date(selectedDate).getDay()];
+    if (!today || !today.close) return true;
+    return timeToMinutes(today.close) - timeToMinutes(slotTime) < 60;
   };
+
+  const isBlocked = (courtId) => {
+    return courts.some(
+      (court) => court.id === courtId && court.isBlocked === true,
+    );
+  };
+
+  const isClubClosedToday = exceptions.includes(selectedDate);
 
   useEffect(() => {
     const handleResize = () => {
@@ -68,7 +98,6 @@ export default function Calendar() {
         setCourtsPerPage(4);
       }
     };
-
     handleResize();
     window.addEventListener("resize", handleResize);
 
@@ -103,26 +132,54 @@ export default function Calendar() {
   }, [courtsPerPage]);
 
   useEffect(() => {
-    const fetchDayData = async () => {
+    const fetchReservationsData = async () => {
       try {
         const response = await fetch(
           `http://localhost:5005/api/reservations?date=${selectedDate}`,
         );
-        const data = await response.json();
-        if (response.ok) {
-          setCourts(data.courts || []);
-          setReservations(data.reservations || []);
-        } else {
-          setCourts([]);
-          setReservations([]);
+        if (!response.ok) {
+          throw new Error("Błąd pobierania danych");
         }
+
+        const data = await response.json();
+
+        setReservations(data.reservations || []);
       } catch (error) {
-        setCourts([]);
-        setReservations([]);
+        console.error(error);
       }
     };
-    fetchDayData();
+    fetchReservationsData();
   }, [selectedDate, refresh]);
+
+  useEffect(() => {
+    const fetchStaticData = async () => {
+      try {
+        const [courtsRes, exceptionsRes, scheduleRes] = await Promise.all([
+          fetch("http://localhost:5005/api/courts"),
+          fetch("http://localhost:5005/api/settings/exceptions"),
+          fetch("http://localhost:5005/api/settings/schedule"),
+        ]);
+
+        if (!courtsRes.ok || !exceptionsRes.ok || !scheduleRes.ok) {
+          throw new Error("Błąd pobierania danych");
+        }
+
+        const [courts, exceptions, schedule] = await Promise.all([
+          courtsRes.json(),
+          exceptionsRes.json(),
+          scheduleRes.json(),
+        ]);
+
+        setCourts(courts || []);
+        setExceptions(exceptions || []);
+        setSchedule(schedule || []);
+        console.log(schedule);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+    fetchStaticData();
+  }, []);
 
   if (!user) {
     return <Navigate to="/" replace={true} />;
@@ -208,7 +265,9 @@ export default function Calendar() {
   };
 
   const getRowIndex = (time) => {
-    const startMin = timeToMinutes("08:00");
+    const startMin = timeToMinutes(
+      schedule[new Date(selectedDate).getDay()].open,
+    );
     return (timeToMinutes(time) - startMin) / 30 + 2;
   };
 
@@ -240,7 +299,6 @@ export default function Calendar() {
   return (
     <div className="calendar-container">
       <h1 className="calendar-title">Kalendarz Rezerwacji</h1>
-
       <div className="calendar-controls">
         <div className="calendar-date-wrapper">
           <label className="calendar-date-label" htmlFor="date-input">
@@ -255,6 +313,7 @@ export default function Calendar() {
             id="date-input"
           />
         </div>
+
         <div className="calendar-court-wrapper">
           <label className="calendar-court-label" htmlFor="court-select">
             Wybierz korty:{" "}
@@ -270,100 +329,112 @@ export default function Calendar() {
         </div>
       </div>
 
-      <div className="calendar-grid-wrapper">
-        <div
-          className="calendar-grid"
-          style={{ "--court-count": visibleCourts.length }}
-        >
+      {isClubClosedToday ? (
+        <div>Klub tenisowy nieczynny</div>
+      ) : (
+        <div className="calendar-grid-wrapper">
           <div
-            className="grid-header grid-header-hour"
-            style={{ gridRow: 1, gridColumn: 1 }}
+            className="calendar-grid"
+            style={{ "--court-count": visibleCourts.length }}
           >
-            Godzina
+            <div
+              className="grid-header grid-header-hour"
+              style={{ gridRow: 1, gridColumn: 1 }}
+            >
+              Godzina
+            </div>
+
+            {visibleCourts?.map((court, index) => (
+              <div
+                className="grid-header"
+                key={court.id}
+                style={{ gridRow: 1, gridColumn: index + 2 }}
+              >
+                <span className="grid-header__name">{court.name}</span>
+                <span className="grid-header__surface">{court.surface}</span>
+              </div>
+            ))}
+
+            {timeSlots.map((slotTime, index) => (
+              <div
+                className="grid-time"
+                key={`time-${slotTime}`}
+                style={{ gridRow: index + 2, gridColumn: 1 }}
+              >
+                {slotTime}
+              </div>
+            ))}
+
+            {timeSlots.map((slotTime, rIndex) =>
+              visibleCourts?.map((court, cIndex) => {
+                const past = isPastSlot(slotTime);
+                const late = isTooLate(slotTime);
+                const blocked = isBlocked(court.id);
+                return (
+                  <div
+                    className={`empty-slot ${blocked ? "slot-blocked" : past ? "slot-past" : late ? "slot-late" : ""}`}
+                    key={`empty-${court.id}-${slotTime}`}
+                    style={{ gridRow: rIndex + 2, gridColumn: cIndex + 2 }}
+                    onClick={() => {
+                      !past &&
+                        !late &&
+                        !blocked &&
+                        handleOpenBookingModal(court.id, slotTime);
+                    }}
+                  >
+                    {blocked
+                      ? `${court.blockReason}`
+                      : past
+                        ? "Minęło"
+                        : late
+                          ? "Zbyt późno"
+                          : "+ Rezerwuj"}
+                  </div>
+                );
+              }),
+            )}
+
+            {reservations
+              .filter((res) => visibleCourts.some((c) => c.id === res.courtId))
+              .map((res) => {
+                const rowStart = getRowIndex(res.startTime);
+                const rowSpan = res.duration / 30;
+                const colIndex =
+                  visibleCourts.findIndex((c) => c.id === res.courtId) + 2;
+
+                const isMyRes = res.userId === user.id;
+                const isStaff = user.role === "ADMIN" || user.role === "STAFF";
+                const canCancel = isMyRes || isStaff;
+
+                return (
+                  <div
+                    className={`reservation-block ${isMyRes ? "res-mine" : "res-taken"}`}
+                    key={`res-${res.id}`}
+                    style={{
+                      gridRow: `${rowStart} / span ${rowSpan}`,
+                      gridColumn: colIndex,
+                      cursor: canCancel ? "pointer" : "not-allowed",
+                    }}
+                    onClick={() => canCancel && handleCancelReservation(res.id)}
+                  >
+                    <span>{isMyRes ? "Twoja gra" : "Zajęte"}</span>
+
+                    {isStaff ? (
+                      <span className="reservation-staff-details">
+                        {res.user?.firstName} {res.user?.lastName} <br />
+                        Nr. tel: {res.user?.phone}
+                      </span>
+                    ) : (
+                      <span className="reservation-user-details">
+                        {isMyRes ? "(kliknij by usunąć)" : res.user?.firstName}
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
           </div>
-
-          {visibleCourts?.map((court, index) => (
-            <div
-              className="grid-header"
-              key={court.id}
-              style={{ gridRow: 1, gridColumn: index + 2 }}
-            >
-              <span className="grid-header__name">{court.name}</span>
-              <span className="grid-header__surface">{court.surface}</span>
-            </div>
-          ))}
-
-          {timeSlots.map((slotTime, index) => (
-            <div
-              className="grid-time"
-              key={`time-${slotTime}`}
-              style={{ gridRow: index + 2, gridColumn: 1 }}
-            >
-              {slotTime}
-            </div>
-          ))}
-
-          {timeSlots.map((slotTime, rIndex) =>
-            visibleCourts?.map((court, cIndex) => {
-              const past = isPastSlot(slotTime);
-              const late = isTooLate(slotTime);
-              return (
-                <div
-                  className={`empty-slot ${past ? "slot-past" : ""} ${late ? "slot-late" : ""}`}
-                  key={`empty-${court.id}-${slotTime}`}
-                  style={{ gridRow: rIndex + 2, gridColumn: cIndex + 2 }}
-                  onClick={() => {
-                    !past &&
-                      !late &&
-                      handleOpenBookingModal(court.id, slotTime);
-                  }}
-                >
-                  {past ? "Minęło" : late ? "Zbyt późno" : "+ Rezerwuj"}
-                </div>
-              );
-            }),
-          )}
-
-          {reservations
-            .filter((res) => visibleCourts.some((c) => c.id === res.courtId))
-            .map((res) => {
-              const rowStart = getRowIndex(res.startTime);
-              const rowSpan = res.duration / 30;
-              const colIndex =
-                visibleCourts.findIndex((c) => c.id === res.courtId) + 2;
-
-              const isMyRes = res.userId === user.id;
-              const isStaff = user.role === "ADMIN" || user.role === "STAFF";
-              const canCancel = isMyRes || isStaff;
-
-              return (
-                <div
-                  className={`reservation-block ${isMyRes ? "res-mine" : "res-taken"}`}
-                  key={`res-${res.id}`}
-                  style={{
-                    gridRow: `${rowStart} / span ${rowSpan}`,
-                    gridColumn: colIndex,
-                    cursor: canCancel ? "pointer" : "not-allowed",
-                  }}
-                  onClick={() => canCancel && handleCancelReservation(res.id)}
-                >
-                  <span>{isMyRes ? "Twoja gra" : "Zajęte"}</span>
-
-                  {isStaff ? (
-                    <span className="reservation-staff-details">
-                      {res.user?.firstName} {res.user?.lastName} <br />
-                      Nr. tel: {res.user?.phone}
-                    </span>
-                  ) : (
-                    <span className="reservation-user-details">
-                      {isMyRes ? "(kliknij by usunąć)" : res.user?.firstName}
-                    </span>
-                  )}
-                </div>
-              );
-            })}
         </div>
-      </div>
+      )}
 
       {bookingModal.isOpen && (
         <div className="modal-overlay active">
