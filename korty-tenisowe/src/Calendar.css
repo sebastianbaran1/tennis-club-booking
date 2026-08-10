@@ -327,6 +327,18 @@
   border: var(--color-primary) solid 1px;
 }
 
+.dropdown-client-info {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr);
+  border-bottom: rgb(197, 191, 191) solid 0.5px;
+}
+.dropdown-client-info span {
+  overflow-wrap: break-word;
+}
+.dropdown-client:last-child .dropdown-client-info {
+  border-bottom: none;
+}
+
 @media (max-width: 768px) {
   .calendar-container {
     padding: 2rem 1rem;

@@ -169,6 +169,8 @@ app.get("/api/verify", async (req, res) => {
         id: user.id,
         email: user.email,
         firstName: user.firstName,
+        lastName: user.lastName,
+        phone: user.phone,
         role: user.role,
       },
     });
@@ -178,17 +180,44 @@ app.get("/api/verify", async (req, res) => {
 });
 
 app.get("/api/reservations", async (req, res) => {
-  const { date } = req.query;
-
   try {
-    const reservations = await prisma.reservation.findMany({
-      where: { date: date },
-      include: {
-        user: { select: { firstName: true, lastName: true, phone: true } },
-      },
+    const { date } = req.query;
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader) {
+      return res.status(401).json({ error: "Brak biletu wstępu." });
+    }
+    const token = authHeader.split(" ")[1];
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.userId },
     });
 
-    res.json({ reservations });
+    if (!user) {
+      return res.status(404).json({ error: "Użytkownik przestał istnieć." });
+    }
+
+    if (user.role === "ADMIN" || user.role === "RECEPCIONIST") {
+      const reservations = await prisma.reservation.findMany({
+        where: { date: date },
+        include: {
+          user: { select: { firstName: true, lastName: true, phone: true } },
+        },
+      });
+      return res.json({ reservations });
+    } else {
+      const reservations = await prisma.reservation.findMany({
+        where: { date: date },
+        select: {
+          id: true,
+          courtId: true,
+          startTime: true,
+          duration: true,
+          userId: true,
+        },
+      });
+      return res.json({ reservations });
+    }
   } catch (error) {
     res.status(500).json({ error: "Błąd pobierania kalendarza." });
   }

@@ -134,15 +134,23 @@ export default function Calendar() {
   useEffect(() => {
     const fetchReservationsData = async () => {
       try {
+        const token = localStorage.getItem("token");
         const response = await fetch(
           `http://localhost:5005/api/reservations?date=${selectedDate}`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          },
         );
+
         if (!response.ok) {
           throw new Error("Błąd pobierania danych");
         }
-
         const data = await response.json();
-
+        console.log(data);
         setReservations(data.reservations || []);
       } catch (error) {
         console.error(error);
@@ -182,7 +190,11 @@ export default function Calendar() {
   }, []);
 
   if (!user) {
-    return <Navigate to="/" replace={true} />;
+    return (
+      <div className="calendar-container">
+        <h2>Ładowanie kalendarza...</h2>
+      </div>
+    );
   }
 
   const handleOpenBookingModal = (courtId, startTime) => {
@@ -426,7 +438,7 @@ export default function Calendar() {
                       </span>
                     ) : (
                       <span className="reservation-user-details">
-                        {isMyRes ? "(kliknij by usunąć)" : res.user?.firstName}
+                        {isMyRes && "(kliknij by usunąć)"}
                       </span>
                     )}
                   </div>
@@ -550,8 +562,9 @@ export default function Calendar() {
                                       }}
                                     >
                                       <div className="dropdown-client-info">
-                                        {client.firstName} {client.lastName}{" "}
-                                        {client.phone}
+                                        <span>{client.firstName}</span>
+                                        <span>{client.lastName}</span>
+                                        <span>{client.phone}</span>
                                       </div>
                                     </li>
                                   ))}

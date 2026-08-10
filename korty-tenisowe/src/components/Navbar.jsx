@@ -12,13 +12,15 @@ export default function Navbar({ user, onLogout }) {
   return (
     <nav className="nav">
       <div className="nav__container">
-        <div className="nav__brand">
-          <img src={logo} alt="logo" className="nav__logo" />
-          <div className="nav__name-container">
-            <span className="nav__name-1">Klub Tenisowy </span>
-            <span className="nav__name-2">Rzeszów</span>
+        <Link to="/">
+          <div className="nav__brand">
+            <img src={logo} alt="logo" className="nav__logo" />
+            <div className="nav__name-container">
+              <span className="nav__name-1">Klub Tenisowy </span>
+              <span className="nav__name-2">Rzeszów</span>
+            </div>
           </div>
-        </div>
+        </Link>
 
         <button
           className={`hamburger ${isOpen ? "active" : ""}`}
