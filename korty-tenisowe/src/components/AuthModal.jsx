@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "./AuthModal.css";
 
 export default function AuthModal({ isOpen, type, onClose, onSubmit }) {
@@ -18,6 +18,17 @@ export default function AuthModal({ isOpen, type, onClose, onSubmit }) {
     e.preventDefault();
     onSubmit(formData);
   };
+
+  useEffect(() => {
+    if (!isOpen)
+      setFormData({
+        email: "",
+        password: "",
+        firstName: "",
+        lastName: "",
+        phone: "",
+      });
+  }, [isOpen]);
 
   const isLogin = type === "login";
 

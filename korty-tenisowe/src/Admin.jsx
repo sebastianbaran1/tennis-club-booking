@@ -1,8 +1,19 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import "./Admin.css";
 import bin from "./assets/bin.png";
 import edit from "./assets/edit.png";
+import clock from "./assets/clock.png";
 const daysOrder = [1, 2, 3, 4, 5, 6, 0];
+
+const timeSlots = [];
+
+for (let h = 0; h < 24; h++) {
+  for (let m = 0; m < 60; m += 30) {
+    let hourStr = h.toString().padStart(2, "0");
+    let minStr = m.toString().padStart(2, "0");
+    timeSlots.push(`${hourStr}:${minStr}`);
+  }
+}
 
 export default function Admin() {
   const [schedule, setSchedule] = useState({
@@ -57,6 +68,8 @@ export default function Admin() {
   const [activeTab, setActiveTab] = useState("weekly");
   const [newClosedDay, setNewClosedDay] = useState("");
   const [closedDays, setClosedDays] = useState([]);
+  const [slotToOpen, setSlotToOpen] = useState({ key: null, type: null });
+  const selectedTimeRef = useRef(null);
 
   const userEdit = (user) => {
     if (userToEdit === user.id) {
@@ -361,6 +374,29 @@ export default function Admin() {
     fetchCourts();
   }, [refreshCourts]);
 
+  useEffect(() => {
+    if (slotToOpen.key !== null && selectedTimeRef.current) {
+      const li = selectedTimeRef.current;
+      const ul = li.parentElement;
+
+      ul.scrollTop = li.offsetTop - 3;
+    }
+  }, [slotToOpen]);
+
+  useEffect(() => {
+    const handleOutsideClick = () => {
+      setSlotToOpen({ key: null, type: null });
+    };
+
+    if (slotToOpen.key !== null) {
+      document.addEventListener("click", handleOutsideClick);
+    }
+
+    return () => {
+      document.removeEventListener("click", handleOutsideClick);
+    };
+  }, [slotToOpen]);
+
   return (
     <div className="admin-container">
       <h1 className="admin__header">Panel administratora</h1>
@@ -394,23 +430,83 @@ export default function Admin() {
                     <div className="schedule__day" key={key}>
                       <div className="schedule__day-name">{dayData.name}</div>
                       <div className="schedule__day-settings">
-                        <input
-                          type="time"
-                          className="schedule__input-open"
-                          value={dayData.open}
-                          onChange={(e) =>
-                            handleTimeChange(key, "open", e.target.value)
-                          }
-                        />
+                        <div
+                          className="schedule__day-setting"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSlotToOpen({ key: key, type: "open" });
+                          }}
+                        >
+                          {dayData.open}
+                          <img src={clock} alt="clock" className="clock" />
+                          {slotToOpen.key === key &&
+                            slotToOpen.type === "open" && (
+                              <ul className="schedule__day-setting-list">
+                                {timeSlots.map((timeSlot) => (
+                                  <li
+                                    ref={
+                                      timeSlot === dayData.open
+                                        ? selectedTimeRef
+                                        : null
+                                    }
+                                    key={timeSlot}
+                                    className={
+                                      timeSlot === dayData.open ? "active" : ""
+                                    }
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleTimeChange(key, "open", timeSlot);
+                                      setSlotToOpen({
+                                        key: null,
+                                        type: null,
+                                      });
+                                    }}
+                                  >
+                                    {timeSlot}
+                                  </li>
+                                ))}
+                              </ul>
+                            )}
+                        </div>
                         <div className="schedule__separator">-</div>
-                        <input
-                          type="time"
-                          className="schedule__input-close"
-                          value={dayData.close}
-                          onChange={(e) =>
-                            handleTimeChange(key, "close", e.target.value)
-                          }
-                        />
+                        <div
+                          className="schedule__day-setting"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSlotToOpen({ key: key, type: "close" });
+                          }}
+                        >
+                          {dayData.close}
+                          <img src={clock} alt="clock" className="clock" />
+                          {slotToOpen.key === key &&
+                            slotToOpen.type === "close" && (
+                              <ul className="schedule__day-setting-list">
+                                {timeSlots.map((timeSlot) => (
+                                  <li
+                                    ref={
+                                      timeSlot === dayData.close
+                                        ? selectedTimeRef
+                                        : null
+                                    }
+                                    key={timeSlot}
+                                    className={
+                                      timeSlot === dayData.close ? "active" : ""
+                                    }
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleTimeChange(key, "close", timeSlot);
+                                      setSlotToOpen({
+                                        key: null,
+                                        type: null,
+                                      });
+                                    }}
+                                  >
+                                    {timeSlot}
+                                  </li>
+                                ))}
+                              </ul>
+                            )}
+                        </div>
                       </div>
                     </div>
                   );
