@@ -3,33 +3,64 @@ import { useState, useEffect } from "react";
 import "./Profile.css";
 
 export default function Profile() {
-  const { user } = useOutletContext();
+  const { user, isUserLoading } = useOutletContext();
   const [myReservations, setMyReservations] = useState([]);
   const [activeTab, setActiveTab] = useState("Active");
+  const [isDataLoading, setIsDataLoading] = useState(true);
+  const [error, setError] = useState(null);
   const now = new Date();
 
   useEffect(() => {
-    if (!user) return;
+    if (!user || isUserLoading) return;
 
     const fetchMyReservations = async () => {
       try {
         const response = await fetch(
           `http://localhost:5005/api/users/${user.id}/reservations`,
         );
+        const data = await response.json();
         if (response.ok) {
-          const data = await response.json();
-          setMyReservations(data);
+          setMyReservations(data.reservations);
+        } else {
+          setError(data.error);
         }
       } catch (error) {
-        console.error("Błąd pobierania rezerwacji:", error);
+        setError("Błąd połączenia z serwerem.");
+      } finally {
+        setIsDataLoading(false);
       }
     };
 
     fetchMyReservations();
-  }, [user]);
+  }, [user, isUserLoading]);
+
+  if (isUserLoading) {
+    return (
+      <div className="profile-loading">
+        <h2>Wczytywanie profilu...</h2>
+      </div>
+    );
+  }
 
   if (!user) {
     return <Navigate to="/" />;
+  }
+
+  if (isDataLoading) {
+    return (
+      <div className="profile-loading">
+        <h2>Wczytywanie rezerwacji...</h2>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="profile-error">
+        <h2>Ups, coś poszło nie tak!</h2>
+        <p>{error}</p>
+      </div>
+    );
   }
 
   const handleCancelReservation = async (reservationId) => {

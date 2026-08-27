@@ -1,3 +1,4 @@
+import { useOutletContext, Navigate } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import "./Admin.css";
 import bin from "./assets/bin.png";
@@ -16,6 +17,7 @@ for (let h = 0; h < 24; h++) {
 }
 
 export default function Admin() {
+  const { user, isUserLoading } = useOutletContext();
   const [schedule, setSchedule] = useState({
     1: { name: "Poniedziałek", open: "08:00", close: "22:00" },
     2: { name: "Wtorek", open: "08:00", close: "22:00" },
@@ -396,6 +398,18 @@ export default function Admin() {
       document.removeEventListener("click", handleOutsideClick);
     };
   }, [slotToOpen]);
+
+  if (isUserLoading) {
+    return (
+      <div className="admin-loading">
+        <h2>Wczytywanie panelu administratora...</h2>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Navigate to="/" />;
+  }
 
   return (
     <div className="admin-container">

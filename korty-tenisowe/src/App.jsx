@@ -11,6 +11,7 @@ function App() {
 
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
+  const [isUserLoading, setIsUserLoading] = useState(true);
 
   useEffect(() => {
     const checkSession = async () => {
@@ -38,6 +39,7 @@ function App() {
           );
         }
       }
+      setIsUserLoading(false);
     };
 
     checkSession();
@@ -60,6 +62,7 @@ function App() {
         localStorage.setItem("token", data.token);
         setUser(data.user);
         setIsLoginOpen(false);
+        setIsUserLoading(false);
       } else {
         alert("Błąd: " + data.error);
       }
@@ -91,11 +94,13 @@ function App() {
         localStorage.setItem("token", data.token);
         setUser(data.user);
         setIsRegisterOpen(false);
+        setIsUserLoading(false);
       } else {
         alert("Błąd: " + data.error);
       }
     } catch (error) {
       console.error("Błąd połączenia z serwerem:", error);
+      setIsUserLoading(false);
     }
   };
 
@@ -111,7 +116,7 @@ function App() {
       <Navbar user={user} onLogout={handleLogout} />
 
       <div className="main-content">
-        <Outlet context={{ user, setIsLoginOpen }} />
+        <Outlet context={{ user, setIsLoginOpen, isUserLoading }} />
       </div>
 
       <Footer />

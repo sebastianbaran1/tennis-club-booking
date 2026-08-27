@@ -11,7 +11,7 @@ const timeToMinutes = (timeString) => {
 };
 
 export default function Calendar() {
-  const { user } = useOutletContext();
+  const { user, isUserLoading } = useOutletContext();
   const [courts, setCourts] = useState([]);
   const [reservations, setReservations] = useState([]);
   const [exceptions, setExceptions] = useState([]);
@@ -38,6 +38,10 @@ export default function Calendar() {
     startTime: null,
   });
   const [bookingDuration, setBookingDuration] = useState(60);
+  const [isUsersLoading, setIsUsersLoading] = useState(true);
+  const [isReservationsLoading, setIsReservationsLoading] = useState(true);
+  const [isStaticDataLoading, setIsStaticDataLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const generateTimeSlots = () => {
     if (!schedule || schedule.length === 0) return [];
@@ -112,12 +116,14 @@ export default function Calendar() {
         const response = await fetch(`http://localhost:5005/api/users`);
         const data = await response.json();
         if (response.ok) {
-          setClientList(data.users || []);
+          setClientList(data.users);
         } else {
-          setClientList([]);
+          setError(data.error);
         }
       } catch (error) {
-        setClientList([]);
+        setError("Błąd połączenia z serwerem.");
+      } finally {
+        setIsUsersLoading(false);
       }
     };
     fetchUsers();
@@ -145,15 +151,17 @@ export default function Calendar() {
             },
           },
         );
-
-        if (!response.ok) {
-          throw new Error("Błąd pobierania danych");
-        }
         const data = await response.json();
-        console.log(data);
-        setReservations(data.reservations || []);
+
+        if (response.ok) {
+          setReservations(data.reservations);
+        } else {
+          setError(data.error);
+        }
       } catch (error) {
-        console.error(error);
+        setError("Błąd połączenia z serwerem.");
+      } finally {
+        setIsReservationsLoading(false);
       }
     };
     fetchReservationsData();
@@ -167,32 +175,53 @@ export default function Calendar() {
           fetch("http://localhost:5005/api/settings/exceptions"),
           fetch("http://localhost:5005/api/settings/schedule"),
         ]);
-
-        if (!courtsRes.ok || !exceptionsRes.ok || !scheduleRes.ok) {
-          throw new Error("Błąd pobierania danych");
-        }
-
-        const [courts, exceptions, schedule] = await Promise.all([
+        const [courtsData, exceptionsData, scheduleData] = await Promise.all([
           courtsRes.json(),
           exceptionsRes.json(),
           scheduleRes.json(),
         ]);
-
-        setCourts(courts || []);
-        setExceptions(exceptions || []);
-        setSchedule(schedule || []);
-        console.log(schedule);
+        if (courtsRes.ok && exceptionsRes.ok && scheduleRes.ok) {
+          setCourts(courtsData.courts);
+          setExceptions(exceptionsData.exceptions);
+          setSchedule(scheduleData.schedule);
+        } else {
+          setError(
+            courtsData.error || exceptionsdata.error || scheduleData.error,
+          );
+        }
       } catch (error) {
-        console.error(error);
+        setError("Błąd połączenia z serwerem.");
       }
+      setIsStaticDataLoading(false);
     };
     fetchStaticData();
   }, []);
 
-  if (!user) {
+  if (isUserLoading) {
     return (
-      <div className="calendar-container">
-        <h2>Ładowanie kalendarza...</h2>
+      <div className="profile-loading">
+        <h2>Wczytywanie profilu...</h2>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Navigate to="/" />;
+  }
+
+  if (isDataLoading) {
+    return (
+      <div className="profile-loading">
+        <h2>Wczytywanie rezerwacji...</h2>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="profile-error">
+        <h2>Ups, coś poszło nie tak!</h2>
+        <p>{error}</p>
       </div>
     );
   }

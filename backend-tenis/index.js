@@ -59,6 +59,8 @@ app.post("/api/register", async (req, res) => {
             id: guestToUser.id,
             email: guestToUser.email,
             firstName: guestToUser.firstName,
+            lastName: guestToUser.lastName,
+            phone: guestToUser.phone,
             role: guestToUser.role,
           },
         });
@@ -92,6 +94,8 @@ app.post("/api/register", async (req, res) => {
         id: newUser.id,
         email: newUser.email,
         firstName: newUser.firstName,
+        lastName: newUser.lastName,
+        phone: newUser.phone,
         role: newUser.role,
       },
     });
@@ -136,6 +140,8 @@ app.post("/api/login", async (req, res) => {
         id: user.id,
         email: user.email,
         firstName: user.firstName,
+        lastName: user.lastName,
+        phone: user.phone,
         role: user.role,
       },
     });
@@ -359,7 +365,8 @@ app.get("/api/users", async (req, res) => {
     });
     res.json({ users });
   } catch (error) {
-    res.status(500).json({ error: "Błąd pobierania uzytkownikow" });
+    console.error("Błąd pobierania użytkowników:", error);
+    res.status(500).json({ error: "Wystąpił błąd serwera." });
   }
 });
 
@@ -387,13 +394,13 @@ app.get("/api/users/:userId/reservations", async (req, res) => {
   const userId = parseInt(req.params.userId);
 
   try {
-    const userReservations = await prisma.reservation.findMany({
+    const reservations = await prisma.reservation.findMany({
       where: { userId: userId },
       include: { court: true },
       orderBy: [{ date: "asc" }, { startTime: "asc" }],
     });
 
-    res.json(userReservations);
+    res.json({ reservations });
   } catch (error) {
     console.error("Błąd pobierania rezerwacji użytkownika:", error);
     res.status(500).json({ error: "Wystąpił błąd serwera." });
@@ -437,12 +444,12 @@ app.get("/api/settings/schedule", async (req, res) => {
     });
 
     if (settings) {
-      res.status(200).json(settings.schedule);
+      res.status(200).json({ schedule: settings.schedule });
     } else {
       res.status(404).json({ error: "Brak ustawień" });
     }
   } catch (error) {
-    res.status(500).json({ error: "Błąd serwera" });
+    res.status(500).json({ error: "Wystąpił błąd serwera." });
   }
 });
 
@@ -476,12 +483,12 @@ app.get("/api/settings/exceptions", async (req, res) => {
     });
 
     if (settings) {
-      res.status(200).json(settings.exceptions);
+      res.status(200).json({ exceptions: settings.exceptions });
     } else {
       res.status(404).json({ error: "Brak ustawień" });
     }
   } catch (error) {
-    res.status(500).json({ error: "Błąd serwera" });
+    res.status(500).json({ error: "Wystąpił błąd serwera." });
   }
 });
 
@@ -515,7 +522,7 @@ app.get("/api/courts", async (req, res) => {
       where: { isActive: true },
     });
 
-    res.status(200).json(courts);
+    res.json({ courts });
   } catch (error) {
     res.status(500).json({ error: "Błąd serwera" });
   }
