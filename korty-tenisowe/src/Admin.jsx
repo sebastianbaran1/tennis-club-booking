@@ -71,6 +71,11 @@ export default function Admin() {
   const [newClosedDay, setNewClosedDay] = useState("");
   const [closedDays, setClosedDays] = useState([]);
   const [slotToOpen, setSlotToOpen] = useState({ key: null, type: null });
+  const [error, setError] = useState(null);
+  const [isScheduleLoading, setIsScheduleLoading] = useState(true);
+  const [isExceptionsLoading, setIsExceptionsLoading] = useState(true);
+  const [isUsersLoading, setIsUsersLoading] = useState(true);
+  const [isCourtsLoading, setIsCourtsLoading] = useState(true);
   const selectedTimeRef = useRef(null);
 
   const userEdit = (user) => {
@@ -320,10 +325,14 @@ export default function Admin() {
         );
         const data = await response.json();
         if (response.ok) {
-          setSchedule(data);
+          setSchedule(data.schedule);
+        } else {
+          setError(data.error);
         }
       } catch (error) {
-        alert("Błąd połączenia z serwerem.");
+        setError("Błąd połączenia z serwerem.");
+      } finally {
+        setIsScheduleLoading(false);
       }
     };
     fetchSchedule();
@@ -337,10 +346,14 @@ export default function Admin() {
         );
         const data = await response.json();
         if (response.ok) {
-          setClosedDays(data);
+          setClosedDays(data.exceptions);
+        } else {
+          setError(data.error);
         }
       } catch (error) {
-        alert("Błąd połączenia z serwerem.");
+        setError("Błąd połączenia z serwerem.");
+      } finally {
+        setIsExceptionsLoading(false);
       }
     };
     fetchExceptions();
@@ -353,9 +366,13 @@ export default function Admin() {
         const data = await response.json();
         if (response.ok) {
           setUsers(data.users);
+        } else {
+          setError(data.error);
         }
       } catch (error) {
-        alert("Błąd połączenia z serwerem.");
+        setError("Błąd połączenia z serwerem.");
+      } finally {
+        setIsUsersLoading(false);
       }
     };
     fetchUsers();
@@ -367,10 +384,14 @@ export default function Admin() {
         const response = await fetch("http://localhost:5005/api/courts");
         const data = await response.json();
         if (response.ok) {
-          setCourts(data);
+          setCourts(data.courts);
+        } else {
+          setError(data.error);
         }
       } catch (error) {
-        alert("Błąd połączenia z serwerem.");
+        setError("Błąd połączenia z serwerem.");
+      } finally {
+        setIsCourtsLoading(false);
       }
     };
     fetchCourts();
@@ -407,8 +428,17 @@ export default function Admin() {
     );
   }
 
-  if (!user) {
+  if (user.role !== "ADMIN") {
     return <Navigate to="/" />;
+  }
+
+  if (error) {
+    return (
+      <div className="admin-error">
+        <h2>Ups, coś poszło nie tak!</h2>
+        <p>{error}</p>
+      </div>
+    );
   }
 
   return (
@@ -438,93 +468,113 @@ export default function Admin() {
           {activeTab === "weekly" ? (
             <div className="schedule__weekly">
               <div className="schedule__day-list">
-                {daysOrder.map((key) => {
-                  const dayData = schedule[key];
-                  return (
-                    <div className="schedule__day" key={key}>
-                      <div className="schedule__day-name">{dayData.name}</div>
-                      <div className="schedule__day-settings">
-                        <div
-                          className="schedule__day-setting"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSlotToOpen({ key: key, type: "open" });
-                          }}
-                        >
-                          {dayData.open}
-                          <img src={clock} alt="clock" className="clock" />
-                          {slotToOpen.key === key &&
-                            slotToOpen.type === "open" && (
-                              <ul className="schedule__day-setting-list">
-                                {timeSlots.map((timeSlot) => (
-                                  <li
-                                    ref={
-                                      timeSlot === dayData.open
-                                        ? selectedTimeRef
-                                        : null
-                                    }
-                                    key={timeSlot}
-                                    className={
-                                      timeSlot === dayData.open ? "active" : ""
-                                    }
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleTimeChange(key, "open", timeSlot);
-                                      setSlotToOpen({
-                                        key: null,
-                                        type: null,
-                                      });
-                                    }}
-                                  >
-                                    {timeSlot}
-                                  </li>
-                                ))}
-                              </ul>
-                            )}
+                {isScheduleLoading ? (
+                  <div>Ładowanie harmonogramu...</div>
+                ) : (
+                  <>
+                    {daysOrder.map((key) => {
+                      const dayData = schedule[key];
+                      return (
+                        <div className="schedule__day" key={key}>
+                          <div className="schedule__day-name">
+                            {dayData.name}
+                          </div>
+                          <div className="schedule__day-settings">
+                            <div
+                              className="schedule__day-setting"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSlotToOpen({ key: key, type: "open" });
+                              }}
+                            >
+                              {dayData.open}
+                              <img src={clock} alt="clock" className="clock" />
+                              {slotToOpen.key === key &&
+                                slotToOpen.type === "open" && (
+                                  <ul className="schedule__day-setting-list">
+                                    {timeSlots.map((timeSlot) => (
+                                      <li
+                                        ref={
+                                          timeSlot === dayData.open
+                                            ? selectedTimeRef
+                                            : null
+                                        }
+                                        key={timeSlot}
+                                        className={
+                                          timeSlot === dayData.open
+                                            ? "active"
+                                            : ""
+                                        }
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleTimeChange(
+                                            key,
+                                            "open",
+                                            timeSlot,
+                                          );
+                                          setSlotToOpen({
+                                            key: null,
+                                            type: null,
+                                          });
+                                        }}
+                                      >
+                                        {timeSlot}
+                                      </li>
+                                    ))}
+                                  </ul>
+                                )}
+                            </div>
+                            <div className="schedule__separator">-</div>
+                            <div
+                              className="schedule__day-setting"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSlotToOpen({ key: key, type: "close" });
+                              }}
+                            >
+                              {dayData.close}
+                              <img src={clock} alt="clock" className="clock" />
+                              {slotToOpen.key === key &&
+                                slotToOpen.type === "close" && (
+                                  <ul className="schedule__day-setting-list">
+                                    {timeSlots.map((timeSlot) => (
+                                      <li
+                                        ref={
+                                          timeSlot === dayData.close
+                                            ? selectedTimeRef
+                                            : null
+                                        }
+                                        key={timeSlot}
+                                        className={
+                                          timeSlot === dayData.close
+                                            ? "active"
+                                            : ""
+                                        }
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleTimeChange(
+                                            key,
+                                            "close",
+                                            timeSlot,
+                                          );
+                                          setSlotToOpen({
+                                            key: null,
+                                            type: null,
+                                          });
+                                        }}
+                                      >
+                                        {timeSlot}
+                                      </li>
+                                    ))}
+                                  </ul>
+                                )}
+                            </div>
+                          </div>
                         </div>
-                        <div className="schedule__separator">-</div>
-                        <div
-                          className="schedule__day-setting"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSlotToOpen({ key: key, type: "close" });
-                          }}
-                        >
-                          {dayData.close}
-                          <img src={clock} alt="clock" className="clock" />
-                          {slotToOpen.key === key &&
-                            slotToOpen.type === "close" && (
-                              <ul className="schedule__day-setting-list">
-                                {timeSlots.map((timeSlot) => (
-                                  <li
-                                    ref={
-                                      timeSlot === dayData.close
-                                        ? selectedTimeRef
-                                        : null
-                                    }
-                                    key={timeSlot}
-                                    className={
-                                      timeSlot === dayData.close ? "active" : ""
-                                    }
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleTimeChange(key, "close", timeSlot);
-                                      setSlotToOpen({
-                                        key: null,
-                                        type: null,
-                                      });
-                                    }}
-                                  >
-                                    {timeSlot}
-                                  </li>
-                                ))}
-                              </ul>
-                            )}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
+                      );
+                    })}
+                  </>
+                )}
               </div>
               <div className="schedule__button-submit-wrapper">
                 <button
@@ -555,20 +605,26 @@ export default function Admin() {
                   </button>
                 </div>
                 <div className="schedule__exceptions-list">
-                  {closedDays.map((day) => (
-                    <div className="schedule__exceptions-item" key={day}>
-                      <div className="schedule__exceptions-date">{day}</div>
-                      <button
-                        type="button"
-                        className="schedule__exceptions-button-delete"
-                        onClick={() =>
-                          setClosedDays(closedDays.filter((d) => d !== day))
-                        }
-                      >
-                        ✕
-                      </button>
-                    </div>
-                  ))}
+                  {isExceptionsLoading ? (
+                    <div>Ładowanie harmonogramu...</div>
+                  ) : (
+                    <>
+                      {closedDays.map((day) => (
+                        <div className="schedule__exceptions-item" key={day}>
+                          <div className="schedule__exceptions-date">{day}</div>
+                          <button
+                            type="button"
+                            className="schedule__exceptions-button-delete"
+                            onClick={() =>
+                              setClosedDays(closedDays.filter((d) => d !== day))
+                            }
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      ))}
+                    </>
+                  )}
                 </div>
               </div>
               <div className="schedule__exceptions-button-submit-wrapper">
@@ -605,162 +661,177 @@ export default function Admin() {
               <h3>Akcje</h3>
             </div>
             <div className="courts__list">
-              {courts.map((court, index) => (
-                <div className="court-wrapper" key={court.id}>
-                  <div className="court">
-                    <div className="court__info">
-                      <span className="mobile-label">Nazwa Kortu</span>
-                      {court.name}
-                    </div>
+              {isCourtsLoading ? (
+                <div>Ładowanie kortów...</div>
+              ) : (
+                <>
+                  {courts.map((court, index) => (
+                    <div className="court-wrapper" key={court.id}>
+                      <div className="court">
+                        <div className="court__info">
+                          <span className="mobile-label">Nazwa Kortu</span>
+                          {court.name}
+                        </div>
 
-                    <div className="court__info">
-                      {" "}
-                      <span className="mobile-label">Nazwierzchnia</span>
-                      {court.surface}
-                    </div>
-                    <div
-                      className={`court__info-status ${court.isBlocked === false ? "available" : "blocked"}`}
-                    >
-                      <span className="mobile-label">Status</span>
-                      {court.isBlocked === false ? (
-                        <span className="court__info-status-available">
-                          Dostępny
-                        </span>
-                      ) : (
-                        <div className="court__info-status-blocked-wrapper">
-                          <span className="court__info-status-blocked">
-                            Zablokowany
-                          </span>
-                          <span className="court__info-status-blocked-reason">
-                            {court.blockReason}
-                          </span>
+                        <div className="court__info">
+                          <span className="mobile-label">Nazwierzchnia</span>
+                          {court.surface}
+                        </div>
+                        <div
+                          className={`court__info-status ${court.isBlocked === false ? "available" : "blocked"}`}
+                        >
+                          <span className="mobile-label">Status</span>
+                          {court.isBlocked === false ? (
+                            <span className="court__info-status-available">
+                              Dostępny
+                            </span>
+                          ) : (
+                            <div className="court__info-status-blocked-wrapper">
+                              <span className="court__info-status-blocked">
+                                Zablokowany
+                              </span>
+                              <span className="court__info-status-blocked-reason">
+                                {court.blockReason}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                        <div className="court__actions">
+                          <span className="mobile-label">Akcje</span>
+                          <div className="court__actions-buttons">
+                            <button
+                              className="court__actions-button-edit"
+                              type="button"
+                              onClick={() => {
+                                courtEdit(court);
+                              }}
+                            >
+                              <img
+                                src={edit}
+                                alt="Edytuj"
+                                className="edit-icon"
+                              />
+                              {court.id === courtToEdit ? "Anuluj" : "Edytuj"}
+                            </button>
+                            <button
+                              className="court__actions-button-delete"
+                              onClick={() =>
+                                handleOpenModal(
+                                  court.id,
+                                  "court",
+                                  `${court.name} ${court.surface}`,
+                                )
+                              }
+                            >
+                              <img
+                                src={bin}
+                                alt="Usuń"
+                                className="delete-icon"
+                              />
+                              Usuń
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                      {courtToEdit === court.id && (
+                        <div className="court-edit-wrapper">
+                          <div className="court-edit">
+                            <div className="court-edit-text-input-wrapper">
+                              <input
+                                type="text"
+                                value={courtEditFormData.name}
+                                className="court-edit-text-input"
+                                onChange={(e) =>
+                                  setCourtEditFormData({
+                                    ...courtEditFormData,
+                                    name: e.target.value,
+                                  })
+                                }
+                              />
+                            </div>
+                            <div className="court-edit-text-input-wrapper">
+                              <input
+                                type="text"
+                                value={courtEditFormData.surface}
+                                className="court-edit-text-input"
+                                onChange={(e) =>
+                                  setCourtEditFormData({
+                                    ...courtEditFormData,
+                                    surface: e.target.value,
+                                  })
+                                }
+                              />
+                            </div>
+                            <fieldset className="court__fieldset-block">
+                              <div className="court__fieldset-block-false">
+                                <input
+                                  type="radio"
+                                  name={`status-${court.id}`}
+                                  id={`court-${court.id}-avalible`}
+                                  checked={
+                                    courtEditFormData.isBlocked === false
+                                  }
+                                  onChange={() => {
+                                    setCourtEditFormData({
+                                      ...courtEditFormData,
+                                      isBlocked: false,
+                                      blockReason: "",
+                                    });
+                                  }}
+                                />
+                                <label htmlFor={`court-${court.id}-avalible`}>
+                                  Dostępny
+                                </label>
+                              </div>
+                              <div className="court__fieldset-block-true">
+                                <input
+                                  type="radio"
+                                  name={`status-${court.id}`}
+                                  id={`court-${court.id}-blocked`}
+                                  checked={courtEditFormData.isBlocked === true}
+                                  onChange={() =>
+                                    setCourtEditFormData({
+                                      ...courtEditFormData,
+                                      isBlocked: true,
+                                    })
+                                  }
+                                />
+                                <label htmlFor={`court-${court.id}-blocked`}>
+                                  Zablokowany
+                                </label>
+                              </div>
+                            </fieldset>
+                            <div className="court__actions-block">
+                              <label htmlFor={`court-${court.id}-block-reason`}>
+                                Powód blokady:
+                              </label>
+                              <input
+                                type="text"
+                                name={`block-reason-${court.id}`}
+                                id={`court-${court.id}-block-reason`}
+                                value={courtEditFormData.blockReason || ""}
+                                onChange={(e) =>
+                                  setCourtEditFormData({
+                                    ...courtEditFormData,
+                                    blockReason: e.target.value,
+                                  })
+                                }
+                              />
+                              <button
+                                className="court__button-save"
+                                type="button"
+                                onClick={() => handleSaveCourt(court.id)}
+                              >
+                                Zapisz
+                              </button>
+                            </div>
+                          </div>
                         </div>
                       )}
                     </div>
-                    <div className="court__actions">
-                      <span className="mobile-label">Akcje</span>
-                      <div className="court__actions-buttons">
-                        <button
-                          className="court__actions-button-edit"
-                          type="button"
-                          onClick={() => {
-                            courtEdit(court);
-                          }}
-                        >
-                          <img src={edit} alt="Edytuj" className="edit-icon" />
-                          {court.id === courtToEdit ? "Anuluj" : "Edytuj"}
-                        </button>
-                        <button
-                          className="court__actions-button-delete"
-                          onClick={() =>
-                            handleOpenModal(
-                              court.id,
-                              "court",
-                              `${court.name} ${court.surface}`,
-                            )
-                          }
-                        >
-                          <img src={bin} alt="Usuń" className="delete-icon" />
-                          Usuń
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                  {courtToEdit === court.id && (
-                    <div className="court-edit-wrapper">
-                      <div className="court-edit">
-                        <div className="court-edit-text-input-wrapper">
-                          <input
-                            type="text"
-                            value={courtEditFormData.name}
-                            className="court-edit-text-input"
-                            onChange={(e) =>
-                              setCourtEditFormData({
-                                ...courtEditFormData,
-                                name: e.target.value,
-                              })
-                            }
-                          />
-                        </div>
-                        <div className="court-edit-text-input-wrapper">
-                          <input
-                            type="text"
-                            value={courtEditFormData.surface}
-                            className="court-edit-text-input"
-                            onChange={(e) =>
-                              setCourtEditFormData({
-                                ...courtEditFormData,
-                                surface: e.target.value,
-                              })
-                            }
-                          />
-                        </div>
-                        <fieldset className="court__fieldset-block">
-                          <div className="court__fieldset-block-false">
-                            <input
-                              type="radio"
-                              name={`status-${court.id}`}
-                              id={`court-${court.id}-avalible`}
-                              checked={courtEditFormData.isBlocked === false}
-                              onChange={() => {
-                                setCourtEditFormData({
-                                  ...courtEditFormData,
-                                  isBlocked: false,
-                                  blockReason: "",
-                                });
-                              }}
-                            />{" "}
-                            <label htmlFor={`court-${court.id}-avalible`}>
-                              Dostępny
-                            </label>
-                          </div>
-                          <div className="court__fieldset-block-true">
-                            <input
-                              type="radio"
-                              name={`status-${court.id}`}
-                              id={`court-${court.id}-blocked`}
-                              checked={courtEditFormData.isBlocked === true}
-                              onChange={() =>
-                                setCourtEditFormData({
-                                  ...courtEditFormData,
-                                  isBlocked: true,
-                                })
-                              }
-                            />{" "}
-                            <label htmlFor={`court-${court.id}-blocked`}>
-                              Zablokowany
-                            </label>
-                          </div>
-                        </fieldset>
-                        <div className="court__actions-block">
-                          <label htmlFor={`court-${court.id}-block-reason`}>
-                            Powód blokady:
-                          </label>
-                          <input
-                            type="text"
-                            name={`block-reason-${court.id}`}
-                            id={`court-${court.id}-block-reason`}
-                            value={courtEditFormData.blockReason || ""}
-                            onChange={(e) =>
-                              setCourtEditFormData({
-                                ...courtEditFormData,
-                                blockReason: e.target.value,
-                              })
-                            }
-                          />
-                          <button
-                            className="court__button-save"
-                            type="button"
-                            onClick={() => handleSaveCourt(court.id)}
-                          >
-                            Zapisz
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ))}
+                  ))}
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -810,190 +881,197 @@ export default function Admin() {
               <h3>Akcje</h3>
             </div>
             <div className="users__list-wrapper">
-              {users
-                .sort((a, b) =>
-                  userDateSort === "DESC"
-                    ? new Date(b.createdAt) - new Date(a.createdAt)
-                    : new Date(a.createdAt) - new Date(b.createdAt),
-                )
-                .filter((user) => {
-                  const userFilter =
-                    `${user.firstName} ${user.lastName} ${user.email} ${user.phone}`.toLowerCase();
-                  return (
-                    userFilter.includes(userSearch.toLowerCase()) &&
-                    (userRoleFilter === "all" || userRoleFilter === user.role)
-                  );
-                })
-                .map((user, index) => {
-                  const roleOptions = ["USER", "RECEPTIONIST", "ADMIN"];
-                  return (
-                    <div className="users__list-user-wrapper" key={user.id}>
-                      <div className="users__list-user">
-                        <div className="user__info">
-                          <span className="mobile-label">Imię</span>
-                          {user.firstName}
-                        </div>
-                        <div className="user__info">
-                          <span className="mobile-label">Nazwisko</span>
-                          {user.lastName}
-                        </div>
-                        <div className="user__info">
-                          <span className="mobile-label">E-mail</span>
-                          {user.email}
-                        </div>
-                        <div className="user__info">
-                          <span className="mobile-label">Telefon</span>
-                          {user.phone}
-                        </div>
-                        <div className="user__info">
-                          <span className="mobile-label">Rola</span>
-                          {user.role}
-                        </div>
-                        <div className="user__info">
-                          <span className="mobile-label">Dołączył(a)</span>
-                          {user.createdAt.split("T")[0]}
-                        </div>
-                        <div className="user__actions">
-                          <span className="mobile-label">Akcje</span>
-                          <div className="user__actions-buttons">
-                            <button
-                              className="user__actions-button-edit"
-                              type="button"
-                              onClick={() => userEdit(user)}
+              {isUsersLoading ? (
+                <div>Ładowanie użytkowników...</div>
+              ) : (
+                <>
+                  {users
+                    .sort((a, b) =>
+                      userDateSort === "DESC"
+                        ? new Date(b.createdAt) - new Date(a.createdAt)
+                        : new Date(a.createdAt) - new Date(b.createdAt),
+                    )
+                    .filter((user) => {
+                      const userFilter =
+                        `${user.firstName} ${user.lastName} ${user.email} ${user.phone}`.toLowerCase();
+                      return (
+                        userFilter.includes(userSearch.toLowerCase()) &&
+                        (userRoleFilter === "all" ||
+                          userRoleFilter === user.role)
+                      );
+                    })
+                    .map((user, index) => {
+                      const roleOptions = ["USER", "RECEPTIONIST", "ADMIN"];
+                      return (
+                        <div className="users__list-user-wrapper" key={user.id}>
+                          <div className="users__list-user">
+                            <div className="user__info">
+                              <span className="mobile-label">Imię</span>
+                              {user.firstName}
+                            </div>
+                            <div className="user__info">
+                              <span className="mobile-label">Nazwisko</span>
+                              {user.lastName}
+                            </div>
+                            <div className="user__info">
+                              <span className="mobile-label">E-mail</span>
+                              {user.email}
+                            </div>
+                            <div className="user__info">
+                              <span className="mobile-label">Telefon</span>
+                              {user.phone}
+                            </div>
+                            <div className="user__info">
+                              <span className="mobile-label">Rola</span>
+                              {user.role}
+                            </div>
+                            <div className="user__info">
+                              <span className="mobile-label">Dołączył(a)</span>
+                              {user.createdAt.split("T")[0]}
+                            </div>
+                            <div className="user__actions">
+                              <span className="mobile-label">Akcje</span>
+                              <div className="user__actions-buttons">
+                                <button
+                                  className="user__actions-button-edit"
+                                  type="button"
+                                  onClick={() => userEdit(user)}
+                                >
+                                  <img
+                                    src={edit}
+                                    alt="Edytuj"
+                                    className="edit-icon"
+                                  />
+                                  {user.id === userToEdit ? "Anuluj" : "Edytuj"}
+                                </button>
+                                {user.role !== "ADMIN" && (
+                                  <button
+                                    className="user__actions-button-delete"
+                                    type="button"
+                                    onClick={() =>
+                                      handleOpenModal(
+                                        user.id,
+                                        "user",
+                                        `${user.firstName} ${user.lastName}`,
+                                      )
+                                    }
+                                  >
+                                    <img
+                                      src={bin}
+                                      alt="Usuń"
+                                      className="delete-icon"
+                                    />
+                                    Usuń
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                          {userToEdit === user.id && (
+                            <div
+                              className={`users__list-edit ${userEditFormData.role === "GUEST" ? "guest" : ""}`}
                             >
-                              <img
-                                src={edit}
-                                alt="Edytuj"
-                                className="edit-icon"
-                              />
-                              {user.id === userToEdit ? "Anuluj" : "Edytuj"}
-                            </button>
-                            {user.role !== "ADMIN" && (
-                              <button
-                                className="user__actions-button-delete"
-                                type="button"
-                                onClick={() =>
-                                  handleOpenModal(
-                                    user.id,
-                                    "user",
-                                    `${user.firstName} ${user.lastName}`,
-                                  )
-                                }
-                              >
-                                <img
-                                  src={bin}
-                                  alt="Usuń"
-                                  className="delete-icon"
+                              <div className="user-edit-text-input-wrapper first-name">
+                                <input
+                                  type="text"
+                                  placeholder="Imię"
+                                  className="user-edit-text-input"
+                                  value={userEditFormData.firstName}
+                                  onChange={(e) =>
+                                    setUserEditFormData({
+                                      ...userEditFormData,
+                                      firstName: e.target.value,
+                                    })
+                                  }
                                 />
-                                Usuń
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                      {userToEdit === user.id && (
-                        <div
-                          className={`users__list-edit ${userEditFormData.role === "GUEST" ? "guest" : ""}`}
-                        >
-                          <div className="user-edit-text-input-wrapper first-name">
-                            <input
-                              type="text"
-                              placeholder="Imię"
-                              className="user-edit-text-input"
-                              value={userEditFormData.firstName}
-                              onChange={(e) =>
-                                setUserEditFormData({
-                                  ...userEditFormData,
-                                  firstName: e.target.value,
-                                })
-                              }
-                            />
-                          </div>
-                          <div className="user-edit-text-input-wrapper last-name">
-                            <input
-                              type="text"
-                              placeholder="Nazwisko"
-                              className="user-edit-text-input"
-                              value={userEditFormData.lastName}
-                              onChange={(e) =>
-                                setUserEditFormData({
-                                  ...userEditFormData,
-                                  lastName: e.target.value,
-                                })
-                              }
-                            />
-                          </div>
-                          <div className="user-edit-text-input-wrapper email">
-                            <input
-                              type="text"
-                              placeholder="E-mail"
-                              className="user-edit-text-input"
-                              value={userEditFormData.email}
-                              onChange={(e) =>
-                                setUserEditFormData({
-                                  ...userEditFormData,
-                                  email: e.target.value,
-                                })
-                              }
-                            />
-                          </div>
-                          <div className="user-edit-text-input-wrapper phone">
-                            <input
-                              type="text"
-                              placeholder="Telefon"
-                              className="user-edit-text-input"
-                              value={userEditFormData.phone}
-                              onChange={(e) =>
-                                setUserEditFormData({
-                                  ...userEditFormData,
-                                  phone: e.target.value,
-                                })
-                              }
-                            />
-                          </div>
-                          <div className="user-edit-select-wrapper">
-                            <select
-                              value={userEditFormData.role}
-                              className="user-edit-select"
-                              onChange={(e) =>
-                                setUserEditFormData({
-                                  ...userEditFormData,
-                                  role: e.target.value,
-                                })
-                              }
-                              disabled={userEditFormData.role === "GUEST"}
-                            >
-                              <option value={userEditFormData.role}>
-                                {userEditFormData.role}
-                              </option>{" "}
-                              {roleOptions
-                                .filter(
-                                  (role) => role !== userEditFormData.role,
-                                )
-                                .map((role) => (
-                                  <option key={role} value={role}>
-                                    {role}
+                              </div>
+                              <div className="user-edit-text-input-wrapper last-name">
+                                <input
+                                  type="text"
+                                  placeholder="Nazwisko"
+                                  className="user-edit-text-input"
+                                  value={userEditFormData.lastName}
+                                  onChange={(e) =>
+                                    setUserEditFormData({
+                                      ...userEditFormData,
+                                      lastName: e.target.value,
+                                    })
+                                  }
+                                />
+                              </div>
+                              <div className="user-edit-text-input-wrapper email">
+                                <input
+                                  type="text"
+                                  placeholder="E-mail"
+                                  className="user-edit-text-input"
+                                  value={userEditFormData.email}
+                                  onChange={(e) =>
+                                    setUserEditFormData({
+                                      ...userEditFormData,
+                                      email: e.target.value,
+                                    })
+                                  }
+                                />
+                              </div>
+                              <div className="user-edit-text-input-wrapper phone">
+                                <input
+                                  type="text"
+                                  placeholder="Telefon"
+                                  className="user-edit-text-input"
+                                  value={userEditFormData.phone}
+                                  onChange={(e) =>
+                                    setUserEditFormData({
+                                      ...userEditFormData,
+                                      phone: e.target.value,
+                                    })
+                                  }
+                                />
+                              </div>
+                              <div className="user-edit-select-wrapper">
+                                <select
+                                  value={userEditFormData.role}
+                                  className="user-edit-select"
+                                  onChange={(e) =>
+                                    setUserEditFormData({
+                                      ...userEditFormData,
+                                      role: e.target.value,
+                                    })
+                                  }
+                                  disabled={userEditFormData.role === "GUEST"}
+                                >
+                                  <option value={userEditFormData.role}>
+                                    {userEditFormData.role}
                                   </option>
-                                ))}
-                            </select>
-                            {userEditFormData.role === "GUEST" && (
-                              <div>Zmiana roli gościa niemozliwa</div>
-                            )}
-                          </div>
-                          <div className="user-edit-button-wrapper">
-                            <button
-                              type="button"
-                              className="user-edit-button-save"
-                              onClick={() => handleSaveUser(user.id)}
-                            >
-                              Zapisz
-                            </button>
-                          </div>
+                                  {roleOptions
+                                    .filter(
+                                      (role) => role !== userEditFormData.role,
+                                    )
+                                    .map((role) => (
+                                      <option key={role} value={role}>
+                                        {role}
+                                      </option>
+                                    ))}
+                                </select>
+                                {userEditFormData.role === "GUEST" && (
+                                  <div>Zmiana roli gościa niemozliwa</div>
+                                )}
+                              </div>
+                              <div className="user-edit-button-wrapper">
+                                <button
+                                  type="button"
+                                  className="user-edit-button-save"
+                                  onClick={() => handleSaveUser(user.id)}
+                                >
+                                  Zapisz
+                                </button>
+                              </div>
+                            </div>
+                          )}
                         </div>
-                      )}
-                    </div>
-                  );
-                })}
+                      );
+                    })}
+                </>
+              )}
             </div>
           </div>
         </div>

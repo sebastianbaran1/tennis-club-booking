@@ -386,6 +386,7 @@ app.get("/api/usersAdmin", async (req, res) => {
     });
     res.json({ users });
   } catch (error) {
+    console.error("Błąd pobierania użytkowników:", error);
     res.status(500).json({ error: "Błąd pobierania uzytkownikow" });
   }
 });
@@ -444,11 +445,12 @@ app.get("/api/settings/schedule", async (req, res) => {
     });
 
     if (settings) {
-      res.status(200).json({ schedule: settings.schedule });
+      res.json({ schedule: settings.schedule });
     } else {
       res.status(404).json({ error: "Brak ustawień" });
     }
   } catch (error) {
+    console.error("Błąd pobierania harmonogramu:", error);
     res.status(500).json({ error: "Wystąpił błąd serwera." });
   }
 });
@@ -483,11 +485,12 @@ app.get("/api/settings/exceptions", async (req, res) => {
     });
 
     if (settings) {
-      res.status(200).json({ exceptions: settings.exceptions });
+      res.json({ exceptions: settings.exceptions });
     } else {
       res.status(404).json({ error: "Brak ustawień" });
     }
   } catch (error) {
+    console.error("Błąd pobierania dni wolnych:", error);
     res.status(500).json({ error: "Wystąpił błąd serwera." });
   }
 });
@@ -524,6 +527,7 @@ app.get("/api/courts", async (req, res) => {
 
     res.json({ courts });
   } catch (error) {
+    console.error("Błąd pobierania kortów:", error);
     res.status(500).json({ error: "Błąd serwera" });
   }
 });

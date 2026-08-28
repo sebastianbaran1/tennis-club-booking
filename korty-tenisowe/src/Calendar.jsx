@@ -20,7 +20,7 @@ export default function Calendar() {
   const todayStr = new Date().toISOString().split("T")[0];
   const [selectedDate, setSelectedDate] = useState(todayStr);
   const [selectedCourtIndex, setSelectedCourtIndex] = useState(0);
-  const [courtsPerPage, setCourtsPerPage] = useState();
+  const [courtsPerPage, setCourtsPerPage] = useState(4);
   const [staffTab, setStaffTab] = useState("existing");
   const [searchClient, setSearchClient] = useState("");
   const [selectedClientId, setSelectedClientId] = useState(null);
@@ -111,6 +111,11 @@ export default function Calendar() {
   }, []);
 
   useEffect(() => {
+    if (user?.role !== "ADMIN" && user?.role !== "STAFF") {
+      setIsUsersLoading(false);
+      return;
+    }
+
     const fetchUsers = async () => {
       try {
         const response = await fetch(`http://localhost:5005/api/users`);
@@ -127,7 +132,7 @@ export default function Calendar() {
       }
     };
     fetchUsers();
-  }, []);
+  }, [user?.role]);
 
   useEffect(() => {
     if (!courtsPerPage) return;
@@ -186,7 +191,7 @@ export default function Calendar() {
           setSchedule(scheduleData.schedule);
         } else {
           setError(
-            courtsData.error || exceptionsdata.error || scheduleData.error,
+            courtsData.error || exceptionsData.error || scheduleData.error,
           );
         }
       } catch (error) {
@@ -209,7 +214,7 @@ export default function Calendar() {
     return <Navigate to="/" />;
   }
 
-  if (isDataLoading) {
+  if (isReservationsLoading || isStaticDataLoading) {
     return (
       <div className="profile-loading">
         <h2>Wczytywanie rezerwacji...</h2>
@@ -219,7 +224,7 @@ export default function Calendar() {
 
   if (error) {
     return (
-      <div className="profile-error">
+      <div className="calendar-error">
         <h2>Ups, coś poszło nie tak!</h2>
         <p>{error}</p>
       </div>
@@ -568,45 +573,51 @@ export default function Calendar() {
                         />
                         {isDropdownOpen === true && (
                           <div className="staff-dropdown-wrapper">
-                            <ul className="staff-dropdown-list">
-                              {searchClient !== "" &&
-                                clientList
-                                  .filter((client) => {
-                                    const fullName =
-                                      `${client.firstName} ${client.lastName} ${client.phone}`.toLowerCase();
-                                    return fullName.includes(
-                                      searchClient.toLowerCase(),
-                                    );
-                                  })
-                                  .map((client) => (
-                                    <li
-                                      key={client.id}
-                                      className="dropdown-client"
-                                      onClick={() => {
-                                        setSelectedClientId(client.id);
-                                        setSearchClient(
-                                          `${client.firstName} ${client.lastName} ${client.phone}`,
-                                        );
-                                        setIsDropdownOpen(false);
-                                      }}
-                                    >
-                                      <div className="dropdown-client-info">
-                                        <span>{client.firstName}</span>
-                                        <span>{client.lastName}</span>
-                                        <span>{client.phone}</span>
-                                      </div>
-                                    </li>
-                                  ))}
-                              {clientList.filter((client) => {
-                                const fullName =
-                                  `${client.firstName} ${client.lastName} ${client.phone}`.toLowerCase();
-                                return fullName.includes(
-                                  searchClient.toLowerCase(),
-                                );
-                              }).length === 0 && (
-                                <li className="dropdown-empty">Brak wyników</li>
-                              )}
-                            </ul>
+                            {isUsersLoading ? (
+                              <div>Wczytywanie użytkowników...</div>
+                            ) : (
+                              <ul className="staff-dropdown-list">
+                                {searchClient !== "" &&
+                                  clientList
+                                    .filter((client) => {
+                                      const fullName =
+                                        `${client.firstName} ${client.lastName} ${client.phone}`.toLowerCase();
+                                      return fullName.includes(
+                                        searchClient.toLowerCase(),
+                                      );
+                                    })
+                                    .map((client) => (
+                                      <li
+                                        key={client.id}
+                                        className="dropdown-client"
+                                        onClick={() => {
+                                          setSelectedClientId(client.id);
+                                          setSearchClient(
+                                            `${client.firstName} ${client.lastName} ${client.phone}`,
+                                          );
+                                          setIsDropdownOpen(false);
+                                        }}
+                                      >
+                                        <div className="dropdown-client-info">
+                                          <span>{client.firstName}</span>
+                                          <span>{client.lastName}</span>
+                                          <span>{client.phone}</span>
+                                        </div>
+                                      </li>
+                                    ))}
+                                {clientList.filter((client) => {
+                                  const fullName =
+                                    `${client.firstName} ${client.lastName} ${client.phone}`.toLowerCase();
+                                  return fullName.includes(
+                                    searchClient.toLowerCase(),
+                                  );
+                                }).length === 0 && (
+                                  <li className="dropdown-empty">
+                                    Brak wyników
+                                  </li>
+                                )}
+                              </ul>
+                            )}
                           </div>
                         )}
                       </div>

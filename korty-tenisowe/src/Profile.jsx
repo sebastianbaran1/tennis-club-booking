@@ -112,7 +112,7 @@ export default function Profile() {
             <span className="profile-info-label">Nazwisko:</span>
             {user.lastName}
           </span>
-          <span className="profile-info-">
+          <span className="profile-info">
             <span className="profile-info-label">Telefon:</span> {user.phone}
           </span>
           <span className="profile-info">
