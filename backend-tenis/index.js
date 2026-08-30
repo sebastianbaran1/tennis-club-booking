@@ -230,29 +230,51 @@ app.get("/api/reservations", async (req, res) => {
 });
 
 app.post("/api/reservations", async (req, res) => {
-  const { courtId, date, startTime, duration, userId, newClient } = req.body;
-
   try {
-    const now = new Date();
-    const polishTime = new Date(
-      now.toLocaleString("en-US", { timeZone: "Europe/Warsaw" }),
-    );
+    const authHeader = req.headers.authorization;
+    const { courtId, date, startTime, duration, userId, newClient } = req.body;
 
-    const todayStr = polishTime.toISOString().split("T")[0];
-    const currentMinutes = polishTime.getHours() * 60 + polishTime.getMinutes();
+    if (!authHeader) {
+      return res.status(401).json({ error: "Brak tokenu." });
+    }
+
+    const token = authHeader.split(" ")[1];
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.userId },
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: "Użytkownik przestał istnieć." });
+    }
+
+    if (!["RECEPTIONIST", "ADMIN", "USER"].includes(user.role)) {
+      return res.status(403).json({ error: "Brak dostępu do zasobów" });
+    }
+
+    const now = new Date();
+    const todayStr = new Intl.DateTimeFormat("en-CA", {
+      timeZone: "Europe/Warsaw",
+    }).format(now);
+    const timeStr = new Intl.DateTimeFormat("pl-PL", {
+      timeZone: "Europe/Warsaw",
+      hour: "2-digit",
+      minute: "2-digit",
+    }).format(now);
+
+    const [currentHours, currentMins] = timeStr.split(":").map(Number);
+    const currentMinutes = currentHours * 60 + currentMins;
+
     const requestMinutes = timeToMinutes(startTime);
 
     if (date < todayStr) {
-      return res
-        .status(400)
-        .json({ error: "Nie możesz cofnąć czasu! Wybierz przyszłą datę." });
+      return res.status(400).json({ error: "Wybierz przyszłą datę." });
     }
 
     if (date === todayStr && requestMinutes <= currentMinutes) {
-      return res
-        .status(400)
-        .json({ error: "Ta godzina już minęła. Wybierz późniejszy termin." });
+      return res.status(400).json({ error: "Ta godzina już minęła." });
     }
+
     const newStartMin = timeToMinutes(startTime);
     const newEndMin = newStartMin + parseInt(duration);
 
@@ -276,31 +298,37 @@ app.post("/api/reservations", async (req, res) => {
           "Niestety, ten termin nakłada się na inną rezerwację na tym korcie.",
       });
     }
+    //dodać transakcje
+    let finalUserId = user.id;
 
-    let finalUserId = userId;
+    if (user.role === "RECEPTIONIST" || user.role == "ADMIN") {
+      finalUserId = userId;
 
-    if (userId === null) {
-      const existingUser = await prisma.user.findFirst({
-        where: {
-          email: newClient.email,
-        },
-      });
-
-      if (existingUser !== null) {
-        return res.status(400).json({
-          error: "Taki uzytkownik juz istnieje, uzyj zakladki klient z bazy",
+      if (userId === null) {
+        const existingUser = await prisma.user.findFirst({
+          where: {
+            email: newClient.email,
+          },
         });
+
+        if (existingUser !== null) {
+          return res.status(400).json({
+            error: "Taki uzytkownik juz istnieje, uzyj zakladki klient z bazy",
+          });
+        }
+
+        const guestData = await prisma.user.create({
+          data: {
+            role: "GUEST",
+            phone: newClient.phone,
+            firstName: newClient.firstName,
+            lastName: newClient.lastName,
+            email: newClient.email,
+          },
+        });
+
+        finalUserId = guestData.id;
       }
-      const guestData = await prisma.user.create({
-        data: {
-          role: "GUEST",
-          phone: newClient.phone,
-          firstName: newClient.firstName,
-          lastName: newClient.lastName,
-          email: newClient.email,
-        },
-      });
-      finalUserId = guestData.id;
     }
 
     const newReservation = await prisma.reservation.create({
@@ -359,8 +387,27 @@ app.delete("/api/reservations/:id", async (req, res) => {
 });
 
 app.get("/api/users", async (req, res) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) {
+    return res.status(401).json({ error: "Brak tokenu." });
+  }
+  const token = authHeader.split(" ")[1];
+  const decoded = jwt.verify(token, process.env.JWT_SECRET);
+  const user = await prisma.user.findUnique({
+    where: { id: decoded.userId },
+  });
+
+  if (!user) {
+    return res.status(404).json({ error: "Użytkownik przestał istnieć." });
+  }
+
+  if (user.role !== "RECEPTIONIST" && user.role !== "ADMIN") {
+    return res.status(403).json({ error: "Brak dostępu do zasobów" });
+  }
+
   try {
     const users = await prisma.user.findMany({
+      where: { isActive: true },
       select: { id: true, firstName: true, lastName: true, phone: true },
     });
     res.json({ users });

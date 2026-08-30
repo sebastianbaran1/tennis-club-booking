@@ -118,8 +118,15 @@ export default function Calendar() {
 
     const fetchUsers = async () => {
       try {
-        const response = await fetch(`http://localhost:5005/api/users`);
+        const token = localStorage.getItem("token");
+        const response = await fetch(`http://localhost:5005/api/users`, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
         const data = await response.json();
+
         if (response.ok) {
           setClientList(data.users);
         } else {
@@ -151,7 +158,6 @@ export default function Calendar() {
           {
             method: "GET",
             headers: {
-              "Content-Type": "application/json",
               Authorization: `Bearer ${token}`,
             },
           },
@@ -250,7 +256,7 @@ export default function Calendar() {
 
     const { courtId, startTime } = bookingModal;
     const userId =
-      staffTab == "existing" ? (selectedClientId ?? user.id) : null;
+      staffTab === "existing" ? (selectedClientId ?? user.id) : null;
 
     if (isStaffSelectionInvalid) {
       alert("Wybierz klienta z rozwijanej listy!");
@@ -258,9 +264,13 @@ export default function Calendar() {
     }
 
     try {
+      const token = localStorage.getItem("token");
       const response = await fetch("http://localhost:5005/api/reservations", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify({
           courtId,
           date: selectedDate,

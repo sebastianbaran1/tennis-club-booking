@@ -428,7 +428,7 @@ export default function Admin() {
     );
   }
 
-  if (user.role !== "ADMIN") {
+  if (!user || user.role !== "ADMIN") {
     return <Navigate to="/" />;
   }
 
