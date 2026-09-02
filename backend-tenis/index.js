@@ -24,6 +24,32 @@ const timeToMinutes = (timeString) => {
 app.use(cors());
 app.use(express.json());
 
+const authenticateToken = async (req, res, next) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+      return res.status(401).json({ error: "Brak tokenu." });
+    }
+
+    const token = authHeader.split(" ")[1];
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.userId },
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: "Użytkownik przestał istnieć." });
+    }
+
+    req.user = user;
+    next();
+  } catch (error) {
+    return res.status(401).json({ error: "Token nieważny." });
+  }
+};
+
 app.get("/", (req, res) => {
   res.send("Serwer Klubu Tenisowego wita!");
 });
@@ -151,24 +177,9 @@ app.post("/api/login", async (req, res) => {
   }
 });
 
-app.get("/api/verify", async (req, res) => {
+app.get("/api/verify", authenticateToken, async (req, res) => {
   try {
-    const authHeader = req.headers.authorization;
-    if (!authHeader) {
-      return res.status(401).json({ error: "Brak biletu wstępu." });
-    }
-
-    const token = authHeader.split(" ")[1];
-
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-    const user = await prisma.user.findUnique({
-      where: { id: decoded.userId },
-    });
-
-    if (!user) {
-      return res.status(404).json({ error: "Użytkownik przestał istnieć." });
-    }
+    const user = req.user;
 
     res.status(200).json({
       user: {
@@ -181,29 +192,20 @@ app.get("/api/verify", async (req, res) => {
       },
     });
   } catch (error) {
-    res.status(401).json({ error: "Bilet jest nieważny lub wygasł." });
+    res.status(401).json({ error: "Token nieważny." });
   }
 });
 
-app.get("/api/reservations", async (req, res) => {
+app.get("/api/reservations", authenticateToken, async (req, res) => {
   try {
     const { date } = req.query;
-    const authHeader = req.headers.authorization;
+    const user = req.user;
 
-    if (!authHeader) {
-      return res.status(401).json({ error: "Brak biletu wstępu." });
-    }
-    const token = authHeader.split(" ")[1];
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await prisma.user.findUnique({
-      where: { id: decoded.userId },
-    });
-
-    if (!user) {
-      return res.status(404).json({ error: "Użytkownik przestał istnieć." });
-    }
-
-    if (user.role === "ADMIN" || user.role === "RECEPCIONIST") {
+    if (
+      user.role === "ADMIN" ||
+      user.role === "DEMO_ADMIN" ||
+      user.role === "RECEPTIONIST"
+    ) {
       const reservations = await prisma.reservation.findMany({
         where: { date: date },
         include: {
@@ -225,30 +227,17 @@ app.get("/api/reservations", async (req, res) => {
       return res.json({ reservations });
     }
   } catch (error) {
+    console.error("Błąd pobierania kalendarza:", error);
     res.status(500).json({ error: "Błąd pobierania kalendarza." });
   }
 });
 
-app.post("/api/reservations", async (req, res) => {
+app.post("/api/reservations", authenticateToken, async (req, res) => {
   try {
-    const authHeader = req.headers.authorization;
+    const user = req.user;
     const { courtId, date, startTime, duration, userId, newClient } = req.body;
 
-    if (!authHeader) {
-      return res.status(401).json({ error: "Brak tokenu." });
-    }
-
-    const token = authHeader.split(" ")[1];
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await prisma.user.findUnique({
-      where: { id: decoded.userId },
-    });
-
-    if (!user) {
-      return res.status(404).json({ error: "Użytkownik przestał istnieć." });
-    }
-
-    if (!["RECEPTIONIST", "ADMIN", "USER"].includes(user.role)) {
+    if (!["RECEPTIONIST", "ADMIN", "USER", "DEMO_ADMIN"].includes(user.role)) {
       return res.status(403).json({ error: "Brak dostępu do zasobów" });
     }
 
@@ -298,66 +287,73 @@ app.post("/api/reservations", async (req, res) => {
           "Niestety, ten termin nakłada się na inną rezerwację na tym korcie.",
       });
     }
-    //dodać transakcje
+
     let finalUserId = user.id;
 
-    if (user.role === "RECEPTIONIST" || user.role == "ADMIN") {
-      finalUserId = userId;
+    const result = await prisma.$transaction(async (tx) => {
+      if (
+        user.role === "RECEPTIONIST" ||
+        user.role === "ADMIN" ||
+        user.role === "DEMO_ADMIN"
+      ) {
+        finalUserId = userId;
 
-      if (userId === null) {
-        const existingUser = await prisma.user.findFirst({
-          where: {
-            email: newClient.email,
-          },
-        });
-
-        if (existingUser !== null) {
-          return res.status(400).json({
-            error: "Taki uzytkownik juz istnieje, uzyj zakladki klient z bazy",
+        if (userId === null) {
+          const existingUser = await tx.user.findFirst({
+            where: {
+              email: newClient.email,
+            },
           });
+
+          if (existingUser !== null) {
+            throw new Error("USER_EXISTS");
+          }
+
+          const guestData = await tx.user.create({
+            data: {
+              role: "GUEST",
+              phone: newClient.phone,
+              firstName: newClient.firstName,
+              lastName: newClient.lastName,
+              email: newClient.email,
+            },
+          });
+
+          finalUserId = guestData.id;
         }
-
-        const guestData = await prisma.user.create({
-          data: {
-            role: "GUEST",
-            phone: newClient.phone,
-            firstName: newClient.firstName,
-            lastName: newClient.lastName,
-            email: newClient.email,
-          },
-        });
-
-        finalUserId = guestData.id;
       }
-    }
 
-    const newReservation = await prisma.reservation.create({
-      data: {
-        courtId: parseInt(courtId),
-        date,
-        startTime,
-        duration: parseInt(duration),
-        userId: parseInt(finalUserId),
-      },
+      const newReservation = await tx.reservation.create({
+        data: {
+          courtId: parseInt(courtId),
+          date,
+          startTime,
+          duration: parseInt(duration),
+          userId: parseInt(finalUserId),
+        },
+      });
+
+      return newReservation;
     });
 
     res
       .status(201)
-      .json({ message: "Kort zarezerwowany!", reservation: newReservation });
+      .json({ message: "Kort zarezerwowany!", reservation: result });
   } catch (error) {
+    if (error.message === "USER_EXISTS") {
+      return res.status(400).json({
+        error: "Taki uzytkownik juz istnieje",
+      });
+    }
     console.error("Błąd podczas rezerwacji:", error);
     res.status(500).json({ error: "Wystąpił błąd serwera." });
   }
 });
 
-app.delete("/api/reservations/:id", async (req, res) => {
-  const reservationId = parseInt(req.params.id);
-  const requestingUserId = parseInt(req.body.userId);
-
+app.delete("/api/reservations/:id", authenticateToken, async (req, res) => {
   try {
-    const requestingUser = await prisma.user.findUnique({
-      where: { id: requestingUserId },
-    });
+    const user = req.user;
+    const reservationId = parseInt(req.params.id);
 
     const reservation = await prisma.reservation.findUnique({
       where: { id: reservationId },
@@ -368,8 +364,10 @@ app.delete("/api/reservations/:id", async (req, res) => {
     }
 
     if (
-      requestingUser.role !== "ADMIN" &&
-      reservation.userId !== requestingUserId
+      user.role !== "ADMIN" &&
+      user.role !== "RECEPTIONIST" &&
+      user.role !== "DEMO_ADMIN" &&
+      reservation.userId !== user.id
     ) {
       return res
         .status(403)
@@ -382,26 +380,19 @@ app.delete("/api/reservations/:id", async (req, res) => {
 
     res.json({ message: "Rezerwacja została anulowana." });
   } catch (error) {
+    console.error("Błąd podczas usuwania rezerwacji:", error);
     res.status(500).json({ error: "Wystąpił błąd serwera podczas usuwania." });
   }
 });
 
-app.get("/api/users", async (req, res) => {
-  const authHeader = req.headers.authorization;
-  if (!authHeader) {
-    return res.status(401).json({ error: "Brak tokenu." });
-  }
-  const token = authHeader.split(" ")[1];
-  const decoded = jwt.verify(token, process.env.JWT_SECRET);
-  const user = await prisma.user.findUnique({
-    where: { id: decoded.userId },
-  });
+app.get("/api/users", authenticateToken, async (req, res) => {
+  const user = req.user;
 
-  if (!user) {
-    return res.status(404).json({ error: "Użytkownik przestał istnieć." });
-  }
-
-  if (user.role !== "RECEPTIONIST" && user.role !== "ADMIN") {
+  if (
+    user.role !== "RECEPTIONIST" &&
+    user.role !== "ADMIN" &&
+    user.role !== "DEMO_ADMIN"
+  ) {
     return res.status(403).json({ error: "Brak dostępu do zasobów" });
   }
 
@@ -417,8 +408,14 @@ app.get("/api/users", async (req, res) => {
   }
 });
 
-app.get("/api/usersAdmin", async (req, res) => {
+app.get("/api/usersAdmin", authenticateToken, async (req, res) => {
   try {
+    const user = req.user;
+
+    if (user.role !== "ADMIN" && user.role !== "DEMO_ADMIN") {
+      return res.status(403).json({ error: "Brak dostępu do zasobów" });
+    }
+
     const users = await prisma.user.findMany({
       where: { isActive: true },
       select: {
@@ -438,49 +435,80 @@ app.get("/api/usersAdmin", async (req, res) => {
   }
 });
 
-app.get("/api/users/:userId/reservations", async (req, res) => {
-  const userId = parseInt(req.params.userId);
+app.get(
+  "/api/users/:userId/reservations",
+  authenticateToken,
+  async (req, res) => {
+    try {
+      const user = req.user;
 
+      const reservations = await prisma.reservation.findMany({
+        where: { userId: user.id },
+        include: { court: true },
+        orderBy: [{ date: "asc" }, { startTime: "asc" }],
+      });
+
+      res.json({ reservations });
+    } catch (error) {
+      console.error("Błąd pobierania rezerwacji użytkownika:", error);
+      res.status(500).json({ error: "Wystąpił błąd serwera." });
+    }
+  },
+);
+
+app.put("/api/user/:id", authenticateToken, async (req, res) => {
   try {
-    const reservations = await prisma.reservation.findMany({
-      where: { userId: userId },
-      include: { court: true },
-      orderBy: [{ date: "asc" }, { startTime: "asc" }],
-    });
+    const user = req.user;
+    const userId = parseInt(req.params.id);
+    const { firstName, lastName, email, phone, role } = req.body;
 
-    res.json({ reservations });
-  } catch (error) {
-    console.error("Błąd pobierania rezerwacji użytkownika:", error);
-    res.status(500).json({ error: "Wystąpił błąd serwera." });
-  }
-});
+    if (user.role === "DEMO_ADMIN") {
+      return res.status(403).json({
+        error:
+          "Tryb demonstracyjny: podgląd i klikanie są dozwolone, ale wprowadzanie zmian zostało zablokowane. Miłego testowania systemu!",
+      });
+    }
 
-app.put("/api/user/:id", async (req, res) => {
-  const userId = parseInt(req.params.id);
-  const { firstName, lastName, email, phone, role } = req.body;
-  try {
-    const user = await prisma.user.update({
+    if (user.role !== "ADMIN") {
+      return res.status(403).json({ error: "Nie masz dostępu do tych danych" });
+    }
+
+    const userToEdit = await prisma.user.update({
       where: { id: userId },
       data: { firstName, lastName, email, phone, role },
     });
 
-    res.status(200).json(user);
+    res.status(200).json(userToEdit);
   } catch (error) {
+    console.error("Błąd podczas edycji użytkownika:", error);
     res.status(500).json({ error: "Błąd serwera" });
   }
 });
 
-app.delete("/api/user/:id", async (req, res) => {
-  const userId = parseInt(req.params.id);
-  const randomEmail = `deleted_user_${userId}_${Date.now()}@klubRzeszow.com`;
-
+app.delete("/api/user/:id", authenticateToken, async (req, res) => {
   try {
-    const user = await prisma.user.update({
+    const user = req.user;
+    const userId = parseInt(req.params.id);
+    const randomEmail = `deleted_user_${userId}_${Date.now()}@klubRzeszow.com`;
+
+    if (user.role === "DEMO_ADMIN") {
+      return res.status(403).json({
+        error:
+          "Tryb demonstracyjny: podgląd i klikanie są dozwolone, ale wprowadzanie zmian zostało zablokowane. Miłego testowania systemu!",
+      });
+    }
+
+    if (user.role !== "ADMIN") {
+      return res.status(403).json({ error: "Nie masz dostępu do tych danych" });
+    }
+
+    const userToDelete = await prisma.user.update({
       where: { id: userId },
       data: { isActive: false, email: randomEmail },
     });
-    res.status(200).json(user);
+    res.status(200).json(userToDelete);
   } catch (error) {
+    console.error("Błąd podczas usuwania użytkownika:", error);
     res.status(500).json({ error: "Błąd serwera" });
   }
 });
@@ -502,9 +530,21 @@ app.get("/api/settings/schedule", async (req, res) => {
   }
 });
 
-app.put("/api/settings/schedule", async (req, res) => {
+app.put("/api/settings/schedule", authenticateToken, async (req, res) => {
   try {
+    const user = req.user;
     const { schedule } = req.body;
+
+    if (user.role === "DEMO_ADMIN") {
+      return res.status(403).json({
+        error:
+          "Tryb demonstracyjny: podgląd i klikanie są dozwolone, ale wprowadzanie zmian zostało zablokowane. Miłego testowania systemu!",
+      });
+    }
+
+    if (user.role !== "ADMIN") {
+      return res.status(403).json({ error: "Nie masz dostępu do tych danych" });
+    }
 
     const settings = await prisma.settings.upsert({
       create: {
@@ -521,6 +561,7 @@ app.put("/api/settings/schedule", async (req, res) => {
 
     res.status(200).json(settings);
   } catch (error) {
+    console.error("Błąd podczas zapisywania harmonogramu:", error);
     res.status(500).json({ error: "Błąd serwera podczas zapisywania" });
   }
 });
@@ -542,9 +583,21 @@ app.get("/api/settings/exceptions", async (req, res) => {
   }
 });
 
-app.put("/api/settings/exceptions", async (req, res) => {
+app.put("/api/settings/exceptions", authenticateToken, async (req, res) => {
   try {
+    const user = req.user;
     const { closedDays } = req.body;
+
+    if (user.role === "DEMO_ADMIN") {
+      return res.status(403).json({
+        error:
+          "Tryb demonstracyjny: podgląd i klikanie są dozwolone, ale wprowadzanie zmian zostało zablokowane. Miłego testowania systemu!",
+      });
+    }
+
+    if (user.role !== "ADMIN") {
+      return res.status(403).json({ error: "Nie masz dostępu do tych danych" });
+    }
 
     const settings = await prisma.settings.upsert({
       create: {
@@ -561,6 +614,7 @@ app.put("/api/settings/exceptions", async (req, res) => {
 
     res.status(200).json(settings);
   } catch (error) {
+    console.error("Błąd podczas zapisywania dni wolnych:", error);
     res.status(500).json({ error: "Błąd serwera podczas zapisywania" });
   }
 });
@@ -579,10 +633,22 @@ app.get("/api/courts", async (req, res) => {
   }
 });
 
-app.delete("/api/courts/:id", async (req, res) => {
-  const courtId = parseInt(req.params.id);
-
+app.delete("/api/courts/:id", authenticateToken, async (req, res) => {
   try {
+    const user = req.user;
+    const courtId = parseInt(req.params.id);
+
+    if (user.role === "DEMO_ADMIN") {
+      return res.status(403).json({
+        error:
+          "Tryb demonstracyjny: podgląd i klikanie są dozwolone, ale wprowadzanie zmian zostało zablokowane. Miłego testowania systemu!",
+      });
+    }
+
+    if (user.role !== "ADMIN") {
+      return res.status(403).json({ error: "Nie masz dostępu do tych danych" });
+    }
+
     const court = await prisma.court.update({
       where: { id: courtId },
       data: {
@@ -592,14 +658,28 @@ app.delete("/api/courts/:id", async (req, res) => {
 
     res.status(200).json(court);
   } catch (error) {
+    console.error("Błąd podczas usuwania kortu:", error);
     res.status(500).json({ error: "Błąd serwera" });
   }
 });
 
-app.put("/api/courts/:id", async (req, res) => {
-  const courtId = parseInt(req.params.id);
-  const { name, surface, isBlocked, blockReason } = req.body;
+app.put("/api/courts/:id", authenticateToken, async (req, res) => {
   try {
+    const user = req.user;
+    const courtId = parseInt(req.params.id);
+    const { name, surface, isBlocked, blockReason } = req.body;
+
+    if (user.role === "DEMO_ADMIN") {
+      return res.status(403).json({
+        error:
+          "Tryb demonstracyjny: podgląd i klikanie są dozwolone, ale wprowadzanie zmian zostało zablokowane. Miłego testowania systemu!",
+      });
+    }
+
+    if (user.role !== "ADMIN") {
+      return res.status(403).json({ error: "Nie masz dostępu do tych danych" });
+    }
+
     const court = await prisma.court.update({
       where: { id: courtId },
       data: { name, surface, isBlocked, blockReason },
@@ -607,19 +687,34 @@ app.put("/api/courts/:id", async (req, res) => {
 
     res.status(200).json(court);
   } catch (error) {
+    console.error("Błąd podczas edycji kortu:", error);
     res.status(500).json({ error: "Błąd serwera" });
   }
 });
 
-app.post("/api/courts", async (req, res) => {
-  const { name, surface } = req.body;
+app.post("/api/courts", authenticateToken, async (req, res) => {
   try {
+    const user = req.user;
+    const { name, surface } = req.body;
+
+    if (user.role === "DEMO_ADMIN") {
+      return res.status(403).json({
+        error:
+          "Tryb demonstracyjny: podgląd i klikanie są dozwolone, ale wprowadzanie zmian zostało zablokowane. Miłego testowania systemu!",
+      });
+    }
+
+    if (user.role !== "ADMIN") {
+      return res.status(403).json({ error: "Nie masz dostępu do tych danych" });
+    }
+
     const court = await prisma.court.create({
       data: { name, surface },
     });
 
     res.status(201).json(court);
   } catch (error) {
+    console.error("Błąd podczas dodawania kortu:", error);
     res.status(500).json({ error: "Błąd serwera" });
   }
 });

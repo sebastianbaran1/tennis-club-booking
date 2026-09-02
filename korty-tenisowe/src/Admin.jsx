@@ -24,8 +24,8 @@ export default function Admin() {
     3: { name: "Środa", open: "08:00", close: "22:00" },
     4: { name: "Czwartek", open: "08:00", close: "22:00" },
     5: { name: "Piątek", open: "08:00", close: "22:00" },
-    6: { name: "Sobota", open: "09:00", close: "20:00" },
-    0: { name: " Niedziela", open: "10:00", close: "18:00" },
+    6: { name: "Sobota", open: "08:00", close: "22:00" },
+    0: { name: " Niedziela", open: "08:00", close: "22:00" },
   });
 
   const [courts, setCourts] = useState([
@@ -41,12 +41,12 @@ export default function Admin() {
   const [users, setUsers] = useState([
     {
       id: 1,
-      firstName: "Sebastian",
-      lastName: "Baran",
-      email: "sbaran@test.pl",
-      phone: "123123123",
-      role: "USER",
-      createdAt: "2026-07-22T20:05:48.000Z",
+      firstName: "",
+      lastName: "",
+      email: "",
+      phone: "",
+      role: "",
+      createdAt: "",
     },
   ]);
 
@@ -122,11 +122,15 @@ export default function Admin() {
     }
 
     try {
+      const token = localStorage.getItem("token");
       const response = await fetch(
         "http://localhost:5005/api/settings/schedule",
         {
           method: "PUT",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
           body: JSON.stringify({ schedule }),
         },
       );
@@ -143,11 +147,15 @@ export default function Admin() {
 
   const handleSubmitExceptions = async () => {
     try {
+      const token = localStorage.getItem("token");
       const response = await fetch(
         "http://localhost:5005/api/settings/exceptions",
         {
           method: "PUT",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
           body: JSON.stringify({ closedDays }),
         },
       );
@@ -164,10 +172,15 @@ export default function Admin() {
 
   const handleDeleteCourt = async (courtId) => {
     try {
+      const token = localStorage.getItem("token");
+
       const response = await fetch(
         `http://localhost:5005/api/courts/${courtId}`,
         {
           method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         },
       );
       if (response.ok) {
@@ -188,7 +201,10 @@ export default function Admin() {
         `http://localhost:5005/api/courts/${courtId}`,
         {
           method: "PUT",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
           body: JSON.stringify({
             name: courtEditFormData.name,
             surface: courtEditFormData.surface,
@@ -232,9 +248,13 @@ export default function Admin() {
 
   const handleSaveUser = async (userId) => {
     try {
+      const token = localStorage.getItem("token");
       const response = await fetch(`http://localhost:5005/api/user/${userId}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify({
           firstName: userEditFormData.firstName,
           lastName: userEditFormData.lastName,
@@ -259,8 +279,10 @@ export default function Admin() {
 
   const handleDeleteUser = async (userId) => {
     try {
+      const token = localStorage.getItem("token");
       const response = await fetch(`http://localhost:5005/api/user/${userId}`, {
         method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
       });
       if (response.ok) {
         alert("Uzytkownik został usunięty!");
@@ -283,6 +305,7 @@ export default function Admin() {
       name: name,
     });
   };
+
   const handleCloseModal = () => {
     setDeleteModal({
       isOpen: false,

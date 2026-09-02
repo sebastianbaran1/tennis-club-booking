@@ -15,10 +15,18 @@ export default function Profile() {
 
     const fetchMyReservations = async () => {
       try {
+        const token = localStorage.getItem("token");
         const response = await fetch(
           `http://localhost:5005/api/users/${user.id}/reservations`,
+          {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
         );
         const data = await response.json();
+
         if (response.ok) {
           setMyReservations(data.reservations);
         } else {
@@ -70,12 +78,15 @@ export default function Profile() {
     if (!confirm) return;
 
     try {
+      const token = localStorage.getItem("token");
       const response = await fetch(
         `http://localhost:5005/api/reservations/${reservationId}`,
         {
           method: "DELETE",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ userId: user.id }),
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
         },
       );
 

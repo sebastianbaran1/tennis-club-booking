@@ -17,7 +17,7 @@ export default function Calendar() {
   const [exceptions, setExceptions] = useState([]);
   const [schedule, setSchedule] = useState([]);
   const [refresh, setRefresh] = useState(0);
-  const todayStr = new Date().toISOString().split("T")[0];
+  const todayStr = new Date().toLocaleDateString("en-CA");
   const [selectedDate, setSelectedDate] = useState(todayStr);
   const [selectedCourtIndex, setSelectedCourtIndex] = useState(0);
   const [courtsPerPage, setCourtsPerPage] = useState(4);
@@ -42,6 +42,7 @@ export default function Calendar() {
   const [isReservationsLoading, setIsReservationsLoading] = useState(true);
   const [isStaticDataLoading, setIsStaticDataLoading] = useState(true);
   const [error, setError] = useState(null);
+  const isStaff = ["ADMIN", "RECEPTIONIST", "DEMO_ADMIN"].includes(user?.role);
 
   const generateTimeSlots = () => {
     if (!schedule || schedule.length === 0) return [];
@@ -83,6 +84,14 @@ export default function Calendar() {
     return timeToMinutes(today.close) - timeToMinutes(slotTime) < 60;
   };
 
+  let is90MinAvailable = false;
+  const todaySchedule = schedule[new Date(selectedDate).getDay()];
+  if (bookingModal.isOpen && todaySchedule && todaySchedule.close) {
+    const closingTime = timeToMinutes(todaySchedule.close);
+    const startTime = timeToMinutes(bookingModal.startTime);
+    is90MinAvailable = closingTime - startTime >= 90;
+  }
+
   const isBlocked = (courtId) => {
     return courts.some(
       (court) => court.id === courtId && court.isBlocked === true,
@@ -111,7 +120,7 @@ export default function Calendar() {
   }, []);
 
   useEffect(() => {
-    if (user?.role !== "ADMIN" && user?.role !== "STAFF") {
+    if (isStaff) {
       setIsUsersLoading(false);
       return;
     }
@@ -150,6 +159,8 @@ export default function Calendar() {
   }, [courtsPerPage]);
 
   useEffect(() => {
+    if (!user || isUserLoading) return;
+
     const fetchReservationsData = async () => {
       try {
         const token = localStorage.getItem("token");
@@ -176,7 +187,7 @@ export default function Calendar() {
       }
     };
     fetchReservationsData();
-  }, [selectedDate, refresh]);
+  }, [selectedDate, refresh, user, isUserLoading]);
 
   useEffect(() => {
     const fetchStaticData = async () => {
@@ -300,12 +311,14 @@ export default function Calendar() {
     if (!confirm) return;
 
     try {
+      const token = localStorage.getItem("token");
       const response = await fetch(
         `http://localhost:5005/api/reservations/${reservationId}`,
         {
           method: "DELETE",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ userId: user.id }),
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         },
       );
 
@@ -348,12 +361,11 @@ export default function Calendar() {
   );
 
   const isStaffSelectionInvalid =
-    (user.role === "ADMIN" || user.role === "STAFF") &&
-    staffTab === "existing" &&
-    !selectedClientId;
+    isStaff && staffTab === "existing" && !selectedClientId;
 
   return (
     <div className="calendar-container">
+      {console.log(schedule)}
       <h1 className="calendar-title">Kalendarz Rezerwacji</h1>
       <div className="calendar-controls">
         <div className="calendar-date-wrapper">
@@ -459,7 +471,6 @@ export default function Calendar() {
                   visibleCourts.findIndex((c) => c.id === res.courtId) + 2;
 
                 const isMyRes = res.userId === user.id;
-                const isStaff = user.role === "ADMIN" || user.role === "STAFF";
                 const canCancel = isMyRes || isStaff;
 
                 return (
@@ -520,7 +531,7 @@ export default function Calendar() {
               ({selectedDate}).
             </p>
             <form className="modal__form" onSubmit={confirmBooking}>
-              {(user.role === "ADMIN" || user.role === "STAFF") && (
+              {isStaff && (
                 <div className="modal__form-staff">
                   <div className="modal__form-buttons">
                     <button
@@ -719,7 +730,7 @@ export default function Calendar() {
                     />
                     60 minut
                   </label>
-                  {bookingModal.startTime !== "21:00" && (
+                  {is90MinAvailable && (
                     <label className="modal__radio-label">
                       <input
                         type="radio"
@@ -743,9 +754,7 @@ export default function Calendar() {
                   }
                 }}
               >
-                {user.role === "ADMIN" || user.role === "STAFF"
-                  ? "Zarezerwuj"
-                  : "Zarezerwuj i graj!"}
+                {isStaff ? "Zarezerwuj" : "Zarezerwuj i graj!"}
               </button>
             </form>
           </div>
