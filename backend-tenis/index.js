@@ -17,6 +17,9 @@ const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
 const timeToMinutes = (timeString) => {
+  if (!timeString || typeof timeString !== "string" || timeString === "--:--") {
+    return 0;
+  }
   const [hours, minutes] = timeString.split(":").map(Number);
   return hours * 60 + minutes;
 };
@@ -224,7 +227,24 @@ app.get("/api/reservations", authenticateToken, async (req, res) => {
           userId: true,
         },
       });
-      return res.json({ reservations });
+      const now = new Date();
+      const todayStr = new Intl.DateTimeFormat("en-CA", {
+        timeZone: "Europe/Warsaw",
+      }).format(now);
+      const timeStr = new Intl.DateTimeFormat("pl-PL", {
+        timeZone: "Europe/Warsaw",
+        hour: "2-digit",
+        minute: "2-digit",
+      }).format(now);
+      let futureReservations = reservations;
+      if (date === todayStr) {
+        futureReservations = reservations.filter((reservation) => {
+          return (
+            timeToMinutes(reservation.startTime) + 60 >= timeToMinutes(timeStr)
+          );
+        });
+      }
+      return res.json({ reservations: futureReservations });
     }
   } catch (error) {
     console.error("Błąd pobierania kalendarza:", error);
@@ -286,6 +306,42 @@ app.post("/api/reservations", authenticateToken, async (req, res) => {
         error:
           "Niestety, ten termin nakłada się na inną rezerwację na tym korcie.",
       });
+    }
+
+    const parsedDuration = parseInt(duration);
+
+    if (parsedDuration !== 60 && parsedDuration !== 90) {
+      return res.status(400).json({ error: "Zły czas rezerwacji" });
+    }
+
+    const settings = await prisma.settings.findUnique({ where: { id: 1 } });
+
+    if (!settings || !settings.schedule || !settings.exceptions) {
+      return res.status(500).json({ error: "Błąd konfiguracji klubu." });
+    }
+
+    const schedule = settings.schedule[new Date(date).getDay()];
+    const exceptions = settings.exceptions;
+
+    if (exceptions.includes(date)) {
+      return res
+        .status(400)
+        .json({ error: "Klub jest nieczynny w ten dzień." });
+    }
+    if (
+      !schedule ||
+      !schedule.open ||
+      !schedule.close ||
+      schedule.open === "--:--" ||
+      schedule.close === "--:--"
+    ) {
+      return res
+        .status(400)
+        .json({ error: "Klub jest nieczynny w ten dzień." });
+    }
+
+    if (newEndMin > timeToMinutes(schedule.close)) {
+      return res.status(400).json({ error: "Zbyt długi czas rezerwacji" });
     }
 
     let finalUserId = user.id;

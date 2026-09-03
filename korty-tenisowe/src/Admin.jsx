@@ -6,7 +6,7 @@ import edit from "./assets/edit.png";
 import clock from "./assets/clock.png";
 const daysOrder = [1, 2, 3, 4, 5, 6, 0];
 
-const timeSlots = [];
+const timeSlots = ["--:--"];
 
 for (let h = 0; h < 24; h++) {
   for (let m = 0; m < 60; m += 30) {
@@ -104,6 +104,8 @@ export default function Admin() {
   };
 
   const isScheduleValid = (openString, closeString) => {
+    if (openString === "--:--" && closeString === "--:--") return true;
+    if (openString === "--:--" || closeString === "--:--") return false;
     return timeToMinutes(closeString) - timeToMinutes(openString) > 0;
   };
 
@@ -197,6 +199,7 @@ export default function Admin() {
 
   const handleSaveCourt = async (courtId) => {
     try {
+      const token = localStorage.getItem("token");
       const response = await fetch(
         `http://localhost:5005/api/courts/${courtId}`,
         {
@@ -229,9 +232,13 @@ export default function Admin() {
 
   const handleAddCourt = async () => {
     try {
+      const token = localStorage.getItem("token");
       const response = await fetch("http://localhost:5005/api/courts", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify({ name: "Nowy kort", surface: "Mączka" }),
       });
       if (response.ok) {
@@ -385,7 +392,10 @@ export default function Admin() {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const response = await fetch("http://localhost:5005/api/usersAdmin");
+        const token = localStorage.getItem("token");
+        const response = await fetch("http://localhost:5005/api/usersAdmin", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
         const data = await response.json();
         if (response.ok) {
           setUsers(data.users);
@@ -451,7 +461,7 @@ export default function Admin() {
     );
   }
 
-  if (!user || user.role !== "ADMIN") {
+  if (!user || (user.role !== "ADMIN" && user.role !== "DEMO_ADMIN")) {
     return <Navigate to="/" />;
   }
 

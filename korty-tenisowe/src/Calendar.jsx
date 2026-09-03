@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import "./Calendar.css";
 
 const timeToMinutes = (timeString) => {
-  if (!timeString || typeof timeString !== "string") {
+  if (!timeString || typeof timeString !== "string" || timeString === "--:--") {
     return 0;
   }
   const [hours, minutes] = timeString.split(":").map(Number);
@@ -43,15 +43,21 @@ export default function Calendar() {
   const [isStaticDataLoading, setIsStaticDataLoading] = useState(true);
   const [error, setError] = useState(null);
   const isStaff = ["ADMIN", "RECEPTIONIST", "DEMO_ADMIN"].includes(user?.role);
+  const todaySchedule = schedule[new Date(selectedDate).getDay()];
 
   const generateTimeSlots = () => {
     if (!schedule || schedule.length === 0) return [];
 
-    const today = schedule[new Date(selectedDate).getDay()];
-    if (!today || !today.open || !today.close) return [];
+    if (
+      !todaySchedule ||
+      !todaySchedule.open ||
+      !todaySchedule.close ||
+      (todaySchedule.open === "--:--" && todaySchedule.close === "--:--")
+    )
+      return [];
 
-    const [openHour, openMinute] = today.open.split(":").map(Number);
-    const [closeHour, closeMinute] = today.close.split(":").map(Number);
+    const [openHour, openMinute] = todaySchedule.open.split(":").map(Number);
+    const [closeHour, closeMinute] = todaySchedule.close.split(":").map(Number);
 
     const startSlot = openHour * 2 + (openMinute === 30 ? 1 : 0);
     const closeSlot = closeHour * 2 + (closeMinute === 30 ? 1 : 0);
@@ -79,13 +85,11 @@ export default function Calendar() {
 
   const isTooLate = (slotTime) => {
     if (!schedule || schedule.length === 0) return true;
-    const today = schedule[new Date(selectedDate).getDay()];
-    if (!today || !today.close) return true;
-    return timeToMinutes(today.close) - timeToMinutes(slotTime) < 60;
+    if (!todaySchedule || !todaySchedule.close) return true;
+    return timeToMinutes(todaySchedule.close) - timeToMinutes(slotTime) < 60;
   };
 
   let is90MinAvailable = false;
-  const todaySchedule = schedule[new Date(selectedDate).getDay()];
   if (bookingModal.isOpen && todaySchedule && todaySchedule.close) {
     const closingTime = timeToMinutes(todaySchedule.close);
     const startTime = timeToMinutes(bookingModal.startTime);
@@ -98,7 +102,9 @@ export default function Calendar() {
     );
   };
 
-  const isClubClosedToday = exceptions.includes(selectedDate);
+  const isClubClosedToday =
+    exceptions.includes(selectedDate) ||
+    (todaySchedule?.open === "--:--" && todaySchedule?.close === "--:--");
 
   useEffect(() => {
     const handleResize = () => {
@@ -120,7 +126,7 @@ export default function Calendar() {
   }, []);
 
   useEffect(() => {
-    if (isStaff) {
+    if (!isStaff) {
       setIsUsersLoading(false);
       return;
     }
