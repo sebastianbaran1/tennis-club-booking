@@ -1,5 +1,5 @@
 import { useOutletContext, Navigate } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import "./Profile.css";
 
 export default function Profile() {
@@ -8,7 +8,20 @@ export default function Profile() {
   const [activeTab, setActiveTab] = useState("Active");
   const [isDataLoading, setIsDataLoading] = useState(true);
   const [error, setError] = useState(null);
-  const now = new Date();
+
+  const activeReservations = useMemo(() => {
+    const now = new Date();
+    return myReservations.filter(
+      (res) => new Date(`${res.date}T${res.startTime}`) >= now,
+    );
+  }, [myReservations]);
+
+  const pastReservations = useMemo(() => {
+    const now = new Date();
+    return myReservations.filter(
+      (res) => new Date(`${res.date}T${res.startTime}`) < now,
+    );
+  }, [myReservations]);
 
   useEffect(() => {
     if (!user || isUserLoading) return;
@@ -101,14 +114,6 @@ export default function Profile() {
       alert("Błąd połączenia z serwerem.");
     }
   };
-
-  const activeReservations = myReservations.filter(
-    (res) => new Date(`${res.date}T${res.startTime}`) >= now,
-  );
-
-  const pastReservations = myReservations.filter(
-    (res) => new Date(`${res.date}T${res.startTime}`) < now,
-  );
 
   return (
     <div className="profile-container">

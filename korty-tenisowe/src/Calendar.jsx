@@ -1,5 +1,5 @@
 import { useOutletContext, Navigate } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import "./Calendar.css";
 
 const timeToMinutes = (timeString) => {
@@ -45,7 +45,7 @@ export default function Calendar() {
   const isStaff = ["ADMIN", "RECEPTIONIST", "DEMO_ADMIN"].includes(user?.role);
   const todaySchedule = schedule[new Date(selectedDate).getDay()];
 
-  const generateTimeSlots = () => {
+  const timeSlots = useMemo(() => {
     if (!schedule || schedule.length === 0) return [];
 
     if (
@@ -72,8 +72,7 @@ export default function Calendar() {
       slots.push(`${hourStr}:${minStr}`);
     }
     return slots;
-  };
-  const timeSlots = generateTimeSlots();
+  }, [schedule, todaySchedule]);
 
   const isPastSlot = (slotTime) => {
     if (selectedDate < todayStr) return true;
