@@ -1,5 +1,6 @@
 import { useOutletContext, Navigate } from "react-router-dom";
 import { useState, useEffect, useMemo } from "react";
+import Reservation from "./components/Reservation";
 import "./Profile.css";
 
 export default function Profile() {
@@ -160,25 +161,11 @@ export default function Profile() {
             ) : (
               <div className="profile-reservations-list">
                 {activeReservations.map((res) => (
-                  <div key={res.id} className="reservation-card">
-                    <div>
-                      <h3 className="reservation-card__date">{res.date}</h3>
-                      <p className="reservation-card__detail">
-                        <span className="profile-info-label">Godzina:</span>{" "}
-                        {res.startTime} ({res.duration} min)
-                      </p>
-                      <p className="reservation-card__location">
-                        Miejsce: {res.court.name} ({res.court.surface})
-                      </p>
-                    </div>
-
-                    <button
-                      className="btn-cancel"
-                      onClick={() => handleCancelReservation(res.id)}
-                    >
-                      Anuluj
-                    </button>
-                  </div>
+                  <Reservation
+                    key={res.id}
+                    res={res}
+                    handleCancelReservation={handleCancelReservation}
+                  />
                 ))}
               </div>
             )
@@ -187,18 +174,7 @@ export default function Profile() {
           ) : (
             <div className="profile-reservations-list past">
               {pastReservations.map((res) => (
-                <div key={res.id} className="reservation-card">
-                  <div>
-                    <h3 className="reservation-card__date">{res.date}</h3>
-                    <p className="reservation-card__detail">
-                      <span className="profile-info-label">Godzina:</span>{" "}
-                      {res.startTime} ({res.duration} min)
-                    </p>
-                    <p className="reservation-card__location">
-                      Miejsce: {res.court.name} ({res.court.surface})
-                    </p>
-                  </div>
-                </div>
+                <Reservation key={res.id} res={res} />
               ))}
             </div>
           )}
