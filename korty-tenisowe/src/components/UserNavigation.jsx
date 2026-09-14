@@ -11,6 +11,13 @@ export default function UserNavigation({ user, onLogout, closeMenu }) {
           <Link to="/profil" className="header__link" onClick={closeMenu}>
             Moje Konto
           </Link>
+          {(user.role === "ADMIN" || user.role === "DEMO_ADMIN") && (
+            <>
+              <Link to="/admin" className="header__link" onClick={closeMenu}>
+                Panel Administratora
+              </Link>
+            </>
+          )}
         </>
       )}
 

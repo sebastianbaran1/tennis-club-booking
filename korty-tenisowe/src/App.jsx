@@ -104,6 +104,11 @@ function App() {
     }
   };
 
+  const handleFormChange = () => {
+    setIsRegisterOpen((prev) => !prev);
+    setIsLoginOpen((prev) => !prev);
+  };
+
   return (
     <div className="app-container">
       <Header
@@ -124,6 +129,7 @@ function App() {
       <AuthModal
         isOpen={isLoginOpen}
         type="login"
+        onChange={handleFormChange}
         onClose={() => setIsLoginOpen(false)}
         onSubmit={handleLoginSubmit}
       />
@@ -131,6 +137,7 @@ function App() {
       <AuthModal
         isOpen={isRegisterOpen}
         type="register"
+        onChange={handleFormChange}
         onClose={() => setIsRegisterOpen(false)}
         onSubmit={handleRegisterSubmit}
       />

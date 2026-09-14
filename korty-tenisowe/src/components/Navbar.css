@@ -155,6 +155,10 @@ nav .header__right {
     margin-bottom: 30px;
   }
 
+  nav .header__right a:nth-child(2) {
+    margin-bottom: 30px;
+  }
+
   nav .header__right button {
     display: none;
     opacity: 0;
@@ -200,26 +204,29 @@ nav .header__right {
   .nav__menu.active .header__right a:nth-child(2) {
     transition-delay: 0.15s;
   }
-  .nav__menu.active li:nth-of-type(1) {
+  .nav__menu.active .header__right a:nth-child(3) {
     transition-delay: 0.2s;
   }
-  .nav__menu.active li:nth-of-type(2) {
+  .nav__menu.active li:nth-of-type(1) {
     transition-delay: 0.25s;
   }
-  .nav__menu.active li:nth-of-type(3) {
+  .nav__menu.active li:nth-of-type(2) {
     transition-delay: 0.3s;
   }
-  .nav__menu.active li:nth-of-type(4) {
+  .nav__menu.active li:nth-of-type(3) {
     transition-delay: 0.35s;
   }
-  .nav__menu.active li:nth-of-type(5) {
+  .nav__menu.active li:nth-of-type(4) {
     transition-delay: 0.4s;
   }
-  .nav__menu.active li:nth-of-type(6) {
+  .nav__menu.active li:nth-of-type(5) {
     transition-delay: 0.45s;
   }
-  .nav__menu.active li:nth-of-type(7) {
+  .nav__menu.active li:nth-of-type(6) {
     transition-delay: 0.5s;
+  }
+  .nav__menu.active li:nth-of-type(7) {
+    transition-delay: 0.55s;
   }
 
   .nav__menu-item-link {

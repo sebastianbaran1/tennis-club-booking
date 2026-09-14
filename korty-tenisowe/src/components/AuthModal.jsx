@@ -1,7 +1,13 @@
 import { useEffect, useState } from "react";
 import "./AuthModal.css";
 
-export default function AuthModal({ isOpen, type, onClose, onSubmit }) {
+export default function AuthModal({
+  isOpen,
+  type,
+  onClose,
+  onSubmit,
+  onChange,
+}) {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -17,6 +23,14 @@ export default function AuthModal({ isOpen, type, onClose, onSubmit }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     onSubmit(formData);
+  };
+
+  const handleDemoLogin = (e) => {
+    e.preventDefault();
+    onSubmit({
+      email: "admin@admin.pl",
+      password: "admin",
+    });
   };
 
   useEffect(() => {
@@ -105,6 +119,23 @@ export default function AuthModal({ isOpen, type, onClose, onSubmit }) {
           <button type="submit" className="modal__submit">
             {isLogin ? "Zaloguj się" : "Załóż konto"}
           </button>
+
+          {isLogin && (
+            <button
+              type="button"
+              className="modal__submit demo-button"
+              onClick={handleDemoLogin}
+            >
+              Użyj konta testowego
+            </button>
+          )}
+
+          <div className="modal__form-subtitle">
+            {isLogin ? "Nie masz jeszcze konta? " : "Masz już konto? "}
+            <span className="modal__form-subtitle-action" onClick={onChange}>
+              {isLogin ? "Zarejestruj się" : "Zaloguj się"}
+            </span>
+          </div>
         </form>
       </div>
     </div>

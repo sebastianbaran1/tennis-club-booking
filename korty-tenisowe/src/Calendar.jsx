@@ -509,10 +509,10 @@ export default function Calendar() {
       )}
 
       {bookingModal.isOpen && (
-        <div className="modal-overlay active">
-          <div className="modal">
+        <div className="booking-modal-overlay active">
+          <div className="booking-modal">
             <button
-              className="modal__close"
+              className="booking-modal__close"
               onClick={() =>
                 setBookingModal({
                   isOpen: false,
@@ -523,22 +523,22 @@ export default function Calendar() {
             >
               ✕
             </button>
-            <h2 className="modal__title">Potwierdź rezerwację</h2>
-            <p className="modal__subtitle">
+            <h2 className="booking-modal__title">Potwierdź rezerwację</h2>
+            <p className="booking-modal__subtitle">
               Rezerwujesz{" "}
-              <span className="modal__court-highlight">
+              <span className="booking-modal__court-highlight">
                 {courts.find((c) => c.id === bookingModal.courtId)?.name}
               </span>{" "}
               od{" "}
-              <span className="modal__time-highlight">
+              <span className="booking-modal__time-highlight">
                 {bookingModal.startTime}
               </span>{" "}
               ({selectedDate}).
             </p>
-            <form className="modal__form" onSubmit={confirmBooking}>
+            <form className="booking-modal__form" onSubmit={confirmBooking}>
               {isStaff && (
-                <div className="modal__form-staff">
-                  <div className="modal__form-buttons">
+                <div className="booking-modal__form-staff">
+                  <div className="booking-modal__form-buttons">
                     <button
                       type="button"
                       className={`staff-tabs ${staffTab === "existing" ? "active" : ""}`}
@@ -723,10 +723,12 @@ export default function Calendar() {
                   )}
                 </div>
               )}
-              <div className="modal__form-group">
-                <label className="modal__form-label">Czas trwania gry:</label>
-                <div className="modal__radio-group">
-                  <label className="modal__radio-label">
+              <div className="booking-modal__form-group">
+                <label className="booking-modal__form-label">
+                  Czas trwania gry:
+                </label>
+                <div className="booking-modal__radio-group">
+                  <label className="booking-modal__radio-label">
                     <input
                       type="radio"
                       value={60}
@@ -736,7 +738,7 @@ export default function Calendar() {
                     60 minut
                   </label>
                   {is90MinAvailable && (
-                    <label className="modal__radio-label">
+                    <label className="booking-modal__radio-label">
                       <input
                         type="radio"
                         value={90}
@@ -751,7 +753,7 @@ export default function Calendar() {
 
               <button
                 type="submit"
-                className="modal__submit"
+                className="booking-modal__submit"
                 onClick={(e) => {
                   if (isStaffSelectionInvalid) {
                     e.preventDefault();
