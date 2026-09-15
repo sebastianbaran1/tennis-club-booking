@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 export default function DeleteModal({
   title,
   name,
@@ -5,9 +6,17 @@ export default function DeleteModal({
   handleDelete,
   onClose,
 }) {
+  useEffect(() => {
+    document.body.classList.add("no-scroll");
+
+    return () => {
+      document.body.classList.remove("no-scroll");
+    };
+  }, []);
+
   return (
-    <div className="modal-overlay active">
-      <div className="modal">
+    <div className="modal-overlay active" onClick={onClose}>
+      <div className="modal" onClick={(e) => e.stopPropagation()}>
         <button className="modal__close" onClick={onClose}>
           ✕
         </button>

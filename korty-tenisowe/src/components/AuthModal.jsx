@@ -44,11 +44,26 @@ export default function AuthModal({
       });
   }, [isOpen]);
 
+  useEffect(() => {
+    if (isOpen) {
+      document.body.classList.add("no-scroll");
+    } else {
+      document.body.classList.remove("no-scroll");
+    }
+
+    return () => {
+      document.body.classList.remove("no-scroll");
+    };
+  }, [isOpen]);
+
   const isLogin = type === "login";
 
   return (
-    <div className={`modal-overlay ${isOpen ? "active" : ""}`}>
-      <div className="modal">
+    <div
+      className={`modal-overlay ${isOpen ? "active" : ""}`}
+      onClick={onClose}
+    >
+      <div className="modal" onClick={(e) => e.stopPropagation()}>
         <button className="modal__close" onClick={onClose}>
           ✕
         </button>

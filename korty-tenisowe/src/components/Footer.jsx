@@ -23,27 +23,27 @@ export default function Footer() {
           <div className="footer__nav">
             <ul className="footer__menu">
               <li className="footer__menu-item">
-                <Link to="/" className="footer__link">
+                <Link to="/kariera" className="footer__link">
                   Kariera
                 </Link>
               </li>
               <li className="footer__menu-item">
-                <Link to="/" className="footer__link">
+                <Link to="/czlonkostwo" className="footer__link">
                   Członkostwo
                 </Link>
               </li>
               <li className="footer__menu-item">
-                <Link to="/" className="footer__link">
+                <Link to="/kontakt" className="footer__link">
                   Kontakt
                 </Link>
               </li>
               <li className="footer__menu-item">
-                <Link to="/" className="footer__link">
+                <Link to="/regulamin" className="footer__link">
                   Regulamin
                 </Link>
               </li>
               <li className="footer__menu-item">
-                <Link to="/" className="footer__link">
+                <Link to="/polityka-prywatnosci" className="footer__link">
                   Polityka prywatności
                 </Link>
               </li>

@@ -224,6 +224,18 @@ export default function Calendar() {
     fetchStaticData();
   }, []);
 
+  useEffect(() => {
+    if (bookingModal.isOpen) {
+      document.body.classList.add("no-scroll");
+    } else {
+      document.body.classList.remove("no-scroll");
+    }
+
+    return () => {
+      document.body.classList.remove("no-scroll");
+    };
+  }, [bookingModal]);
+
   if (isUserLoading) {
     return (
       <div className="profile-loading">
@@ -509,8 +521,17 @@ export default function Calendar() {
       )}
 
       {bookingModal.isOpen && (
-        <div className="booking-modal-overlay active">
-          <div className="booking-modal">
+        <div
+          className="booking-modal-overlay active"
+          onClick={() =>
+            setBookingModal({
+              isOpen: false,
+              courtId: null,
+              startTime: null,
+            })
+          }
+        >
+          <div className="booking-modal" onClick={(e) => e.stopPropagation()}>
             <button
               className="booking-modal__close"
               onClick={() =>

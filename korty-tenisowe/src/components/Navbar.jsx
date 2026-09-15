@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import UserNavigation from "./UserNavigation";
 import "./Navbar.css";
@@ -8,6 +8,18 @@ export default function Navbar({ user, onLogout }) {
   const [isOpen, setIsOpen] = useState(false);
   const toggleMenu = () => setIsOpen((prev) => !prev);
   const closeMenu = () => setIsOpen(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      document.body.classList.add("no-scroll");
+    } else {
+      document.body.classList.remove("no-scroll");
+    }
+
+    return () => {
+      document.body.classList.remove("no-scroll");
+    };
+  }, [isOpen]);
 
   return (
     <nav className="nav">
@@ -45,22 +57,38 @@ export default function Navbar({ user, onLogout }) {
             </Link>
           </li>
           <li className="nav__menu-item">
-            <Link to="/" className="nav__menu-item-link" onClick={closeMenu}>
+            <Link
+              to="/o-nas"
+              className="nav__menu-item-link"
+              onClick={closeMenu}
+            >
               O nas
             </Link>
           </li>
           <li className="nav__menu-item">
-            <Link to="/" className="nav__menu-item-link" onClick={closeMenu}>
+            <Link
+              to="/czlonkostwo"
+              className="nav__menu-item-link"
+              onClick={closeMenu}
+            >
               Członkostwo
             </Link>
           </li>
           <li className="nav__menu-item">
-            <Link to="/" className="nav__menu-item-link" onClick={closeMenu}>
+            <Link
+              to="/wydarzenia"
+              className="nav__menu-item-link"
+              onClick={closeMenu}
+            >
               Wydarzenia
             </Link>
           </li>
           <li className="nav__menu-item">
-            <Link to="/" className="nav__menu-item-link" onClick={closeMenu}>
+            <Link
+              to="/kontakt"
+              className="nav__menu-item-link"
+              onClick={closeMenu}
+            >
               Kontakt
             </Link>
           </li>
