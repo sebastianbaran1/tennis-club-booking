@@ -121,7 +121,9 @@ function App() {
       <Navbar user={user} onLogout={handleLogout} />
 
       <div className="main-content">
-        <Outlet context={{ user, setIsLoginOpen, isUserLoading }} />
+        <Outlet
+          context={{ user, setIsLoginOpen, isUserLoading, setIsRegisterOpen }}
+        />
       </div>
 
       <Footer />
