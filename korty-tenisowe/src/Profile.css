@@ -1,4 +1,10 @@
-.profile-container {
+.profile-wrapper {
+  width: 100%;
+  min-height: calc(100vh - 150px);
+  background-color: #fcfbf8;
+}
+
+.profile {
   padding: 2rem 1rem;
   max-width: 800px;
   margin: 0 auto;

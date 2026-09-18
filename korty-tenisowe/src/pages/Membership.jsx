@@ -13,21 +13,21 @@ export default function Membership() {
   };
   return (
     <div className="membership-page">
-      <div className="membership__hero-wrapper">
+      <div className="membership__hero">
         <div className="membership__hero-title">Zostań częścią Klubu</div>
         <div className="membership__hero-subtitle">
           Wybierz pakiet, który najlepiej pasuje do Twojego stylu gry
         </div>
       </div>
-      <div className="membership__content-wrapper">
+      <div className="membership__content">
         <div className="membership__content-card">
           <h2 className="membership__content-card-heading">Pakiet Standard</h2>
-          <div className="membership__content-price-wrapper">
+          <div className="membership__content-price">
             <span className="membership__price-currency">PLN </span>
             <span className="membership__price-amount">99</span>
             <span className="membership__price-period">/ m-c</span>
           </div>
-          <p className="membership__content-card-text-under">
+          <p className="membership__content-card-description">
             Idealny dla osób grających rekreacyjnie, ceniących komfort i wygodę.
           </p>
           <ul className="membership__content-card-list">
@@ -61,12 +61,12 @@ export default function Membership() {
           <h2 className="membership__content-card-heading featured">
             Pakiet PRO
           </h2>
-          <div className="membership__content-price-wrapper">
+          <div className="membership__content-price">
             <span className="membership__price-currency">PLN</span>
             <span className="membership__price-amount">199</span>
             <span className="membership__price-period">/ m-c</span>
           </div>
-          <span className="membership__content-card-text-under featured">
+          <span className="membership__content-card-description featured">
             Dla prawdziwych pasjonatów i stałych bywalców naszego klubu.
           </span>
           <ul className="membership__content-card-list featured">
@@ -96,7 +96,7 @@ export default function Membership() {
           </button>
         </div>
       </div>
-      <div className="membership__info-wrapper">
+      <div className="membership__info">
         <h2 className="membership__info-heading">Jak to działa?</h2>
         <p className="membership__info-paragraph">
           Pakiety członkowskie odnawiają się automatycznie pierwszego dnia

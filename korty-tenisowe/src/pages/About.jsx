@@ -13,14 +13,14 @@ export default function About() {
   };
   return (
     <div className="about-page">
-      <div className="about__hero-wrapper">
+      <div className="about__hero">
         <h1 className="about__hero-title">Tradycja, Pasja, Tenis</h1>
         <p className="about__hero-subtitle">
           Poznaj historię Rzeszów Tenis Club
         </p>
       </div>
-      <div className="about__content-wrapper">
-        <div className="about__history-wrapper">
+      <div className="about__content">
+        <div className="about__history">
           <h2 className="about__history-heading">Nasza Historia</h2>
           <p className="about__history-paragraph">
             Rzeszów Tennis Club powstał w 2012 roku z inicjatywy grupy
@@ -37,7 +37,7 @@ export default function About() {
             fantastyczni ludzie.
           </p>
         </div>
-        <div className="about__stats-wrapper">
+        <div className="about__stats">
           <div className="about__stats-item">
             <span className="about__stats-item-number">2012</span>
             <span className="about__stats-item-label">ROK ZAŁOŻENIA</span>
@@ -58,7 +58,7 @@ export default function About() {
           </div>
         </div>
       </div>
-      <div className="about__mission-wrapper">
+      <div className="about__mission">
         <h2 className="about__mission-heading">Nasza Misja</h2>
         <p className="about__mission-paragraph">
           Chcemy, aby tenis był dostępny dla każdego - od najmłodszych,
@@ -66,7 +66,7 @@ export default function About() {
           zawodowców. Tworzymy przestrzeń, w której sportowa rywalizacja spotyka
           się z szacunkiem, a wysiłek z ogromną satysfakcją.
         </p>
-        <p className="about__mission-text-under" onClick={handleClick}>
+        <p className="about__mission-text" onClick={handleClick}>
           Dołącz do nas i stań się częścią tej historii!
         </p>
       </div>

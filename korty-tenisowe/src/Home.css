@@ -6,9 +6,9 @@
 }
 
 .hero {
-  min-height: 67vh;
+  min-height: 74vh;
   background:
-    linear-gradient(90deg, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0) 100%),
+    linear-gradient(90deg, rgba(18, 34, 65, 0.755) 0%, rgba(0, 0, 0, 0) 100%),
     url("./assets/main-background.webp") center/cover no-repeat;
   display: flex;
   align-items: center;
@@ -58,7 +58,7 @@
 
 .features {
   padding: 50px 0;
-  background-color: #f9f7e9;
+  background-color: #fcfbf8;
   text-align: center;
 }
 
@@ -106,7 +106,7 @@
 
 .staff {
   padding: 80px 0;
-  background-color: #f6f3e0;
+  background-color: #f9f7e9;
   text-align: center;
 }
 
@@ -136,7 +136,7 @@
   aspect-ratio: 3 / 4;
   background-color: #e5e5e5;
   margin-bottom: 15px;
-  border-radius: 4px;
+  border-radius: 6px;
   overflow: hidden;
 }
 

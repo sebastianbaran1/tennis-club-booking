@@ -1,4 +1,10 @@
 .admin-container {
+  width: 100%;
+  min-height: calc(100vh - 150px);
+  background-color: #fcfbf8;
+}
+
+.admin {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -963,7 +969,7 @@
   .admin__content-container {
     grid-template-columns: 1fr;
   }
-  .admin-container {
+  .admin {
     padding: 1.5rem 1.5rem 0 1.5rem;
   }
   .courts-wrapper {
@@ -985,7 +991,7 @@
   }
 }
 @media (max-width: 450px) {
-  .admin-container {
+  .admin {
     padding: 1rem 1rem 0 1rem;
   }
   .admin__header {
@@ -1039,7 +1045,7 @@
   }
 }
 @media (max-width: 332px) {
-  .admin-container {
+  .admin {
     padding: 1rem 0.5rem 0 0.5rem;
   }
 }

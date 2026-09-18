@@ -21,11 +21,13 @@ export default function Admin() {
 
   return (
     <div className="admin-container">
-      <h1 className="admin__header">Panel administratora</h1>
-      <div className="admin__content-container">
-        <AdminSchedule />
-        <AdminCourts />
-        <AdminUsers />
+      <div className="admin">
+        <h1 className="admin__header">Panel administratora</h1>
+        <div className="admin__content-container">
+          <AdminSchedule />
+          <AdminCourts />
+          <AdminUsers />
+        </div>
       </div>
     </div>
   );

@@ -381,413 +381,421 @@ export default function Calendar() {
     isStaff && staffTab === "existing" && !selectedClientId;
 
   return (
-    <div className="calendar-container">
-      {console.log(schedule)}
-      <h1 className="calendar-title">Kalendarz Rezerwacji</h1>
-      <div className="calendar-controls">
-        <div className="calendar-date-wrapper">
-          <label className="calendar-date-label" htmlFor="date-input">
-            Wybierz dzień:{" "}
-          </label>
-          <input
-            type="date"
-            value={selectedDate}
-            min={todayStr}
-            onChange={(e) => setSelectedDate(e.target.value)}
-            className="calendar-date-input"
-            id="date-input"
-          />
-        </div>
+    <div className="calendar-container-wrapper">
+      <div className="calendar-container">
+        {console.log(schedule)}
+        <h1 className="calendar-title">Kalendarz Rezerwacji</h1>
+        <div className="calendar-controls">
+          <div className="calendar-date-wrapper">
+            <label className="calendar-date-label" htmlFor="date-input">
+              Wybierz dzień:{" "}
+            </label>
+            <input
+              type="date"
+              value={selectedDate}
+              min={todayStr}
+              onChange={(e) => setSelectedDate(e.target.value)}
+              className="calendar-date-input"
+              id="date-input"
+            />
+          </div>
 
-        <div className="calendar-court-wrapper">
-          <label className="calendar-court-label" htmlFor="court-select">
-            Wybierz korty:{" "}
-          </label>
-          <select
-            className="calendar-court-select"
-            id="court-select"
-            value={selectedCourtIndex}
-            onChange={(e) => setSelectedCourtIndex(Number(e.target.value))}
-          >
-            {courtOptions}
-          </select>
-        </div>
-      </div>
-
-      {isClubClosedToday ? (
-        <div>Klub tenisowy nieczynny</div>
-      ) : (
-        <div className="calendar-grid-wrapper">
-          <div
-            className="calendar-grid"
-            style={{ "--court-count": visibleCourts.length }}
-          >
-            <div
-              className="grid-header grid-header-hour"
-              style={{ gridRow: 1, gridColumn: 1 }}
+          <div className="calendar-court-wrapper">
+            <label className="calendar-court-label" htmlFor="court-select">
+              Wybierz korty:{" "}
+            </label>
+            <select
+              className="calendar-court-select"
+              id="court-select"
+              value={selectedCourtIndex}
+              onChange={(e) => setSelectedCourtIndex(Number(e.target.value))}
             >
-              Godzina
-            </div>
-
-            {visibleCourts?.map((court, index) => (
-              <div
-                className="grid-header"
-                key={court.id}
-                style={{ gridRow: 1, gridColumn: index + 2 }}
-              >
-                <span className="grid-header__name">{court.name}</span>
-                <span className="grid-header__surface">{court.surface}</span>
-              </div>
-            ))}
-
-            {timeSlots.map((slotTime, index) => (
-              <div
-                className="grid-time"
-                key={`time-${slotTime}`}
-                style={{ gridRow: index + 2, gridColumn: 1 }}
-              >
-                {slotTime}
-              </div>
-            ))}
-
-            {timeSlots.map((slotTime, rIndex) =>
-              visibleCourts?.map((court, cIndex) => {
-                const past = isPastSlot(slotTime);
-                const late = isTooLate(slotTime);
-                const blocked = isBlocked(court.id);
-                return (
-                  <div
-                    className={`empty-slot ${blocked ? "slot-blocked" : past ? "slot-past" : late ? "slot-late" : ""}`}
-                    key={`empty-${court.id}-${slotTime}`}
-                    style={{ gridRow: rIndex + 2, gridColumn: cIndex + 2 }}
-                    onClick={() => {
-                      !past &&
-                        !late &&
-                        !blocked &&
-                        handleOpenBookingModal(court.id, slotTime);
-                    }}
-                  >
-                    {blocked
-                      ? `${court.blockReason}`
-                      : past
-                        ? "Minęło"
-                        : late
-                          ? "Zbyt późno"
-                          : "+ Rezerwuj"}
-                  </div>
-                );
-              }),
-            )}
-
-            {reservations
-              .filter((res) => visibleCourts.some((c) => c.id === res.courtId))
-              .map((res) => {
-                const rowStart = getRowIndex(res.startTime);
-                const rowSpan = res.duration / 30;
-                const colIndex =
-                  visibleCourts.findIndex((c) => c.id === res.courtId) + 2;
-
-                const isMyRes = res.userId === user.id;
-                const canCancel = isMyRes || isStaff;
-
-                return (
-                  <div
-                    className={`reservation-block ${isMyRes ? "res-mine" : "res-taken"}`}
-                    key={`res-${res.id}`}
-                    style={{
-                      gridRow: `${rowStart} / span ${rowSpan}`,
-                      gridColumn: colIndex,
-                      cursor: canCancel ? "pointer" : "not-allowed",
-                    }}
-                    onClick={() => canCancel && handleCancelReservation(res.id)}
-                  >
-                    <span>{isMyRes ? "Twoja gra" : "Zajęte"}</span>
-
-                    {isStaff ? (
-                      <span className="reservation-staff-details">
-                        {res.user?.firstName} {res.user?.lastName} <br />
-                        Nr. tel: {res.user?.phone}
-                      </span>
-                    ) : (
-                      <span className="reservation-user-details">
-                        {isMyRes && "(kliknij by usunąć)"}
-                      </span>
-                    )}
-                  </div>
-                );
-              })}
+              {courtOptions}
+            </select>
           </div>
         </div>
-      )}
 
-      {bookingModal.isOpen && (
-        <div
-          className="booking-modal-overlay active"
-          onClick={() =>
-            setBookingModal({
-              isOpen: false,
-              courtId: null,
-              startTime: null,
-            })
-          }
-        >
-          <div className="booking-modal" onClick={(e) => e.stopPropagation()}>
-            <button
-              className="booking-modal__close"
-              onClick={() =>
-                setBookingModal({
-                  isOpen: false,
-                  courtId: null,
-                  startTime: null,
-                })
-              }
+        {isClubClosedToday ? (
+          <div>Klub tenisowy nieczynny</div>
+        ) : (
+          <div className="calendar-grid-wrapper">
+            <div
+              className="calendar-grid"
+              style={{ "--court-count": visibleCourts.length }}
             >
-              ✕
-            </button>
-            <h2 className="booking-modal__title">Potwierdź rezerwację</h2>
-            <p className="booking-modal__subtitle">
-              Rezerwujesz{" "}
-              <span className="booking-modal__court-highlight">
-                {courts.find((c) => c.id === bookingModal.courtId)?.name}
-              </span>{" "}
-              od{" "}
-              <span className="booking-modal__time-highlight">
-                {bookingModal.startTime}
-              </span>{" "}
-              ({selectedDate}).
-            </p>
-            <form className="booking-modal__form" onSubmit={confirmBooking}>
-              {isStaff && (
-                <div className="booking-modal__form-staff">
-                  <div className="booking-modal__form-buttons">
-                    <button
-                      type="button"
-                      className={`staff-tabs ${staffTab === "existing" ? "active" : ""}`}
-                      onClick={() => {
-                        setStaffTab("existing");
-                        setSearchClient("");
-                        setSelectedClientId(null);
-                        setNewClient({
-                          firstName: "",
-                          lastName: "",
-                          phone: "",
-                          email: "",
-                        });
-                      }}
-                    >
-                      Klient z bazy
-                    </button>
-                    <button
-                      type="button"
-                      className={`staff-tabs ${staffTab === "new" ? "active" : ""}`}
-                      onClick={() => {
-                        setStaffTab("new");
-                        setSearchClient("");
-                        setSelectedClientId(null);
-                        setNewClient({
-                          firstName: "",
-                          lastName: "",
-                          phone: "",
-                          email: "",
-                        });
-                      }}
-                    >
-                      Nowy klient
-                    </button>
-                  </div>
-                  {staffTab === "existing" && (
-                    <div className="tabs-existing-wrapper">
-                      <div className="tabs-existing-clients">
-                        <label htmlFor="staff-clients-input">
-                          Wyszukaj klienta
-                        </label>
-                        <input
-                          type="text"
-                          id="staff-clients-input"
-                          className="staff-clients-input"
-                          required
-                          placeholder="Imię, nazwisko, telefon"
-                          value={searchClient}
-                          onChange={(e) => {
-                            setSearchClient(e.target.value);
-                            setIsDropdownOpen(true);
-                          }}
-                          onFocus={() => {
-                            setSearchClient("");
-                            setSelectedClientId(null);
-                            setIsDropdownOpen(true);
-                          }}
-                        />
-                        {isDropdownOpen === true && (
-                          <div className="staff-dropdown-wrapper">
-                            {isUsersLoading ? (
-                              <div>Wczytywanie użytkowników...</div>
-                            ) : (
-                              <ul className="staff-dropdown-list">
-                                {searchClient !== "" &&
-                                  clientList
-                                    .filter((client) => {
-                                      const fullName =
-                                        `${client.firstName} ${client.lastName} ${client.phone}`.toLowerCase();
-                                      return fullName.includes(
-                                        searchClient.toLowerCase(),
-                                      );
-                                    })
-                                    .map((client) => (
-                                      <li
-                                        key={client.id}
-                                        className="dropdown-client"
-                                        onClick={() => {
-                                          setSelectedClientId(client.id);
-                                          setSearchClient(
-                                            `${client.firstName} ${client.lastName} ${client.phone}`,
-                                          );
-                                          setIsDropdownOpen(false);
-                                        }}
-                                      >
-                                        <div className="dropdown-client-info">
-                                          <span>{client.firstName}</span>
-                                          <span>{client.lastName}</span>
-                                          <span>{client.phone}</span>
-                                        </div>
-                                      </li>
-                                    ))}
-                                {clientList.filter((client) => {
-                                  const fullName =
-                                    `${client.firstName} ${client.lastName} ${client.phone}`.toLowerCase();
-                                  return fullName.includes(
-                                    searchClient.toLowerCase(),
-                                  );
-                                }).length === 0 && (
-                                  <li className="dropdown-empty">
-                                    Brak wyników
-                                  </li>
-                                )}
-                              </ul>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                  {staffTab === "new" && (
-                    <div className="tabs-new-wrapper">
-                      <div className="tabs-new-client">
-                        <label htmlFor="new-client-input-firstname">Imię</label>
-                        <input
-                          type="text"
-                          id="new-client-input-firstname"
-                          className="new-client-input"
-                          required
-                          value={newClient.firstName}
-                          onChange={(e) =>
-                            setNewClient({
-                              ...newClient,
-                              firstName: e.target.value,
-                            })
-                          }
-                        />
-                      </div>
-                      <div className="tabs-new-client">
-                        <label htmlFor="new-client-input-lastname">
-                          Nazwisko
-                        </label>
-                        <input
-                          type="text"
-                          id="new-client-input-lastname"
-                          className="new-client-input"
-                          required
-                          value={newClient.lastName}
-                          onChange={(e) =>
-                            setNewClient({
-                              ...newClient,
-                              lastName: e.target.value,
-                            })
-                          }
-                        />
-                      </div>
-                      <div className="tabs-new-client">
-                        <label htmlFor="new-client-input-phone">
-                          Numer Telefonu
-                        </label>
-                        <input
-                          type="tel"
-                          id="new-client-input-phone"
-                          className="new-client-input"
-                          required
-                          value={newClient.phone}
-                          onChange={(e) =>
-                            setNewClient({
-                              ...newClient,
-                              phone: e.target.value,
-                            })
-                          }
-                        />
-                      </div>
-                      <div className="tabs-new-client">
-                        <label htmlFor="new-client-input-email">E-mail</label>
-                        <input
-                          type="email"
-                          id="new-client-input-email"
-                          className="new-client-input"
-                          required
-                          value={newClient.email}
-                          onChange={(e) =>
-                            setNewClient({
-                              ...newClient,
-                              email: e.target.value,
-                            })
-                          }
-                        />
-                      </div>
-                    </div>
-                  )}
+              <div
+                className="grid-header grid-header-hour"
+                style={{ gridRow: 1, gridColumn: 1 }}
+              >
+                Godzina
+              </div>
+
+              {visibleCourts?.map((court, index) => (
+                <div
+                  className="grid-header"
+                  key={court.id}
+                  style={{ gridRow: 1, gridColumn: index + 2 }}
+                >
+                  <span className="grid-header__name">{court.name}</span>
+                  <span className="grid-header__surface">{court.surface}</span>
                 </div>
+              ))}
+
+              {timeSlots.map((slotTime, index) => (
+                <div
+                  className="grid-time"
+                  key={`time-${slotTime}`}
+                  style={{ gridRow: index + 2, gridColumn: 1 }}
+                >
+                  {slotTime}
+                </div>
+              ))}
+
+              {timeSlots.map((slotTime, rIndex) =>
+                visibleCourts?.map((court, cIndex) => {
+                  const past = isPastSlot(slotTime);
+                  const late = isTooLate(slotTime);
+                  const blocked = isBlocked(court.id);
+                  return (
+                    <div
+                      className={`empty-slot ${blocked ? "slot-blocked" : past ? "slot-past" : late ? "slot-late" : ""}`}
+                      key={`empty-${court.id}-${slotTime}`}
+                      style={{ gridRow: rIndex + 2, gridColumn: cIndex + 2 }}
+                      onClick={() => {
+                        !past &&
+                          !late &&
+                          !blocked &&
+                          handleOpenBookingModal(court.id, slotTime);
+                      }}
+                    >
+                      {blocked
+                        ? `${court.blockReason}`
+                        : past
+                          ? "Minęło"
+                          : late
+                            ? "Zbyt późno"
+                            : "+ Rezerwuj"}
+                    </div>
+                  );
+                }),
               )}
-              <div className="booking-modal__form-group">
-                <label className="booking-modal__form-label">
-                  Czas trwania gry:
-                </label>
-                <div className="booking-modal__radio-group">
-                  <label className="booking-modal__radio-label">
-                    <input
-                      type="radio"
-                      value={60}
-                      checked={bookingDuration === 60}
-                      onChange={() => setBookingDuration(60)}
-                    />
-                    60 minut
+
+              {reservations
+                .filter((res) =>
+                  visibleCourts.some((c) => c.id === res.courtId),
+                )
+                .map((res) => {
+                  const rowStart = getRowIndex(res.startTime);
+                  const rowSpan = res.duration / 30;
+                  const colIndex =
+                    visibleCourts.findIndex((c) => c.id === res.courtId) + 2;
+
+                  const isMyRes = res.userId === user.id;
+                  const canCancel = isMyRes || isStaff;
+
+                  return (
+                    <div
+                      className={`reservation-block ${isMyRes ? "res-mine" : "res-taken"}`}
+                      key={`res-${res.id}`}
+                      style={{
+                        gridRow: `${rowStart} / span ${rowSpan}`,
+                        gridColumn: colIndex,
+                        cursor: canCancel ? "pointer" : "not-allowed",
+                      }}
+                      onClick={() =>
+                        canCancel && handleCancelReservation(res.id)
+                      }
+                    >
+                      <span>{isMyRes ? "Twoja gra" : "Zajęte"}</span>
+
+                      {isStaff ? (
+                        <span className="reservation-staff-details">
+                          {res.user?.firstName} {res.user?.lastName} <br />
+                          Nr. tel: {res.user?.phone}
+                        </span>
+                      ) : (
+                        <span className="reservation-user-details">
+                          {isMyRes && "(kliknij by usunąć)"}
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
+            </div>
+          </div>
+        )}
+
+        {bookingModal.isOpen && (
+          <div
+            className="booking-modal-overlay active"
+            onClick={() =>
+              setBookingModal({
+                isOpen: false,
+                courtId: null,
+                startTime: null,
+              })
+            }
+          >
+            <div className="booking-modal" onClick={(e) => e.stopPropagation()}>
+              <button
+                className="booking-modal__close"
+                onClick={() =>
+                  setBookingModal({
+                    isOpen: false,
+                    courtId: null,
+                    startTime: null,
+                  })
+                }
+              >
+                ✕
+              </button>
+              <h2 className="booking-modal__title">Potwierdź rezerwację</h2>
+              <p className="booking-modal__subtitle">
+                Rezerwujesz{" "}
+                <span className="booking-modal__court-highlight">
+                  {courts.find((c) => c.id === bookingModal.courtId)?.name}
+                </span>{" "}
+                od{" "}
+                <span className="booking-modal__time-highlight">
+                  {bookingModal.startTime}
+                </span>{" "}
+                ({selectedDate}).
+              </p>
+              <form className="booking-modal__form" onSubmit={confirmBooking}>
+                {isStaff && (
+                  <div className="booking-modal__form-staff">
+                    <div className="booking-modal__form-buttons">
+                      <button
+                        type="button"
+                        className={`staff-tabs ${staffTab === "existing" ? "active" : ""}`}
+                        onClick={() => {
+                          setStaffTab("existing");
+                          setSearchClient("");
+                          setSelectedClientId(null);
+                          setNewClient({
+                            firstName: "",
+                            lastName: "",
+                            phone: "",
+                            email: "",
+                          });
+                        }}
+                      >
+                        Klient z bazy
+                      </button>
+                      <button
+                        type="button"
+                        className={`staff-tabs ${staffTab === "new" ? "active" : ""}`}
+                        onClick={() => {
+                          setStaffTab("new");
+                          setSearchClient("");
+                          setSelectedClientId(null);
+                          setNewClient({
+                            firstName: "",
+                            lastName: "",
+                            phone: "",
+                            email: "",
+                          });
+                        }}
+                      >
+                        Nowy klient
+                      </button>
+                    </div>
+                    {staffTab === "existing" && (
+                      <div className="tabs-existing-wrapper">
+                        <div className="tabs-existing-clients">
+                          <label htmlFor="staff-clients-input">
+                            Wyszukaj klienta
+                          </label>
+                          <input
+                            type="text"
+                            id="staff-clients-input"
+                            className="staff-clients-input"
+                            required
+                            placeholder="Imię, nazwisko, telefon"
+                            value={searchClient}
+                            onChange={(e) => {
+                              setSearchClient(e.target.value);
+                              setIsDropdownOpen(true);
+                            }}
+                            onFocus={() => {
+                              setSearchClient("");
+                              setSelectedClientId(null);
+                              setIsDropdownOpen(true);
+                            }}
+                          />
+                          {isDropdownOpen === true && (
+                            <div className="staff-dropdown-wrapper">
+                              {isUsersLoading ? (
+                                <div>Wczytywanie użytkowników...</div>
+                              ) : (
+                                <ul className="staff-dropdown-list">
+                                  {searchClient !== "" &&
+                                    clientList
+                                      .filter((client) => {
+                                        const fullName =
+                                          `${client.firstName} ${client.lastName} ${client.phone}`.toLowerCase();
+                                        return fullName.includes(
+                                          searchClient.toLowerCase(),
+                                        );
+                                      })
+                                      .map((client) => (
+                                        <li
+                                          key={client.id}
+                                          className="dropdown-client"
+                                          onClick={() => {
+                                            setSelectedClientId(client.id);
+                                            setSearchClient(
+                                              `${client.firstName} ${client.lastName} ${client.phone}`,
+                                            );
+                                            setIsDropdownOpen(false);
+                                          }}
+                                        >
+                                          <div className="dropdown-client-info">
+                                            <span>{client.firstName}</span>
+                                            <span>{client.lastName}</span>
+                                            <span>{client.phone}</span>
+                                          </div>
+                                        </li>
+                                      ))}
+                                  {clientList.filter((client) => {
+                                    const fullName =
+                                      `${client.firstName} ${client.lastName} ${client.phone}`.toLowerCase();
+                                    return fullName.includes(
+                                      searchClient.toLowerCase(),
+                                    );
+                                  }).length === 0 && (
+                                    <li className="dropdown-empty">
+                                      Brak wyników
+                                    </li>
+                                  )}
+                                </ul>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                    {staffTab === "new" && (
+                      <div className="tabs-new-wrapper">
+                        <div className="tabs-new-client">
+                          <label htmlFor="new-client-input-firstname">
+                            Imię
+                          </label>
+                          <input
+                            type="text"
+                            id="new-client-input-firstname"
+                            className="new-client-input"
+                            required
+                            value={newClient.firstName}
+                            onChange={(e) =>
+                              setNewClient({
+                                ...newClient,
+                                firstName: e.target.value,
+                              })
+                            }
+                          />
+                        </div>
+                        <div className="tabs-new-client">
+                          <label htmlFor="new-client-input-lastname">
+                            Nazwisko
+                          </label>
+                          <input
+                            type="text"
+                            id="new-client-input-lastname"
+                            className="new-client-input"
+                            required
+                            value={newClient.lastName}
+                            onChange={(e) =>
+                              setNewClient({
+                                ...newClient,
+                                lastName: e.target.value,
+                              })
+                            }
+                          />
+                        </div>
+                        <div className="tabs-new-client">
+                          <label htmlFor="new-client-input-phone">
+                            Numer Telefonu
+                          </label>
+                          <input
+                            type="tel"
+                            id="new-client-input-phone"
+                            className="new-client-input"
+                            required
+                            value={newClient.phone}
+                            onChange={(e) =>
+                              setNewClient({
+                                ...newClient,
+                                phone: e.target.value,
+                              })
+                            }
+                          />
+                        </div>
+                        <div className="tabs-new-client">
+                          <label htmlFor="new-client-input-email">E-mail</label>
+                          <input
+                            type="email"
+                            id="new-client-input-email"
+                            className="new-client-input"
+                            required
+                            value={newClient.email}
+                            onChange={(e) =>
+                              setNewClient({
+                                ...newClient,
+                                email: e.target.value,
+                              })
+                            }
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+                <div className="booking-modal__form-group">
+                  <label className="booking-modal__form-label">
+                    Czas trwania gry:
                   </label>
-                  {is90MinAvailable && (
+                  <div className="booking-modal__radio-group">
                     <label className="booking-modal__radio-label">
                       <input
                         type="radio"
-                        value={90}
-                        checked={bookingDuration === 90}
-                        onChange={() => setBookingDuration(90)}
+                        value={60}
+                        checked={bookingDuration === 60}
+                        onChange={() => setBookingDuration(60)}
                       />
-                      90 minut
+                      60 minut
                     </label>
-                  )}
+                    {is90MinAvailable && (
+                      <label className="booking-modal__radio-label">
+                        <input
+                          type="radio"
+                          value={90}
+                          checked={bookingDuration === 90}
+                          onChange={() => setBookingDuration(90)}
+                        />
+                        90 minut
+                      </label>
+                    )}
+                  </div>
                 </div>
-              </div>
 
-              <button
-                type="submit"
-                className="booking-modal__submit"
-                onClick={(e) => {
-                  if (isStaffSelectionInvalid) {
-                    e.preventDefault();
-                    alert("Proszę wybrać klienta z listy!");
-                  }
-                }}
-              >
-                {isStaff ? "Zarezerwuj" : "Zarezerwuj i graj!"}
-              </button>
-            </form>
+                <button
+                  type="submit"
+                  className="booking-modal__submit"
+                  onClick={(e) => {
+                    if (isStaffSelectionInvalid) {
+                      e.preventDefault();
+                      alert("Proszę wybrać klienta z listy!");
+                    }
+                  }}
+                >
+                  {isStaff ? "Zarezerwuj" : "Zarezerwuj i graj!"}
+                </button>
+              </form>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

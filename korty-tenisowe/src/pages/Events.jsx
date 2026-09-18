@@ -14,16 +14,16 @@ function EventsCard({
 }) {
   return (
     <div
-      className={`events__content-card${isPast ? " events__content-card--past" : ""}`}
+      className={`events__content-card-wrapper${isPast ? " events__content-card--past" : ""}`}
     >
-      <div className="events__content-card-date-wrapper">
+      <div className="events__content-card-date">
         <span className="events__month">{month}</span>
         <span className="events__date">{date}</span>
         <span className="events__time">{time}</span>
       </div>
-      <div className="events__content-card-wrapper">
+      <div className="events__content-card-body">
         <h2 className="events__content-card-heading">{heading}</h2>
-        <div className="events__content-card-details-wrapper">
+        <div className="events__content-card-details">
           <p className="events__content-card-details-price">
             <span className="events__content-card-details-price-featured">
               Wpisowe:{" "}
@@ -75,13 +75,13 @@ export default function Events() {
 
   return (
     <div className="events-page">
-      <div className="events__hero-wrapper">
+      <div className="events__hero">
         <div className="events__hero-title">Wydarzenia i Turnieje</div>
         <div className="events__hero-subtitle">
           Rywalizacja, rozwój i świetna zabawa. Sprawdź kalendarz klubowy!
         </div>
       </div>
-      <div className="events__content-wrapper">
+      <div className="events__content">
         <EventsCard
           month="SIERPIEŃ"
           date="15"

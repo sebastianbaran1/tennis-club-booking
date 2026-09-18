@@ -117,67 +117,69 @@ export default function Profile() {
   };
 
   return (
-    <div className="profile-container">
-      <h1 className="profile-title">Moje Konto</h1>
-      <div className="profile-user-info">
-        <h3>Dane gracza</h3>
-        <div className="profile-user-info-grid">
-          <span className="profile-info">
-            <span className="profile-info-label">Imię:</span> {user.firstName}
-          </span>
-          <span className="profile-info">
-            <span className="profile-info-label">Nazwisko:</span>
-            {user.lastName}
-          </span>
-          <span className="profile-info">
-            <span className="profile-info-label">Telefon:</span> {user.phone}
-          </span>
-          <span className="profile-info">
-            <span className="profile-info-label">Email:</span> {user.email}
-          </span>
+    <div className="profile-wrapper">
+      <div className="profile">
+        <h1 className="profile-title">Moje Konto</h1>
+        <div className="profile-user-info">
+          <h3>Dane gracza</h3>
+          <div className="profile-user-info-grid">
+            <span className="profile-info">
+              <span className="profile-info-label">Imię:</span> {user.firstName}
+            </span>
+            <span className="profile-info">
+              <span className="profile-info-label">Nazwisko:</span>
+              {user.lastName}
+            </span>
+            <span className="profile-info">
+              <span className="profile-info-label">Telefon:</span> {user.phone}
+            </span>
+            <span className="profile-info">
+              <span className="profile-info-label">Email:</span> {user.email}
+            </span>
+          </div>
         </div>
-      </div>
-      <div className="profile-reservations">
-        <div className="profile-reservations-header">
-          <h2
-            onClick={() => setActiveTab("Active")}
-            className={activeTab === "Active" ? "active" : ""}
-          >
-            Aktywne
-          </h2>
-          <h2
-            onClick={() => setActiveTab("Past")}
-            className={activeTab === "Past" ? "active" : ""}
-          >
-            Historia
-          </h2>
-        </div>
-        <div className="profile-reservations-content">
-          {activeTab === "Active" ? (
-            activeReservations.length === 0 ? (
-              <p className="profile-no-data">
-                Nie masz zaplanowanych żadnych gier. Zarezerwuj kort!
-              </p>
+        <div className="profile-reservations">
+          <div className="profile-reservations-header">
+            <h2
+              onClick={() => setActiveTab("Active")}
+              className={activeTab === "Active" ? "active" : ""}
+            >
+              Aktywne
+            </h2>
+            <h2
+              onClick={() => setActiveTab("Past")}
+              className={activeTab === "Past" ? "active" : ""}
+            >
+              Historia
+            </h2>
+          </div>
+          <div className="profile-reservations-content">
+            {activeTab === "Active" ? (
+              activeReservations.length === 0 ? (
+                <p className="profile-no-data">
+                  Nie masz zaplanowanych żadnych gier. Zarezerwuj kort!
+                </p>
+              ) : (
+                <div className="profile-reservations-list">
+                  {activeReservations.map((res) => (
+                    <Reservation
+                      key={res.id}
+                      res={res}
+                      handleCancelReservation={handleCancelReservation}
+                    />
+                  ))}
+                </div>
+              )
+            ) : pastReservations.length === 0 ? (
+              <p className="profile-no-data">Brak historii rezerwacji.</p>
             ) : (
-              <div className="profile-reservations-list">
-                {activeReservations.map((res) => (
-                  <Reservation
-                    key={res.id}
-                    res={res}
-                    handleCancelReservation={handleCancelReservation}
-                  />
+              <div className="profile-reservations-list past">
+                {pastReservations.map((res) => (
+                  <Reservation key={res.id} res={res} />
                 ))}
               </div>
-            )
-          ) : pastReservations.length === 0 ? (
-            <p className="profile-no-data">Brak historii rezerwacji.</p>
-          ) : (
-            <div className="profile-reservations-list past">
-              {pastReservations.map((res) => (
-                <Reservation key={res.id} res={res} />
-              ))}
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
     </div>
