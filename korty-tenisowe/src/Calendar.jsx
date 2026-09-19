@@ -1,6 +1,7 @@
 import { useOutletContext, Navigate } from "react-router-dom";
 import { useState, useEffect, useMemo } from "react";
 import "./Calendar.css";
+import BookingModal from "./components/BookingModal";
 
 const timeToMinutes = (timeString) => {
   if (!timeString || typeof timeString !== "string" || timeString === "--:--") {
@@ -21,27 +22,16 @@ export default function Calendar() {
   const [selectedDate, setSelectedDate] = useState(todayStr);
   const [selectedCourtIndex, setSelectedCourtIndex] = useState(0);
   const [courtsPerPage, setCourtsPerPage] = useState(4);
-  const [staffTab, setStaffTab] = useState("existing");
-  const [searchClient, setSearchClient] = useState("");
-  const [selectedClientId, setSelectedClientId] = useState(null);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [newClient, setNewClient] = useState({
-    firstName: "",
-    lastName: "",
-    phone: "",
-    email: "",
-  });
-  const [clientList, setClientList] = useState([]);
   const [bookingModal, setBookingModal] = useState({
     isOpen: false,
     courtId: null,
     startTime: null,
   });
-  const [bookingDuration, setBookingDuration] = useState(60);
-  const [isUsersLoading, setIsUsersLoading] = useState(true);
   const [isReservationsLoading, setIsReservationsLoading] = useState(true);
   const [isStaticDataLoading, setIsStaticDataLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [clientList, setClientList] = useState([]);
+  const [isUsersLoading, setIsUsersLoading] = useState(true);
   const isStaff = ["ADMIN", "RECEPTIONIST", "DEMO_ADMIN"].includes(user?.role);
   const todaySchedule = schedule[new Date(selectedDate).getDay()];
 
@@ -88,13 +78,6 @@ export default function Calendar() {
     return timeToMinutes(todaySchedule.close) - timeToMinutes(slotTime) < 60;
   };
 
-  let is90MinAvailable = false;
-  if (bookingModal.isOpen && todaySchedule && todaySchedule.close) {
-    const closingTime = timeToMinutes(todaySchedule.close);
-    const startTime = timeToMinutes(bookingModal.startTime);
-    is90MinAvailable = closingTime - startTime >= 90;
-  }
-
   const isBlocked = (courtId) => {
     return courts.some(
       (court) => court.id === courtId && court.isBlocked === true,
@@ -104,25 +87,6 @@ export default function Calendar() {
   const isClubClosedToday =
     exceptions.includes(selectedDate) ||
     (todaySchedule?.open === "--:--" && todaySchedule?.close === "--:--");
-
-  useEffect(() => {
-    const handleResize = () => {
-      const width = window.innerWidth;
-      if (width < 425) {
-        setCourtsPerPage(1);
-      } else if (width >= 425 && width < 768) {
-        setCourtsPerPage(2);
-      } else {
-        setCourtsPerPage(4);
-      }
-    };
-    handleResize();
-    window.addEventListener("resize", handleResize);
-
-    return () => {
-      window.removeEventListener("resize", handleResize);
-    };
-  }, []);
 
   useEffect(() => {
     if (!isStaff) {
@@ -154,6 +118,25 @@ export default function Calendar() {
     };
     fetchUsers();
   }, [user?.role]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      const width = window.innerWidth;
+      if (width < 425) {
+        setCourtsPerPage(1);
+      } else if (width >= 425 && width < 768) {
+        setCourtsPerPage(2);
+      } else {
+        setCourtsPerPage(4);
+      }
+    };
+    handleResize();
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
 
   useEffect(() => {
     if (!courtsPerPage) return;
@@ -267,58 +250,6 @@ export default function Calendar() {
 
   const handleOpenBookingModal = (courtId, startTime) => {
     setBookingModal({ isOpen: true, courtId, startTime });
-    setSearchClient("");
-    setNewClient({
-      firstName: "",
-      lastName: "",
-      phone: "",
-      email: "",
-    });
-    setIsDropdownOpen(true);
-    setSelectedClientId(null);
-    setBookingDuration(60);
-  };
-
-  const confirmBooking = async (e) => {
-    e.preventDefault();
-
-    const { courtId, startTime } = bookingModal;
-    const userId =
-      staffTab === "existing" ? (selectedClientId ?? user.id) : null;
-
-    if (isStaffSelectionInvalid) {
-      alert("Wybierz klienta z rozwijanej listy!");
-      return;
-    }
-
-    try {
-      const token = localStorage.getItem("token");
-      const response = await fetch("http://localhost:5005/api/reservations", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          courtId,
-          date: selectedDate,
-          startTime,
-          duration: bookingDuration,
-          userId,
-          newClient,
-        }),
-      });
-      const data = await response.json();
-      if (response.ok) {
-        setBookingModal({ isOpen: false, courtId: null, startTime: null });
-        setSelectedClientId(null);
-        setRefresh((prev) => prev + 1);
-      } else {
-        alert(data.error);
-      }
-    } catch (error) {
-      alert("Błąd połączenia z serwerem.");
-    }
   };
 
   const handleCancelReservation = async (reservationId) => {
@@ -377,13 +308,9 @@ export default function Calendar() {
     selectedCourtIndex + courtsPerPage,
   );
 
-  const isStaffSelectionInvalid =
-    isStaff && staffTab === "existing" && !selectedClientId;
-
   return (
     <div className="calendar-container-wrapper">
       <div className="calendar-container">
-        {console.log(schedule)}
         <h1 className="calendar-title">Kalendarz Rezerwacji</h1>
         <div className="calendar-controls">
           <div className="calendar-date-wrapper">
@@ -524,276 +451,19 @@ export default function Calendar() {
             </div>
           </div>
         )}
-
         {bookingModal.isOpen && (
-          <div
-            className="booking-modal-overlay active"
-            onClick={() =>
-              setBookingModal({
-                isOpen: false,
-                courtId: null,
-                startTime: null,
-              })
-            }
-          >
-            <div className="booking-modal" onClick={(e) => e.stopPropagation()}>
-              <button
-                className="booking-modal__close"
-                onClick={() =>
-                  setBookingModal({
-                    isOpen: false,
-                    courtId: null,
-                    startTime: null,
-                  })
-                }
-              >
-                ✕
-              </button>
-              <h2 className="booking-modal__title">Potwierdź rezerwację</h2>
-              <p className="booking-modal__subtitle">
-                Rezerwujesz{" "}
-                <span className="booking-modal__court-highlight">
-                  {courts.find((c) => c.id === bookingModal.courtId)?.name}
-                </span>{" "}
-                od{" "}
-                <span className="booking-modal__time-highlight">
-                  {bookingModal.startTime}
-                </span>{" "}
-                ({selectedDate}).
-              </p>
-              <form className="booking-modal__form" onSubmit={confirmBooking}>
-                {isStaff && (
-                  <div className="booking-modal__form-staff">
-                    <div className="booking-modal__form-buttons">
-                      <button
-                        type="button"
-                        className={`staff-tabs ${staffTab === "existing" ? "active" : ""}`}
-                        onClick={() => {
-                          setStaffTab("existing");
-                          setSearchClient("");
-                          setSelectedClientId(null);
-                          setNewClient({
-                            firstName: "",
-                            lastName: "",
-                            phone: "",
-                            email: "",
-                          });
-                        }}
-                      >
-                        Klient z bazy
-                      </button>
-                      <button
-                        type="button"
-                        className={`staff-tabs ${staffTab === "new" ? "active" : ""}`}
-                        onClick={() => {
-                          setStaffTab("new");
-                          setSearchClient("");
-                          setSelectedClientId(null);
-                          setNewClient({
-                            firstName: "",
-                            lastName: "",
-                            phone: "",
-                            email: "",
-                          });
-                        }}
-                      >
-                        Nowy klient
-                      </button>
-                    </div>
-                    {staffTab === "existing" && (
-                      <div className="tabs-existing-wrapper">
-                        <div className="tabs-existing-clients">
-                          <label htmlFor="staff-clients-input">
-                            Wyszukaj klienta
-                          </label>
-                          <input
-                            type="text"
-                            id="staff-clients-input"
-                            className="staff-clients-input"
-                            required
-                            placeholder="Imię, nazwisko, telefon"
-                            value={searchClient}
-                            onChange={(e) => {
-                              setSearchClient(e.target.value);
-                              setIsDropdownOpen(true);
-                            }}
-                            onFocus={() => {
-                              setSearchClient("");
-                              setSelectedClientId(null);
-                              setIsDropdownOpen(true);
-                            }}
-                          />
-                          {isDropdownOpen === true && (
-                            <div className="staff-dropdown-wrapper">
-                              {isUsersLoading ? (
-                                <div>Wczytywanie użytkowników...</div>
-                              ) : (
-                                <ul className="staff-dropdown-list">
-                                  {searchClient !== "" &&
-                                    clientList
-                                      .filter((client) => {
-                                        const fullName =
-                                          `${client.firstName} ${client.lastName} ${client.phone}`.toLowerCase();
-                                        return fullName.includes(
-                                          searchClient.toLowerCase(),
-                                        );
-                                      })
-                                      .map((client) => (
-                                        <li
-                                          key={client.id}
-                                          className="dropdown-client"
-                                          onClick={() => {
-                                            setSelectedClientId(client.id);
-                                            setSearchClient(
-                                              `${client.firstName} ${client.lastName} ${client.phone}`,
-                                            );
-                                            setIsDropdownOpen(false);
-                                          }}
-                                        >
-                                          <div className="dropdown-client-info">
-                                            <span>{client.firstName}</span>
-                                            <span>{client.lastName}</span>
-                                            <span>{client.phone}</span>
-                                          </div>
-                                        </li>
-                                      ))}
-                                  {clientList.filter((client) => {
-                                    const fullName =
-                                      `${client.firstName} ${client.lastName} ${client.phone}`.toLowerCase();
-                                    return fullName.includes(
-                                      searchClient.toLowerCase(),
-                                    );
-                                  }).length === 0 && (
-                                    <li className="dropdown-empty">
-                                      Brak wyników
-                                    </li>
-                                  )}
-                                </ul>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    )}
-                    {staffTab === "new" && (
-                      <div className="tabs-new-wrapper">
-                        <div className="tabs-new-client">
-                          <label htmlFor="new-client-input-firstname">
-                            Imię
-                          </label>
-                          <input
-                            type="text"
-                            id="new-client-input-firstname"
-                            className="new-client-input"
-                            required
-                            value={newClient.firstName}
-                            onChange={(e) =>
-                              setNewClient({
-                                ...newClient,
-                                firstName: e.target.value,
-                              })
-                            }
-                          />
-                        </div>
-                        <div className="tabs-new-client">
-                          <label htmlFor="new-client-input-lastname">
-                            Nazwisko
-                          </label>
-                          <input
-                            type="text"
-                            id="new-client-input-lastname"
-                            className="new-client-input"
-                            required
-                            value={newClient.lastName}
-                            onChange={(e) =>
-                              setNewClient({
-                                ...newClient,
-                                lastName: e.target.value,
-                              })
-                            }
-                          />
-                        </div>
-                        <div className="tabs-new-client">
-                          <label htmlFor="new-client-input-phone">
-                            Numer Telefonu
-                          </label>
-                          <input
-                            type="tel"
-                            id="new-client-input-phone"
-                            className="new-client-input"
-                            required
-                            value={newClient.phone}
-                            onChange={(e) =>
-                              setNewClient({
-                                ...newClient,
-                                phone: e.target.value,
-                              })
-                            }
-                          />
-                        </div>
-                        <div className="tabs-new-client">
-                          <label htmlFor="new-client-input-email">E-mail</label>
-                          <input
-                            type="email"
-                            id="new-client-input-email"
-                            className="new-client-input"
-                            required
-                            value={newClient.email}
-                            onChange={(e) =>
-                              setNewClient({
-                                ...newClient,
-                                email: e.target.value,
-                              })
-                            }
-                          />
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-                <div className="booking-modal__form-group">
-                  <label className="booking-modal__form-label">
-                    Czas trwania gry:
-                  </label>
-                  <div className="booking-modal__radio-group">
-                    <label className="booking-modal__radio-label">
-                      <input
-                        type="radio"
-                        value={60}
-                        checked={bookingDuration === 60}
-                        onChange={() => setBookingDuration(60)}
-                      />
-                      60 minut
-                    </label>
-                    {is90MinAvailable && (
-                      <label className="booking-modal__radio-label">
-                        <input
-                          type="radio"
-                          value={90}
-                          checked={bookingDuration === 90}
-                          onChange={() => setBookingDuration(90)}
-                        />
-                        90 minut
-                      </label>
-                    )}
-                  </div>
-                </div>
-
-                <button
-                  type="submit"
-                  className="booking-modal__submit"
-                  onClick={(e) => {
-                    if (isStaffSelectionInvalid) {
-                      e.preventDefault();
-                      alert("Proszę wybrać klienta z listy!");
-                    }
-                  }}
-                >
-                  {isStaff ? "Zarezerwuj" : "Zarezerwuj i graj!"}
-                </button>
-              </form>
-            </div>
-          </div>
+          <BookingModal
+            bookingModal={bookingModal}
+            setBookingModal={setBookingModal}
+            courts={courts}
+            selectedDate={selectedDate}
+            isStaff={isStaff}
+            todaySchedule={todaySchedule}
+            timeToMinutes={timeToMinutes}
+            setRefresh={setRefresh}
+            isUsersLoading={isUsersLoading}
+            clientList={clientList}
+          />
         )}
       </div>
     </div>
