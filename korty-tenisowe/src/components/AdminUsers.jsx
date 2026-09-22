@@ -94,8 +94,8 @@ export default function AdminUsers() {
     return [...users]
       .sort((a, b) =>
         userDateSort === "DESC"
-          ? new Date(b.createdAt) - new Date(a.createdAt)
-          : new Date(a.createdAt) - new Date(b.createdAt),
+          ? b.createdAt.localeCompare(a.createdAt)
+          : a.createdAt.localeCompare(b.createdAt),
       )
       .filter((user) => {
         const userFilter =

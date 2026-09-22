@@ -10,19 +10,31 @@ export default function Profile() {
   const [isDataLoading, setIsDataLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const currentWarsawTime = useMemo(() => {
+    const timeNow = new Intl.DateTimeFormat("pl-PL", {
+      timeZone: "Europe/Warsaw",
+      hour: "2-digit",
+      minute: "2-digit",
+    }).format(new Date());
+
+    const dateNow = new Intl.DateTimeFormat("en-CA", {
+      timeZone: "Europe/Warsaw",
+    }).format(new Date());
+
+    return `${dateNow}T${timeNow}`;
+  }, []);
+
   const activeReservations = useMemo(() => {
-    const now = new Date();
     return myReservations.filter(
-      (res) => new Date(`${res.date}T${res.startTime}`) >= now,
+      (res) => `${res.date}T${res.startTime}` >= currentWarsawTime,
     );
-  }, [myReservations]);
+  }, [myReservations, currentWarsawTime]);
 
   const pastReservations = useMemo(() => {
-    const now = new Date();
     return myReservations.filter(
-      (res) => new Date(`${res.date}T${res.startTime}`) < now,
+      (res) => `${res.date}T${res.startTime}` < currentWarsawTime,
     );
-  }, [myReservations]);
+  }, [myReservations, currentWarsawTime]);
 
   useEffect(() => {
     if (!user || isUserLoading) return;
@@ -106,7 +118,7 @@ export default function Profile() {
 
       if (response.ok) {
         alert("Rezerwacja odwołana!");
-        setMyReservations(myReservations.filter((r) => r.id !== reservationId));
+        setMyReservations((prev) => prev.filter((r) => r.id !== reservationId));
       } else {
         const data = await response.json();
         alert(data.error);

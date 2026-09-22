@@ -18,7 +18,9 @@ export default function Calendar() {
   const [exceptions, setExceptions] = useState([]);
   const [schedule, setSchedule] = useState([]);
   const [refresh, setRefresh] = useState(0);
-  const todayStr = new Date().toLocaleDateString("en-CA");
+  const todayStr = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Europe/Warsaw",
+  }).format(new Date());
   const [selectedDate, setSelectedDate] = useState(todayStr);
   const [selectedCourtIndex, setSelectedCourtIndex] = useState(0);
   const [courtsPerPage, setCourtsPerPage] = useState(4);
@@ -33,7 +35,7 @@ export default function Calendar() {
   const [clientList, setClientList] = useState([]);
   const [isUsersLoading, setIsUsersLoading] = useState(true);
   const isStaff = ["ADMIN", "RECEPTIONIST", "DEMO_ADMIN"].includes(user?.role);
-  const todaySchedule = schedule[new Date(selectedDate).getDay()];
+  const todaySchedule = schedule[new Date(selectedDate).getUTCDay()];
 
   const timeSlots = useMemo(() => {
     if (!schedule || schedule.length === 0) return [];
@@ -67,9 +69,13 @@ export default function Calendar() {
   const isPastSlot = (slotTime) => {
     if (selectedDate < todayStr) return true;
     if (selectedDate > todayStr) return false;
-    const now = new Date();
-    const currentMinutes = now.getHours() * 60 + now.getMinutes();
-    return timeToMinutes(slotTime) <= currentMinutes;
+    const now = new Intl.DateTimeFormat("pl-PL", {
+      timeZone: "Europe/Warsaw",
+      hour: "2-digit",
+      minute: "2-digit",
+    }).format(new Date());
+
+    return timeToMinutes(slotTime) <= timeToMinutes(now);
   };
 
   const isTooLate = (slotTime) => {
@@ -283,7 +289,7 @@ export default function Calendar() {
 
   const getRowIndex = (time) => {
     const startMin = timeToMinutes(
-      schedule[new Date(selectedDate).getDay()].open,
+      schedule[new Date(selectedDate).getUTCDay()].open,
     );
     return (timeToMinutes(time) - startMin) / 30 + 2;
   };
@@ -310,6 +316,7 @@ export default function Calendar() {
 
   return (
     <div className="calendar-container-wrapper">
+      {console.log(reservations)}
       <div className="calendar-container">
         <h1 className="calendar-title">Kalendarz Rezerwacji</h1>
         <div className="calendar-controls">
@@ -463,6 +470,7 @@ export default function Calendar() {
             setRefresh={setRefresh}
             isUsersLoading={isUsersLoading}
             clientList={clientList}
+            reservations={reservations}
           />
         )}
       </div>

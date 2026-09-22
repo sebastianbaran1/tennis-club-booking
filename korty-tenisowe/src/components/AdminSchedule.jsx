@@ -88,7 +88,7 @@ export default function AdminSchedule() {
       return alert("Ten dzień juz jest na liście ");
 
     setClosedDays(
-      [...closedDays, newClosedDay].sort((a, b) => new Date(a) - new Date(b)),
+      [...closedDays, newClosedDay].sort((a, b) => a.localeCompare(b)),
     );
     setNewClosedDay("");
   };

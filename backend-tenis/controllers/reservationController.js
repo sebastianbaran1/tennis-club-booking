@@ -29,7 +29,7 @@ export const getReservations = async (req, res) => {
           userId: true,
         },
       });
-      const now = new Date();
+      const now = new Date(); // Zamień
       const todayStr = new Intl.DateTimeFormat("en-CA", {
         timeZone: "Europe/Warsaw",
       }).format(now);
@@ -63,15 +63,14 @@ export const createReservation = async (req, res) => {
       return res.status(403).json({ error: "Brak dostępu do zasobów" });
     }
 
-    const now = new Date();
     const todayStr = new Intl.DateTimeFormat("en-CA", {
       timeZone: "Europe/Warsaw",
-    }).format(now);
+    }).format(new Date());
     const timeStr = new Intl.DateTimeFormat("pl-PL", {
       timeZone: "Europe/Warsaw",
       hour: "2-digit",
       minute: "2-digit",
-    }).format(now);
+    }).format(new Date());
 
     const [currentHours, currentMins] = timeStr.split(":").map(Number);
     const currentMinutes = currentHours * 60 + currentMins;
@@ -122,7 +121,7 @@ export const createReservation = async (req, res) => {
       return res.status(500).json({ error: "Błąd konfiguracji klubu." });
     }
 
-    const schedule = settings.schedule[new Date(date).getDay()];
+    const schedule = settings.schedule[new Date(date).getUTCDay()];
     const exceptions = settings.exceptions;
 
     if (exceptions.includes(date)) {

@@ -12,6 +12,7 @@ export default function BookingModal({
   setRefresh,
   isUsersLoading,
   clientList,
+  reservations,
 }) {
   const { user } = useOutletContext();
   const [staffTab, setStaffTab] = useState("existing");
@@ -83,9 +84,21 @@ export default function BookingModal({
   let is90MinAvailable = false;
 
   if (bookingModal.isOpen && todaySchedule.close) {
+    const futureReservations = reservations.filter(
+      (res) =>
+        res.courtId === bookingModal.courtId &&
+        timeToMinutes(res.startTime) > timeToMinutes(bookingModal.startTime),
+    );
+
+    const isCollision = futureReservations.some(
+      (res) =>
+        timeToMinutes(bookingModal.startTime) + 90 >
+        timeToMinutes(res.startTime),
+    );
+
     const closingTime = timeToMinutes(todaySchedule.close);
     const startTime = timeToMinutes(bookingModal.startTime);
-    is90MinAvailable = closingTime - startTime >= 90;
+    is90MinAvailable = closingTime - startTime >= 90 && !isCollision;
   }
 
   useEffect(() => {
