@@ -62,7 +62,6 @@ function App() {
         localStorage.setItem("token", data.token);
         setUser(data.user);
         setIsLoginOpen(false);
-        setIsUserLoading(false);
       } else {
         alert("Błąd: " + data.error);
       }
@@ -94,13 +93,12 @@ function App() {
         localStorage.setItem("token", data.token);
         setUser(data.user);
         setIsRegisterOpen(false);
-        setIsUserLoading(false);
       } else {
         alert("Błąd: " + data.error);
       }
     } catch (error) {
       console.error("Błąd połączenia z serwerem:", error);
-      setIsUserLoading(false);
+      alert("Nie można połączyć się z serwerem.");
     }
   };
 

@@ -16,7 +16,7 @@ export const authenticateToken = async (req, res, next) => {
       where: { id: decoded.userId },
     });
 
-    if (!user) {
+    if (!user || user.isActive === false) {
       return res.status(404).json({ error: "Użytkownik przestał istnieć." });
     }
 

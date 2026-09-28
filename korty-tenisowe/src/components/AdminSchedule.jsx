@@ -12,6 +12,63 @@ for (let h = 0; h < 24; h++) {
   }
 }
 
+function TimeSelector({
+  isOpen,
+  setSlotToOpen,
+  dayData,
+  slotToOpen,
+  dayId,
+  handleTimeChange,
+}) {
+  const selectedTimeRef = useRef();
+
+  const currentType = isOpen ? "open" : "close";
+  const currentTime = isOpen ? dayData.open : dayData.close;
+  const isDropdownVisible =
+    slotToOpen.key === dayId && slotToOpen.type === currentType;
+
+  useEffect(() => {
+    if (isDropdownVisible && selectedTimeRef.current) {
+      const li = selectedTimeRef.current;
+      const ul = li.parentElement;
+
+      ul.scrollTop = li.offsetTop - 3;
+    }
+  }, [isDropdownVisible]);
+
+  return (
+    <div
+      className="schedule__day-setting"
+      onClick={(e) => {
+        e.stopPropagation();
+        setSlotToOpen({ key: dayId, type: currentType });
+      }}
+    >
+      {currentTime}
+      <img src={clock} alt="clock" className="clock" />
+
+      {isDropdownVisible && (
+        <ul className="schedule__day-setting-list">
+          {timeSlots.map((timeSlot) => (
+            <li
+              ref={timeSlot === currentTime ? selectedTimeRef : null}
+              key={timeSlot}
+              className={timeSlot === currentTime ? "active" : ""}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleTimeChange(dayId, currentType, timeSlot);
+                setSlotToOpen({ key: null, type: null });
+              }}
+            >
+              {timeSlot}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
 export default function AdminSchedule() {
   const [activeTab, setActiveTab] = useState("weekly");
   const [isScheduleLoading, setIsScheduleLoading] = useState(true);
@@ -22,13 +79,12 @@ export default function AdminSchedule() {
     4: { name: "Czwartek", open: "08:00", close: "22:00" },
     5: { name: "Piątek", open: "08:00", close: "22:00" },
     6: { name: "Sobota", open: "08:00", close: "22:00" },
-    0: { name: " Niedziela", open: "08:00", close: "22:00" },
+    0: { name: "Niedziela", open: "08:00", close: "22:00" },
   });
   const [slotToOpen, setSlotToOpen] = useState({ key: null, type: null });
   const [newClosedDay, setNewClosedDay] = useState("");
   const [isExceptionsLoading, setIsExceptionsLoading] = useState(true);
   const [closedDays, setClosedDays] = useState([]);
-  const selectedTimeRef = useRef(null);
   const [error, setError] = useState(null);
 
   const handleTimeChange = (key, fieldName, newValue) => {
@@ -119,34 +175,33 @@ export default function AdminSchedule() {
   };
 
   useEffect(() => {
-    const fetchExceptions = async () => {
+    const fetchSchedule = async () => {
       try {
-        const response = await fetch(
-          "http://localhost:5005/api/settings/exceptions",
-        );
-        const data = await response.json();
-        if (response.ok) {
-          setClosedDays(data.exceptions);
+        const [scheduleRes, exceptionsRes] = await Promise.all([
+          fetch("http://localhost:5005/api/settings/schedule"),
+          fetch("http://localhost:5005/api/settings/exceptions"),
+        ]);
+
+        const [scheduleData, exceptionsData] = await Promise.all([
+          scheduleRes.json(),
+          exceptionsRes.json(),
+        ]);
+
+        if (scheduleRes.ok && exceptionsRes.ok) {
+          setSchedule(scheduleData.schedule);
+          setClosedDays(exceptionsData.exceptions);
         } else {
-          setError(data.error);
+          setError(scheduleData.error || exceptionsData.error);
         }
       } catch (error) {
         setError("Błąd połączenia z serwerem.");
       } finally {
+        setIsScheduleLoading(false);
         setIsExceptionsLoading(false);
       }
     };
-    fetchExceptions();
+    fetchSchedule();
   }, []);
-
-  useEffect(() => {
-    if (slotToOpen.key !== null && selectedTimeRef.current) {
-      const li = selectedTimeRef.current;
-      const ul = li.parentElement;
-
-      ul.scrollTop = li.offsetTop - 3;
-    }
-  }, [slotToOpen]);
 
   useEffect(() => {
     const handleOutsideClick = () => {
@@ -161,27 +216,6 @@ export default function AdminSchedule() {
       document.removeEventListener("click", handleOutsideClick);
     };
   }, [slotToOpen]);
-
-  useEffect(() => {
-    const fetchSchedule = async () => {
-      try {
-        const response = await fetch(
-          "http://localhost:5005/api/settings/schedule",
-        );
-        const data = await response.json();
-        if (response.ok) {
-          setSchedule(data.schedule);
-        } else {
-          setError(data.error);
-        }
-      } catch (error) {
-        setError("Błąd połączenia z serwerem.");
-      } finally {
-        setIsScheduleLoading(false);
-      }
-    };
-    fetchSchedule();
-  }, []);
 
   if (error) {
     return (
@@ -226,83 +260,23 @@ export default function AdminSchedule() {
                     <div className="schedule__day" key={key}>
                       <div className="schedule__day-name">{dayData.name}</div>
                       <div className="schedule__day-settings">
-                        <div
-                          className="schedule__day-setting"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSlotToOpen({ key: key, type: "open" });
-                          }}
-                        >
-                          {dayData.open}
-                          <img src={clock} alt="clock" className="clock" />
-                          {slotToOpen.key === key &&
-                            slotToOpen.type === "open" && (
-                              <ul className="schedule__day-setting-list">
-                                {timeSlots.map((timeSlot) => (
-                                  <li
-                                    ref={
-                                      timeSlot === dayData.open
-                                        ? selectedTimeRef
-                                        : null
-                                    }
-                                    key={timeSlot}
-                                    className={
-                                      timeSlot === dayData.open ? "active" : ""
-                                    }
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleTimeChange(key, "open", timeSlot);
-                                      setSlotToOpen({
-                                        key: null,
-                                        type: null,
-                                      });
-                                    }}
-                                  >
-                                    {timeSlot}
-                                  </li>
-                                ))}
-                              </ul>
-                            )}
-                        </div>
+                        <TimeSelector
+                          setSlotToOpen={setSlotToOpen}
+                          dayData={dayData}
+                          slotToOpen={slotToOpen}
+                          dayId={key}
+                          handleTimeChange={handleTimeChange}
+                          isOpen={true}
+                        />
                         <div className="schedule__separator">-</div>
-                        <div
-                          className="schedule__day-setting"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSlotToOpen({ key: key, type: "close" });
-                          }}
-                        >
-                          {dayData.close}
-                          <img src={clock} alt="clock" className="clock" />
-                          {slotToOpen.key === key &&
-                            slotToOpen.type === "close" && (
-                              <ul className="schedule__day-setting-list">
-                                {timeSlots.map((timeSlot) => (
-                                  <li
-                                    ref={
-                                      timeSlot === dayData.close
-                                        ? selectedTimeRef
-                                        : null
-                                    }
-                                    key={timeSlot}
-                                    className={
-                                      timeSlot === dayData.close ? "active" : ""
-                                    }
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleTimeChange(key, "close", timeSlot);
-                                      setSlotToOpen({
-                                        key: null,
-                                        type: null,
-                                      });
-                                    }}
-                                  >
-                                    {timeSlot}
-                                  </li>
-                                ))}
-                              </ul>
-                            )}
-                        </div>
+                        <TimeSelector
+                          setSlotToOpen={setSlotToOpen}
+                          dayData={dayData}
+                          slotToOpen={slotToOpen}
+                          dayId={key}
+                          handleTimeChange={handleTimeChange}
+                          isOpen={false}
+                        />
                       </div>
                     </div>
                   );
@@ -328,6 +302,7 @@ export default function AdminSchedule() {
                 type="date"
                 name="exception-date"
                 id="schedule__exceptions-input"
+                value={newClosedDay}
                 onChange={(e) => setNewClosedDay(e.target.value)}
               />
               <button

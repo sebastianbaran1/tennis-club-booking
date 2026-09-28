@@ -417,6 +417,14 @@
   border-bottom: none;
 }
 
+.reservation-block-under {
+  z-index: 1;
+  background-color: #ffffff;
+}
+.reservation-block-under.past {
+  background-color: #f1f5f9;
+}
+
 @media (max-width: 768px) {
   .calendar-container {
     padding: 2rem 1rem;

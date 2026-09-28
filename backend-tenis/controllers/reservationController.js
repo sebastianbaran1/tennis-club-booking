@@ -29,7 +29,7 @@ export const getReservations = async (req, res) => {
           userId: true,
         },
       });
-      const now = new Date(); // Zamień
+      const now = new Date();
       const todayStr = new Intl.DateTimeFormat("en-CA", {
         timeZone: "Europe/Warsaw",
       }).format(now);
@@ -63,14 +63,15 @@ export const createReservation = async (req, res) => {
       return res.status(403).json({ error: "Brak dostępu do zasobów" });
     }
 
+    const now = new Date();
     const todayStr = new Intl.DateTimeFormat("en-CA", {
       timeZone: "Europe/Warsaw",
-    }).format(new Date());
+    }).format(now);
     const timeStr = new Intl.DateTimeFormat("pl-PL", {
       timeZone: "Europe/Warsaw",
       hour: "2-digit",
       minute: "2-digit",
-    }).format(new Date());
+    }).format(now);
 
     const [currentHours, currentMins] = timeStr.split(":").map(Number);
     const currentMinutes = currentHours * 60 + currentMins;

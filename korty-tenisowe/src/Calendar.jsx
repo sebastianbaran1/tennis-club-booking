@@ -1,5 +1,5 @@
 import { useOutletContext, Navigate } from "react-router-dom";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, Fragment } from "react";
 import "./Calendar.css";
 import BookingModal from "./components/BookingModal";
 
@@ -20,6 +20,11 @@ export default function Calendar() {
   const [refresh, setRefresh] = useState(0);
   const todayStr = new Intl.DateTimeFormat("en-CA", {
     timeZone: "Europe/Warsaw",
+  }).format(new Date());
+  const now = new Intl.DateTimeFormat("pl-PL", {
+    timeZone: "Europe/Warsaw",
+    hour: "2-digit",
+    minute: "2-digit",
   }).format(new Date());
   const [selectedDate, setSelectedDate] = useState(todayStr);
   const [selectedCourtIndex, setSelectedCourtIndex] = useState(0);
@@ -66,14 +71,28 @@ export default function Calendar() {
     return slots;
   }, [schedule, todaySchedule]);
 
+  const courtOptions = useMemo(() => {
+    const options = [];
+
+    for (let i = 0; i < courts.length; i += courtsPerPage) {
+      let start = i + 1;
+      let end = start + courtsPerPage - 1;
+      if (end > courts.length) {
+        end = courts.length;
+      }
+
+      options.push(
+        <option key={`korty-${i}`} value={i}>
+          {start === end ? `Kort ${start}` : `Korty ${start} - ${end}`}
+        </option>,
+      );
+    }
+    return options;
+  }, [courts.length, courtsPerPage]);
+
   const isPastSlot = (slotTime) => {
     if (selectedDate < todayStr) return true;
     if (selectedDate > todayStr) return false;
-    const now = new Intl.DateTimeFormat("pl-PL", {
-      timeZone: "Europe/Warsaw",
-      hour: "2-digit",
-      minute: "2-digit",
-    }).format(new Date());
 
     return timeToMinutes(slotTime) <= timeToMinutes(now);
   };
@@ -87,6 +106,14 @@ export default function Calendar() {
   const isBlocked = (courtId) => {
     return courts.some(
       (court) => court.id === courtId && court.isBlocked === true,
+    );
+  };
+
+  const hasCollision = (slotTime, courtId) => {
+    return reservations.find(
+      (res) =>
+        timeToMinutes(res.startTime) - timeToMinutes(slotTime) === 30 &&
+        res.courtId === courtId,
     );
   };
 
@@ -294,21 +321,6 @@ export default function Calendar() {
     return (timeToMinutes(time) - startMin) / 30 + 2;
   };
 
-  const courtOptions = [];
-
-  for (let i = 0; i < courts.length; i += courtsPerPage) {
-    let start = i + 1;
-    let end = start + courtsPerPage - 1;
-    if (end > courts.length) {
-      end = courts.length;
-    }
-    courtOptions.push(
-      <option key={`korty-${i}`} value={i}>
-        {start === end ? `Kort ${start}` : `Korty ${start} - ${end}`}
-      </option>,
-    );
-  }
-
   const visibleCourts = courts.slice(
     selectedCourtIndex,
     selectedCourtIndex + courtsPerPage,
@@ -316,7 +328,6 @@ export default function Calendar() {
 
   return (
     <div className="calendar-container-wrapper">
-      {console.log(reservations)}
       <div className="calendar-container">
         <h1 className="calendar-title">Kalendarz Rezerwacji</h1>
         <div className="calendar-controls">
@@ -390,15 +401,17 @@ export default function Calendar() {
                   const past = isPastSlot(slotTime);
                   const late = isTooLate(slotTime);
                   const blocked = isBlocked(court.id);
+                  const hasColision = hasCollision(slotTime, court.id);
                   return (
                     <div
-                      className={`empty-slot ${blocked ? "slot-blocked" : past ? "slot-past" : late ? "slot-late" : ""}`}
+                      className={`empty-slot ${blocked ? "slot-blocked" : past || hasColision ? "slot-past" : late ? "slot-late" : ""}`}
                       key={`empty-${court.id}-${slotTime}`}
                       style={{ gridRow: rIndex + 2, gridColumn: cIndex + 2 }}
                       onClick={() => {
                         !past &&
                           !late &&
                           !blocked &&
+                          !hasColision &&
                           handleOpenBookingModal(court.id, slotTime);
                       }}
                     >
@@ -408,7 +421,9 @@ export default function Calendar() {
                           ? "Minęło"
                           : late
                             ? "Zbyt późno"
-                            : "+ Rezerwuj"}
+                            : hasColision
+                              ? ""
+                              : "+ Rezerwuj"}
                     </div>
                   );
                 }),
@@ -426,33 +441,43 @@ export default function Calendar() {
 
                   const isMyRes = res.userId === user.id;
                   const canCancel = isMyRes || isStaff;
+                  const isPast = isPastSlot(res.startTime);
 
                   return (
-                    <div
-                      className={`reservation-block ${isMyRes ? "res-mine" : "res-taken"}`}
-                      key={`res-${res.id}`}
-                      style={{
-                        gridRow: `${rowStart} / span ${rowSpan}`,
-                        gridColumn: colIndex,
-                        cursor: canCancel ? "pointer" : "not-allowed",
-                      }}
-                      onClick={() =>
-                        canCancel && handleCancelReservation(res.id)
-                      }
-                    >
-                      <span>{isMyRes ? "Twoja gra" : "Zajęte"}</span>
+                    <Fragment key={`res-block ${res.id}`}>
+                      <div
+                        className={`reservation-block-under ${isPast ? "past" : ""}`}
+                        style={{
+                          gridRow: `${rowStart} / span ${rowSpan}`,
+                          gridColumn: colIndex,
+                        }}
+                      ></div>
 
-                      {isStaff ? (
-                        <span className="reservation-staff-details">
-                          {res.user?.firstName} {res.user?.lastName} <br />
-                          Nr. tel: {res.user?.phone}
-                        </span>
-                      ) : (
-                        <span className="reservation-user-details">
-                          {isMyRes && "(kliknij by usunąć)"}
-                        </span>
-                      )}
-                    </div>
+                      <div
+                        className={`reservation-block ${isMyRes ? "res-mine" : "res-taken"}`}
+                        style={{
+                          gridRow: `${rowStart} / span ${rowSpan}`,
+                          gridColumn: colIndex,
+                          cursor: canCancel ? "pointer" : "not-allowed",
+                        }}
+                        onClick={() =>
+                          canCancel && handleCancelReservation(res.id)
+                        }
+                      >
+                        <span>{isMyRes ? "Twoja gra" : "Zajęte"}</span>
+
+                        {isStaff ? (
+                          <span className="reservation-staff-details">
+                            {res.user?.firstName} {res.user?.lastName} <br />
+                            Nr. tel: {res.user?.phone}
+                          </span>
+                        ) : (
+                          <span className="reservation-user-details">
+                            {isMyRes && "(kliknij by usunąć)"}
+                          </span>
+                        )}
+                      </div>
+                    </Fragment>
                   );
                 })}
             </div>

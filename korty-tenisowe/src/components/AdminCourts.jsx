@@ -41,7 +41,6 @@ export default function AdminCourts() {
         body: JSON.stringify({ name: "Nowy kort", surface: "Mączka" }),
       });
       if (response.ok) {
-        const newCourt = await response.json();
         setRefreshCourts((prev) => prev + 1);
       } else {
         const data = await response.json();
@@ -166,7 +165,7 @@ export default function AdminCourts() {
             <div>Ładowanie kortów...</div>
           ) : (
             <>
-              {courts.map((court, index) => (
+              {courts.map((court) => (
                 <div className="court-wrapper" key={court.id}>
                   <div className="court">
                     <div className="court__info">
@@ -311,7 +310,7 @@ export default function AdminCourts() {
                           />
                           <button
                             className="court__button-save"
-                            type="button"
+                            type="submit"
                             onClick={() => handleSaveCourt(court.id)}
                           >
                             Zapisz

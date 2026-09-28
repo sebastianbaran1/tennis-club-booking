@@ -147,9 +147,13 @@ export default function AuthModal({
 
           <div className="modal__form-subtitle">
             {isLogin ? "Nie masz jeszcze konta? " : "Masz już konto? "}
-            <span className="modal__form-subtitle-action" onClick={onChange}>
+            <button
+              className="modal__form-subtitle-action"
+              onClick={onChange}
+              type="button"
+            >
               {isLogin ? "Zarejestruj się" : "Zaloguj się"}
-            </span>
+            </button>
           </div>
         </form>
       </div>

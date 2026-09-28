@@ -152,18 +152,20 @@ export default function Profile() {
         </div>
         <div className="profile-reservations">
           <div className="profile-reservations-header">
-            <h2
+            <button
               onClick={() => setActiveTab("Active")}
               className={activeTab === "Active" ? "active" : ""}
+              type="button"
             >
               Aktywne
-            </h2>
-            <h2
+            </button>
+            <button
               onClick={() => setActiveTab("Past")}
               className={activeTab === "Past" ? "active" : ""}
+              type="button"
             >
               Historia
-            </h2>
+            </button>
           </div>
           <div className="profile-reservations-content">
             {activeTab === "Active" ? (

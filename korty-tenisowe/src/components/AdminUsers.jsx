@@ -24,6 +24,7 @@ export default function AdminUsers() {
   const [refreshUsers, setRefreshUsers] = useState(0);
   const [itemToDelete, setItemToDelete] = useState(null);
   const [error, setError] = useState(null);
+  const roleOptions = ["USER", "RECEPTIONIST", "ADMIN"];
 
   const toggleSort = () => {
     userDateSort === "ASC" ? setUserDateSort("DESC") : setUserDateSort("ASC");
@@ -189,8 +190,7 @@ export default function AdminUsers() {
             <div>Ładowanie użytkowników...</div>
           ) : (
             <>
-              {filteredUsers.map((user, index) => {
-                const roleOptions = ["USER", "RECEPTIONIST", "ADMIN"];
+              {filteredUsers.map((user) => {
                 return (
                   <div className="users__list-user-wrapper" key={user.id}>
                     <div className="users__list-user">

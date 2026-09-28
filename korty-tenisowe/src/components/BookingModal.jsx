@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useOutletContext } from "react-router-dom";
 
 export default function BookingModal({
@@ -58,7 +58,7 @@ export default function BookingModal({
       });
       const data = await response.json();
       if (response.ok) {
-        setBookingModal({ isOpen: false, courtId: null, startTime: null });
+        handleClose();
         setSelectedClientId(null);
         setRefresh((prev) => prev + 1);
       } else {
@@ -72,36 +72,38 @@ export default function BookingModal({
   const isStaffSelectionInvalid =
     isStaff && staffTab === "existing" && !selectedClientId;
 
-  const filteredClients =
-    searchClient !== ""
-      ? clientList.filter((client) => {
-          const fullName =
-            `${client.firstName} ${client.lastName} ${client.phone}`.toLowerCase();
-          return fullName.includes(searchClient.toLowerCase());
-        })
-      : [];
+  const filteredClients = useMemo(() => {
+    if (searchClient === "") return [];
 
-  let is90MinAvailable = false;
+    return clientList.filter((client) => {
+      const fullName =
+        `${client.firstName} ${client.lastName} ${client.phone}`.toLowerCase();
+      return fullName.includes(searchClient.toLowerCase());
+    });
+  }, [searchClient, clientList]);
 
-  if (bookingModal.isOpen && todaySchedule.close) {
-    const futureReservations = reservations.filter(
-      (res) =>
-        res.courtId === bookingModal.courtId &&
-        timeToMinutes(res.startTime) > timeToMinutes(bookingModal.startTime),
-    );
+  const is90MinAvailable = useMemo(() => {
+    if (bookingModal.isOpen && todaySchedule.close) {
+      const futureReservations = reservations.filter(
+        (res) =>
+          res.courtId === bookingModal.courtId &&
+          timeToMinutes(res.startTime) > timeToMinutes(bookingModal.startTime),
+      );
 
-    const isCollision = futureReservations.some(
-      (res) =>
-        timeToMinutes(bookingModal.startTime) + 90 >
-        timeToMinutes(res.startTime),
-    );
+      const isCollision = futureReservations.some(
+        (res) =>
+          timeToMinutes(bookingModal.startTime) + 90 >
+          timeToMinutes(res.startTime),
+      );
 
-    const closingTime = timeToMinutes(todaySchedule.close);
-    const startTime = timeToMinutes(bookingModal.startTime);
-    is90MinAvailable = closingTime - startTime >= 90 && !isCollision;
-  }
+      const closingTime = timeToMinutes(todaySchedule.close);
+      const startTime = timeToMinutes(bookingModal.startTime);
+      return closingTime - startTime >= 90 && !isCollision;
+    }
+    return false;
+  }, [bookingModal, todaySchedule.close, reservations, timeToMinutes]);
 
-  useEffect(() => {
+  const handleReset = () => {
     setSearchClient("");
     setNewClient({
       firstName: "",
@@ -109,33 +111,26 @@ export default function BookingModal({
       phone: "",
       email: "",
     });
-    setIsDropdownOpen(true);
     setSelectedClientId(null);
+  };
+  const handleClose = () => {
+    setBookingModal({
+      isOpen: false,
+      courtId: null,
+      startTime: null,
+    });
+  };
+
+  useEffect(() => {
+    handleReset();
+    setIsDropdownOpen(true);
     setBookingDuration(60);
   }, [bookingModal.isOpen]);
 
   return (
-    <div
-      className="booking-modal-overlay active"
-      onClick={() =>
-        setBookingModal({
-          isOpen: false,
-          courtId: null,
-          startTime: null,
-        })
-      }
-    >
+    <div className="booking-modal-overlay active" onClick={handleClose}>
       <div className="booking-modal" onClick={(e) => e.stopPropagation()}>
-        <button
-          className="booking-modal__close"
-          onClick={() =>
-            setBookingModal({
-              isOpen: false,
-              courtId: null,
-              startTime: null,
-            })
-          }
-        >
+        <button className="booking-modal__close" onClick={handleClose}>
           ✕
         </button>
         <h2 className="booking-modal__title">Potwierdź rezerwację</h2>
@@ -159,14 +154,7 @@ export default function BookingModal({
                   className={`staff-tabs ${staffTab === "existing" ? "active" : ""}`}
                   onClick={() => {
                     setStaffTab("existing");
-                    setSearchClient("");
-                    setSelectedClientId(null);
-                    setNewClient({
-                      firstName: "",
-                      lastName: "",
-                      phone: "",
-                      email: "",
-                    });
+                    handleReset();
                   }}
                 >
                   Klient z bazy
@@ -176,14 +164,7 @@ export default function BookingModal({
                   className={`staff-tabs ${staffTab === "new" ? "active" : ""}`}
                   onClick={() => {
                     setStaffTab("new");
-                    setSearchClient("");
-                    setSelectedClientId(null);
-                    setNewClient({
-                      firstName: "",
-                      lastName: "",
-                      phone: "",
-                      email: "",
-                    });
+                    handleReset();
                   }}
                 >
                   Nowy klient
@@ -207,10 +188,10 @@ export default function BookingModal({
                         setIsDropdownOpen(true);
                       }}
                       onFocus={() => {
-                        setSearchClient("");
-                        setSelectedClientId(null);
+                        handleReset();
                         setIsDropdownOpen(true);
                       }}
+                      autoComplete="off"
                     />
                     {isDropdownOpen === true && (
                       <div className="staff-dropdown-wrapper">
@@ -264,6 +245,7 @@ export default function BookingModal({
                           firstName: e.target.value,
                         })
                       }
+                      autocomplete="off"
                     />
                   </div>
                   <div className="tabs-new-client">
@@ -280,6 +262,7 @@ export default function BookingModal({
                           lastName: e.target.value,
                         })
                       }
+                      autocomplete="off"
                     />
                   </div>
                   <div className="tabs-new-client">
@@ -298,6 +281,7 @@ export default function BookingModal({
                           phone: e.target.value,
                         })
                       }
+                      autocomplete="off"
                     />
                   </div>
                   <div className="tabs-new-client">
@@ -314,6 +298,7 @@ export default function BookingModal({
                           email: e.target.value,
                         })
                       }
+                      autocomplete="off"
                     />
                   </div>
                 </div>
