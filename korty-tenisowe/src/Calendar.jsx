@@ -12,7 +12,7 @@ const timeToMinutes = (timeString) => {
 };
 
 export default function Calendar() {
-  const { user, isUserLoading } = useOutletContext();
+  const { user, isUserLoading, setAlertMessage } = useOutletContext();
   const [courts, setCourts] = useState([]);
   const [reservations, setReservations] = useState([]);
   const [exceptions, setExceptions] = useState([]);
@@ -54,7 +54,12 @@ export default function Calendar() {
       return [];
 
     const [openHour, openMinute] = todaySchedule.open.split(":").map(Number);
-    const [closeHour, closeMinute] = todaySchedule.close.split(":").map(Number);
+    let [closeHour, closeMinute] = todaySchedule.close.split(":").map(Number);
+
+    if (todaySchedule.close === "00:00") {
+      closeHour = 24;
+      closeMinute = 0;
+    }
 
     const startSlot = openHour * 2 + (openMinute === 30 ? 1 : 0);
     const closeSlot = closeHour * 2 + (closeMinute === 30 ? 1 : 0);
@@ -94,13 +99,23 @@ export default function Calendar() {
     if (selectedDate < todayStr) return true;
     if (selectedDate > todayStr) return false;
 
-    return timeToMinutes(slotTime) <= timeToMinutes(now);
+    let [nowHours, nowMinutes] = now.split(":").map(Number);
+    if (nowHours === 24) nowHours = 0;
+    const currentMinutes = nowHours * 60 + nowMinutes;
+
+    return timeToMinutes(slotTime) <= currentMinutes;
   };
 
   const isTooLate = (slotTime) => {
-    if (!schedule || schedule.length === 0) return true;
-    if (!todaySchedule || !todaySchedule.close) return true;
-    return timeToMinutes(todaySchedule.close) - timeToMinutes(slotTime) < 60;
+    if (!schedule) return true;
+    if (!todaySchedule.close) return true;
+
+    let closeMin = timeToMinutes(todaySchedule.close);
+    if (todaySchedule.close === "00:00") {
+      closeMin = 24 * 60;
+    }
+
+    return closeMin - timeToMinutes(slotTime) < 60;
   };
 
   const isBlocked = (courtId) => {
@@ -307,10 +322,10 @@ export default function Calendar() {
         setRefresh((prev) => prev + 1);
       } else {
         const data = await response.json();
-        alert(data.error);
+        setAlertMessage(data.error);
       }
     } catch (error) {
-      alert("Błąd serwera.");
+      setAlertMessage("Błąd serwera.");
     }
   };
 
@@ -392,7 +407,7 @@ export default function Calendar() {
                   key={`time-${slotTime}`}
                   style={{ gridRow: index + 2, gridColumn: 1 }}
                 >
-                  {slotTime}
+                  {slotTime === "24:00" ? "00:00" : slotTime}
                 </div>
               ))}
 
@@ -454,7 +469,7 @@ export default function Calendar() {
                       ></div>
 
                       <div
-                        className={`reservation-block ${isMyRes ? "res-mine" : "res-taken"}`}
+                        className={`reservation-block ${isMyRes ? "res-mine" : isStaff ? "res-taken-staff" : "res-taken"}`}
                         style={{
                           gridRow: `${rowStart} / span ${rowSpan}`,
                           gridColumn: colIndex,

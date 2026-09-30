@@ -14,7 +14,7 @@ export default function BookingModal({
   clientList,
   reservations,
 }) {
-  const { user } = useOutletContext();
+  const { user, setAlertMessage } = useOutletContext();
   const [staffTab, setStaffTab] = useState("existing");
   const [searchClient, setSearchClient] = useState("");
   const [selectedClientId, setSelectedClientId] = useState(null);
@@ -35,7 +35,7 @@ export default function BookingModal({
       staffTab === "existing" ? (selectedClientId ?? user.id) : null;
 
     if (isStaffSelectionInvalid) {
-      alert("Wybierz klienta z rozwijanej listy!");
+      setAlertMessage("Wybierz klienta z rozwijanej listy!");
       return;
     }
 
@@ -62,10 +62,10 @@ export default function BookingModal({
         setSelectedClientId(null);
         setRefresh((prev) => prev + 1);
       } else {
-        alert(data.error);
+        setAlertMessage(data.error);
       }
     } catch (error) {
-      alert("Błąd połączenia z serwerem.");
+      setAlertMessage("Błąd połączenia z serwerem.");
     }
   };
 

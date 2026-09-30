@@ -4,6 +4,7 @@ import Header from "./components/Header";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import AuthModal from "./components/AuthModal";
+import Alert from "./components/Alert";
 import "./App.css";
 
 function App() {
@@ -12,6 +13,7 @@ function App() {
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
   const [isUserLoading, setIsUserLoading] = useState(true);
+  const [alertMessage, setAlertMessage] = useState(null);
 
   useEffect(() => {
     const checkSession = async () => {
@@ -63,11 +65,11 @@ function App() {
         setUser(data.user);
         setIsLoginOpen(false);
       } else {
-        alert("Błąd: " + data.error);
+        setAlertMessage("Błąd: " + data.error);
       }
     } catch (error) {
       console.error("Błąd połączenia z serwerem:", error);
-      alert("Nie można połączyć się z serwerem.");
+      setAlertMessage("Nie można połączyć się z serwerem.");
     }
   };
 
@@ -76,7 +78,7 @@ function App() {
 
     setUser(null);
 
-    alert("Wylogowano pomyślnie. Do zobaczenia na korcie!");
+    setAlertMessage("Wylogowano pomyślnie. Do zobaczenia na korcie!");
   };
 
   const handleRegisterSubmit = async (formData) => {
@@ -94,11 +96,11 @@ function App() {
         setUser(data.user);
         setIsRegisterOpen(false);
       } else {
-        alert("Błąd: " + data.error);
+        setAlertMessage("Błąd: " + data.error);
       }
     } catch (error) {
       console.error("Błąd połączenia z serwerem:", error);
-      alert("Nie można połączyć się z serwerem.");
+      setAlertMessage("Nie można połączyć się z serwerem.");
     }
   };
 
@@ -109,6 +111,8 @@ function App() {
 
   return (
     <div className="app-container">
+      <Alert alertMessage={alertMessage} setAlertMessage={setAlertMessage} />
+
       <Header
         user={user}
         onLogout={handleLogout}
@@ -120,7 +124,14 @@ function App() {
 
       <div className="main-content">
         <Outlet
-          context={{ user, setIsLoginOpen, isUserLoading, setIsRegisterOpen }}
+          context={{
+            user,
+            setIsLoginOpen,
+            isUserLoading,
+            setIsRegisterOpen,
+            alertMessage,
+            setAlertMessage,
+          }}
         />
       </div>
 

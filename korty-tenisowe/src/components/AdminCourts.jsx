@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
+import { useOutletContext } from "react-router-dom";
 import DeleteModal from "./DeleteModal";
 import bin from "../assets/bin.png";
 import edit from "../assets/edit.png";
 
 export default function AdminCourts() {
+  const { setAlertMessage } = useOutletContext();
   const [refreshCourts, setRefreshCourts] = useState(0);
   const [isCourtsLoading, setIsCourtsLoading] = useState(true);
   const [courts, setCourts] = useState([
@@ -44,10 +46,10 @@ export default function AdminCourts() {
         setRefreshCourts((prev) => prev + 1);
       } else {
         const data = await response.json();
-        alert(data.error);
+        setAlertMessage(data.error);
       }
     } catch (error) {
-      alert("Błąd serwera.");
+      setAlertMessage("Błąd serwera.");
     }
   };
 
@@ -65,14 +67,14 @@ export default function AdminCourts() {
         },
       );
       if (response.ok) {
-        alert("Kort został usunięty!");
+        setAlertMessage("Kort został usunięty!");
         setRefreshCourts((prev) => prev + 1);
       } else {
         const data = await response.json();
-        alert(data.error);
+        setAlertMessage(data.error);
       }
     } catch (error) {
-      alert("Błąd serwera.");
+      setAlertMessage("Błąd serwera.");
     } finally {
       setItemToDelete(null);
     }
@@ -98,16 +100,16 @@ export default function AdminCourts() {
         },
       );
       if (response.ok) {
-        alert("Kort został zaktualizowany!");
+        setAlertMessage("Kort został zaktualizowany!");
         setRefreshCourts((prev) => prev + 1);
         setCourtToEdit(null);
         setCourtEditFormData({});
       } else {
         const data = await response.json();
-        alert(data.error);
+        setAlertMessage(data.error);
       }
     } catch (error) {
-      alert("Błąd serwera.");
+      setAlertMessage("Błąd serwera.");
     }
   };
 

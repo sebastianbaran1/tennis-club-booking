@@ -18,15 +18,14 @@ export default function UserNavigation({ user, onLogout, closeMenu }) {
               </Link>
             </>
           )}
+          <button
+            className="header__button header__button-logout"
+            onClick={onLogout}
+          >
+            Wyloguj się
+          </button>
         </>
       )}
-
-      <button
-        className="header__button header__button-logout"
-        onClick={onLogout}
-      >
-        Wyloguj się
-      </button>
     </div>
   );
 }

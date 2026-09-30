@@ -139,13 +139,12 @@
   font-size: 0.9rem;
   font-weight: 500;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  transition: transform 0.2s;
+  transition: all 0.2s;
 }
 
 .res-mine {
   background-color: #93f0b0;
   color: #22543d;
-  cursor: pointer;
 }
 
 .res-mine:hover {
@@ -156,7 +155,16 @@
 .res-taken {
   background-color: #fed7d7;
   color: #822727;
-  cursor: not-allowed;
+}
+
+.res-taken-staff {
+  background-color: #fed7d7;
+  color: #822727;
+}
+
+.res-taken-staff:hover {
+  transform: scale(0.98);
+  background-color: #fab8b8;
 }
 
 .booking-modal-overlay {

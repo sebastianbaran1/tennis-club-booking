@@ -1,0 +1,43 @@
+.alert-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 999;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 0.5s ease,
+    visibility 0.5s ease;
+  pointer-events: none;
+}
+
+.alert-overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.alert {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-width: 300px;
+  padding: 10px 20px;
+  border-radius: 5px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.235);
+  background-color: #fcfbf8;
+  transform: translateY(-50px);
+  transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  color: var(--color-secondary);
+  font-size: 1.1rem;
+  font-family: var(--sans-font);
+  font-weight: 400;
+}
+
+.alert-overlay.active .alert {
+  transform: translateY(50px);
+}

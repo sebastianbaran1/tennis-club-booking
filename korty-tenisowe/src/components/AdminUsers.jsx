@@ -1,9 +1,11 @@
 import { useState, useEffect, useMemo } from "react";
+import { useOutletContext } from "react-router-dom";
 import DeleteModal from "./DeleteModal";
 import bin from "../assets/bin.png";
 import edit from "../assets/edit.png";
 
 export default function AdminUsers() {
+  const { setAlertMessage } = useOutletContext();
   const [users, setUsers] = useState([
     {
       id: 1,
@@ -47,14 +49,14 @@ export default function AdminUsers() {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (response.ok) {
-        alert("Uzytkownik został usunięty!");
+        setAlertMessage("Uzytkownik został usunięty!");
         setRefreshUsers((prev) => prev + 1);
       } else {
         const data = await response.json();
-        alert(data.error);
+        setAlertMessage(data.error);
       }
     } catch (error) {
-      alert("Błąd serwera.");
+      setAlertMessage("Błąd serwera.");
     } finally {
       setItemToDelete(null);
     }
@@ -78,16 +80,16 @@ export default function AdminUsers() {
         }),
       });
       if (response.ok) {
-        alert("Uzytkownik został zaktualizowany!");
+        setAlertMessage("Uzytkownik został zaktualizowany!");
         setRefreshUsers((prev) => prev + 1);
         setUserToEdit(null);
         setUserEditFormData({});
       } else {
         const data = await response.json();
-        alert(data.error);
+        setAlertMessage(data.error);
       }
     } catch (error) {
-      alert("Błąd serwera.");
+      setAlertMessage("Błąd serwera.");
     }
   };
 

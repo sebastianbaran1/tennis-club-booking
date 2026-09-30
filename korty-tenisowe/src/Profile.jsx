@@ -4,7 +4,7 @@ import Reservation from "./components/Reservation";
 import "./Profile.css";
 
 export default function Profile() {
-  const { user, isUserLoading } = useOutletContext();
+  const { user, isUserLoading, setAlertMessage } = useOutletContext();
   const [myReservations, setMyReservations] = useState([]);
   const [activeTab, setActiveTab] = useState("Active");
   const [isDataLoading, setIsDataLoading] = useState(true);
@@ -117,14 +117,14 @@ export default function Profile() {
       );
 
       if (response.ok) {
-        alert("Rezerwacja odwołana!");
+        setAlertMessage("Rezerwacja odwołana!");
         setMyReservations((prev) => prev.filter((r) => r.id !== reservationId));
       } else {
         const data = await response.json();
-        alert(data.error);
+        setAlertMessage(data.error);
       }
     } catch (error) {
-      alert("Błąd połączenia z serwerem.");
+      setAlertMessage("Błąd połączenia z serwerem.");
     }
   };
 

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useOutletContext } from "react-router-dom";
 import clock from "../assets/clock.png";
 
 const daysOrder = [1, 2, 3, 4, 5, 6, 0];
@@ -70,6 +71,7 @@ function TimeSelector({
 }
 
 export default function AdminSchedule() {
+  const { setAlertMessage } = useOutletContext();
   const [activeTab, setActiveTab] = useState("weekly");
   const [isScheduleLoading, setIsScheduleLoading] = useState(true);
   const [schedule, setSchedule] = useState({
@@ -95,7 +97,6 @@ export default function AdminSchedule() {
   };
 
   const timeToMinutes = (timeString) => {
-    if (timeString === "00:00") return 24 * 60;
     const [hours, minutes] = timeString.split(":").map(Number);
     return hours * 60 + minutes;
   };
@@ -103,13 +104,23 @@ export default function AdminSchedule() {
   const isScheduleValid = (openString, closeString) => {
     if (openString === "--:--" && closeString === "--:--") return true;
     if (openString === "--:--" || closeString === "--:--") return false;
-    return timeToMinutes(closeString) - timeToMinutes(openString) > 0;
+
+    const openMinutes = timeToMinutes(openString);
+    let closeMinutes = timeToMinutes(closeString);
+
+    if (closeString === "00:00") {
+      closeMinutes = 24 * 60;
+    }
+
+    return closeMinutes - openMinutes > 0;
   };
 
   const handleSubmitSchedule = async () => {
     for (let i = 0; i <= 6; i++) {
       if (isScheduleValid(schedule[i].open, schedule[i].close) === false) {
-        alert("Godzina zamknięcia musi być późniejsza niż godzina otwarcia!");
+        setAlertMessage(
+          "Godzina zamknięcia musi być późniejsza niż godzina otwarcia!",
+        );
         return;
       }
     }
@@ -129,19 +140,19 @@ export default function AdminSchedule() {
       );
       const data = await response.json();
       if (response.ok) {
-        alert("Harmonogram został zaktualizowany!");
+        setAlertMessage("Harmonogram został zaktualizowany!");
       } else {
-        alert(data.error);
+        setAlertMessage(data.error);
       }
     } catch (error) {
-      alert("Błąd połączenia z serwerem.");
+      setAlertMessage("Błąd połączenia z serwerem.");
     }
   };
 
   const handleAddNewClosedDay = () => {
-    if (newClosedDay === "") return alert("Wybierz dzień");
+    if (newClosedDay === "") return setAlertMessage("Wybierz dzień");
     if (closedDays.includes(newClosedDay))
-      return alert("Ten dzień juz jest na liście ");
+      return setAlertMessage("Ten dzień juz jest na liście ");
 
     setClosedDays(
       [...closedDays, newClosedDay].sort((a, b) => a.localeCompare(b)),
@@ -165,12 +176,12 @@ export default function AdminSchedule() {
       );
       const data = await response.json();
       if (response.ok) {
-        alert("Dni wolne zostały zaktualizowane!");
+        setAlertMessage("Dni wolne zostały zaktualizowane!");
       } else {
-        alert(data.error);
+        setAlertMessage(data.error);
       }
     } catch (error) {
-      alert("Błąd połączenia z serwerem.");
+      setAlertMessage("Błąd połączenia z serwerem.");
     }
   };
 
