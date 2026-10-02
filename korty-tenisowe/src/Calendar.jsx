@@ -2,11 +2,13 @@ import { useOutletContext, Navigate } from "react-router-dom";
 import { useState, useEffect, useMemo, Fragment } from "react";
 import "./Calendar.css";
 import BookingModal from "./components/BookingModal";
+import useWindowConfirm from "./hooks/useWindowConfirm";
 
 const timeToMinutes = (timeString) => {
   if (!timeString || typeof timeString !== "string" || timeString === "--:--") {
     return 0;
   }
+  if (timeString === "00:00") return 24 * 60;
   const [hours, minutes] = timeString.split(":").map(Number);
   return hours * 60 + minutes;
 };
@@ -41,6 +43,13 @@ export default function Calendar() {
   const [isUsersLoading, setIsUsersLoading] = useState(true);
   const isStaff = ["ADMIN", "RECEPTIONIST", "DEMO_ADMIN"].includes(user?.role);
   const todaySchedule = schedule[new Date(selectedDate).getUTCDay()];
+  const [confirmModal, windowConfirm] = useWindowConfirm(
+    "Potwierdzenie",
+    "Czy na pewno chcesz odwołać rezerwację",
+    "",
+    "Anuluj",
+    "Odwołaj",
+  );
 
   const timeSlots = useMemo(() => {
     if (!schedule || schedule.length === 0) return [];
@@ -301,9 +310,7 @@ export default function Calendar() {
   };
 
   const handleCancelReservation = async (reservationId) => {
-    const confirm = window.confirm(
-      "Czy na pewno chcesz odwołać tę rezerwację?",
-    );
+    const confirm = await windowConfirm();
     if (!confirm) return;
 
     try {
@@ -374,7 +381,6 @@ export default function Calendar() {
             </select>
           </div>
         </div>
-
         {isClubClosedToday ? (
           <div>Klub tenisowy nieczynny</div>
         ) : (
@@ -389,7 +395,6 @@ export default function Calendar() {
               >
                 Godzina
               </div>
-
               {visibleCourts?.map((court, index) => (
                 <div
                   className="grid-header"
@@ -400,7 +405,6 @@ export default function Calendar() {
                   <span className="grid-header__surface">{court.surface}</span>
                 </div>
               ))}
-
               {timeSlots.map((slotTime, index) => (
                 <div
                   className="grid-time"
@@ -410,7 +414,6 @@ export default function Calendar() {
                   {slotTime === "24:00" ? "00:00" : slotTime}
                 </div>
               ))}
-
               {timeSlots.map((slotTime, rIndex) =>
                 visibleCourts?.map((court, cIndex) => {
                   const past = isPastSlot(slotTime);
@@ -443,7 +446,6 @@ export default function Calendar() {
                   );
                 }),
               )}
-
               {reservations
                 .filter((res) =>
                   visibleCourts.some((c) => c.id === res.courtId),
@@ -498,6 +500,7 @@ export default function Calendar() {
             </div>
           </div>
         )}
+        {confirmModal}
         {bookingModal.isOpen && (
           <BookingModal
             bookingModal={bookingModal}

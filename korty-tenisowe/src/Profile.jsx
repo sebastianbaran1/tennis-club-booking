@@ -2,6 +2,7 @@ import { useOutletContext, Navigate } from "react-router-dom";
 import { useState, useEffect, useMemo } from "react";
 import Reservation from "./components/Reservation";
 import "./Profile.css";
+import useWindowConfirm from "./hooks/useWindowConfirm";
 
 export default function Profile() {
   const { user, isUserLoading, setAlertMessage } = useOutletContext();
@@ -9,6 +10,13 @@ export default function Profile() {
   const [activeTab, setActiveTab] = useState("Active");
   const [isDataLoading, setIsDataLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [confirmModal, windowConfirm] = useWindowConfirm(
+    "Potwierdzenie",
+    "Czy na pewno chcesz odwołać rezerwację",
+    "",
+    "Anuluj",
+    "Odwołaj",
+  );
 
   const currentWarsawTime = useMemo(() => {
     const timeNow = new Intl.DateTimeFormat("pl-PL", {
@@ -98,9 +106,7 @@ export default function Profile() {
   }
 
   const handleCancelReservation = async (reservationId) => {
-    const confirm = window.confirm(
-      "Czy na pewno chcesz odwołać tę rezerwację?",
-    );
+    const confirm = await windowConfirm();
     if (!confirm) return;
 
     try {
@@ -196,6 +202,7 @@ export default function Profile() {
           </div>
         </div>
       </div>
+      {confirmModal}
     </div>
   );
 }

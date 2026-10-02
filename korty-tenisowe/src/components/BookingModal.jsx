@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useOutletContext } from "react-router-dom";
-
+import "./Modal.css";
 export default function BookingModal({
   bookingModal,
   setBookingModal,
@@ -128,13 +128,13 @@ export default function BookingModal({
   }, [bookingModal.isOpen]);
 
   return (
-    <div className="booking-modal-overlay active" onClick={handleClose}>
-      <div className="booking-modal" onClick={(e) => e.stopPropagation()}>
-        <button className="booking-modal__close" onClick={handleClose}>
+    <div className="modal-overlay active" onClick={handleClose}>
+      <div className="modal" onClick={(e) => e.stopPropagation()}>
+        <button className="modal__close" onClick={handleClose}>
           ✕
         </button>
-        <h2 className="booking-modal__title">Potwierdź rezerwację</h2>
-        <p className="booking-modal__subtitle">
+        <h2 className="modal__title">Potwierdź rezerwację</h2>
+        <p className="modal__subtitle">
           Rezerwujesz{" "}
           <span className="booking-modal__court-highlight">
             {courts.find((c) => c.id === bookingModal.courtId)?.name}
@@ -145,7 +145,7 @@ export default function BookingModal({
           </span>{" "}
           ({selectedDate}).
         </p>
-        <form className="booking-modal__form" onSubmit={confirmBooking}>
+        <form className="modal__form" onSubmit={confirmBooking}>
           {isStaff && (
             <div className="booking-modal__form-staff">
               <div className="booking-modal__form-buttons">
@@ -245,7 +245,7 @@ export default function BookingModal({
                           firstName: e.target.value,
                         })
                       }
-                      autocomplete="off"
+                      autoComplete="off"
                     />
                   </div>
                   <div className="tabs-new-client">
@@ -262,7 +262,7 @@ export default function BookingModal({
                           lastName: e.target.value,
                         })
                       }
-                      autocomplete="off"
+                      autoComplete="off"
                     />
                   </div>
                   <div className="tabs-new-client">
@@ -281,7 +281,7 @@ export default function BookingModal({
                           phone: e.target.value,
                         })
                       }
-                      autocomplete="off"
+                      autoComplete="off"
                     />
                   </div>
                   <div className="tabs-new-client">
@@ -298,7 +298,7 @@ export default function BookingModal({
                           email: e.target.value,
                         })
                       }
-                      autocomplete="off"
+                      autoComplete="off"
                     />
                   </div>
                 </div>
@@ -333,7 +333,7 @@ export default function BookingModal({
             </div>
           </div>
 
-          <button type="submit" className="booking-modal__submit">
+          <button type="submit" className="modal__submit">
             {isStaff ? "Zarezerwuj" : "Zarezerwuj i graj!"}
           </button>
         </form>

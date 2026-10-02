@@ -666,49 +666,6 @@
   border: var(--color-primary) solid 1px;
 }
 
-.modal {
-  max-width: 450px;
-}
-.modal__title {
-  font-size: 1.8rem;
-}
-.modal__subtitle-highlight {
-  font-weight: bold;
-}
-.modal__buttons {
-  display: flex;
-  justify-content: space-between;
-  gap: 20px;
-  margin-top: 20px;
-}
-.modal__button-cancel {
-  border: none;
-  border-radius: 3px;
-  height: 45px;
-  width: 150px;
-  font-weight: bold;
-  background-color: #dadde2;
-  color: var(--color-secondary);
-  cursor: pointer;
-}
-
-.modal__button-confirm {
-  border: none;
-  border-radius: 3px;
-  height: 45px;
-  width: 150px;
-  font-weight: bold;
-  background-color: #f82b2b;
-  color: #fcfbf8;
-  cursor: pointer;
-}
-.modal__button-confirm:hover {
-  background-color: #ca1e1e;
-}
-.modal__button-cancel:hover {
-  background-color: #bfc2c4;
-}
-
 .schedule__exceptions {
   display: flex;
   flex-direction: column;

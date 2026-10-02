@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import "./AuthModal.css";
+import "./Modal.css";
 
 export default function AuthModal({
   isOpen,

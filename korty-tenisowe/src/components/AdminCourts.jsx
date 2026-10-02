@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useOutletContext } from "react-router-dom";
-import DeleteModal from "./DeleteModal";
+import ConfirmModal from "./ConfirmModal";
 import bin from "../assets/bin.png";
 import edit from "../assets/edit.png";
 
@@ -329,11 +329,13 @@ export default function AdminCourts() {
       </div>
 
       {itemToDelete && (
-        <DeleteModal
+        <ConfirmModal
           title={itemToDelete.title}
-          name={itemToDelete.name}
-          buttonText={itemToDelete.buttonText}
-          handleDelete={itemToDelete.action}
+          subtitle="Czy na pewno chcesz usunąć: "
+          highlight={itemToDelete.name}
+          cancelText="Anuluj"
+          confirmText={itemToDelete.buttonText}
+          handleConfirm={itemToDelete.action}
           onClose={() => setItemToDelete(null)}
         />
       )}
