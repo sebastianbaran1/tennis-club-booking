@@ -152,6 +152,11 @@
   background-color: #86d9a3;
 }
 
+.res-mine.past:hover {
+  transform: none;
+  background-color: #93f0b0;
+}
+
 .res-taken {
   background-color: #fed7d7;
   color: #822727;
@@ -165,6 +170,11 @@
 .res-taken-staff:hover {
   transform: scale(0.98);
   background-color: #fab8b8;
+}
+
+.res-taken-staff.past:hover {
+  transform: none;
+  background-color: #fed7d7;
 }
 
 .reservation-block-under {

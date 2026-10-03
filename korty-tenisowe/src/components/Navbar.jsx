@@ -9,6 +9,13 @@ export default function Navbar({ user, onLogout }) {
   const toggleMenu = () => setIsOpen((prev) => !prev);
   const closeMenu = () => setIsOpen(false);
 
+  let offset = 0;
+  if (user) {
+    user.role === "ADMIN" || user.role === "DEMO_ADMIN"
+      ? (offset = 3)
+      : (offset = 2);
+  }
+
   useEffect(() => {
     if (isOpen) {
       document.body.classList.add("no-scroll");
@@ -50,13 +57,17 @@ export default function Navbar({ user, onLogout }) {
             onLogout={onLogout}
             closeMenu={closeMenu}
           />
-          <li className="nav__menu-separator"></li>
-          <li className="nav__menu-item">
+
+          <li
+            className="nav__menu-separator"
+            style={{ "--i": 0.5 + offset }}
+          ></li>
+          <li className="nav__menu-item" style={{ "--i": 1 + offset }}>
             <Link to="/" className="nav__menu-item-link" onClick={closeMenu}>
               Strona główna
             </Link>
           </li>
-          <li className="nav__menu-item">
+          <li className="nav__menu-item" style={{ "--i": 2 + offset }}>
             <Link
               to="/o-nas"
               className="nav__menu-item-link"
@@ -65,7 +76,7 @@ export default function Navbar({ user, onLogout }) {
               O nas
             </Link>
           </li>
-          <li className="nav__menu-item">
+          <li className="nav__menu-item" style={{ "--i": 3 + offset }}>
             <Link
               to="/czlonkostwo"
               className="nav__menu-item-link"
@@ -74,7 +85,7 @@ export default function Navbar({ user, onLogout }) {
               Członkostwo
             </Link>
           </li>
-          <li className="nav__menu-item">
+          <li className="nav__menu-item" style={{ "--i": offset + 4 }}>
             <Link
               to="/wydarzenia"
               className="nav__menu-item-link"
@@ -83,7 +94,7 @@ export default function Navbar({ user, onLogout }) {
               Wydarzenia
             </Link>
           </li>
-          <li className="nav__menu-item">
+          <li className="nav__menu-item" style={{ "--i": 5 + offset }}>
             <Link
               to="/kontakt"
               className="nav__menu-item-link"

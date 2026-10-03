@@ -123,7 +123,7 @@ export default function Calendar() {
     if (todaySchedule.close === "00:00") {
       closeMin = 24 * 60;
     }
-
+    if (todaySchedule?.open === "00:00" && slotTime === "00:00") return false;
     return closeMin - timeToMinutes(slotTime) < 60;
   };
 
@@ -134,9 +134,10 @@ export default function Calendar() {
   };
 
   const hasCollision = (slotTime, courtId) => {
+    const slotTimeMinutes = slotTime === "00:00" ? 0 : timeToMinutes(slotTime);
     return reservations.find(
       (res) =>
-        timeToMinutes(res.startTime) - timeToMinutes(slotTime) === 30 &&
+        timeToMinutes(res.startTime) - slotTimeMinutes === 30 &&
         res.courtId === courtId,
     );
   };
@@ -337,9 +338,12 @@ export default function Calendar() {
   };
 
   const getRowIndex = (time) => {
-    const startMin = timeToMinutes(
-      schedule[new Date(selectedDate).getUTCDay()].open,
+    let startMin = timeToMinutes(
+      schedule[new Date(selectedDate).getUTCDay()]?.open,
     );
+    if (schedule[new Date(selectedDate).getUTCDay()]?.open === "00:00")
+      startMin = 0;
+    if (time === "00:00") return 2;
     return (timeToMinutes(time) - startMin) / 30 + 2;
   };
 
@@ -457,8 +461,8 @@ export default function Calendar() {
                     visibleCourts.findIndex((c) => c.id === res.courtId) + 2;
 
                   const isMyRes = res.userId === user.id;
-                  const canCancel = isMyRes || isStaff;
                   const isPast = isPastSlot(res.startTime);
+                  const canCancel = (isMyRes || isStaff) && !isPast;
 
                   return (
                     <Fragment key={`res-block ${res.id}`}>
@@ -471,7 +475,7 @@ export default function Calendar() {
                       ></div>
 
                       <div
-                        className={`reservation-block ${isMyRes ? "res-mine" : isStaff ? "res-taken-staff" : "res-taken"}`}
+                        className={`reservation-block ${isMyRes ? "res-mine" : isStaff ? "res-taken-staff" : "res-taken"} ${isPast ? "past" : ""}`}
                         style={{
                           gridRow: `${rowStart} / span ${rowSpan}`,
                           gridColumn: colIndex,
@@ -490,7 +494,7 @@ export default function Calendar() {
                           </span>
                         ) : (
                           <span className="reservation-user-details">
-                            {isMyRes && "(kliknij by usunąć)"}
+                            {isMyRes && !isPast && "(kliknij by odwołać)"}
                           </span>
                         )}
                       </div>

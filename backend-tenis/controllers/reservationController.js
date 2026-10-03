@@ -86,7 +86,10 @@ export const createReservation = async (req, res) => {
       return res.status(400).json({ error: "Ta godzina już minęła." });
     }
 
-    const newStartMin = timeToMinutes(startTime);
+    let newStartMin = timeToMinutes(startTime);
+    if (startTime === "00:00") {
+      newStartMin = 0;
+    }
     const newEndMin = newStartMin + parseInt(duration);
 
     const existingReservations = await prisma.reservation.findMany({
@@ -231,6 +234,24 @@ export const deleteReservation = async (req, res) => {
         .status(403)
         .json({ error: "Nie możesz usunąć cudzej rezerwacji!" });
     }
+
+    const now = new Date();
+    const todayStr = new Intl.DateTimeFormat("en-CA", {
+      timeZone: "Europe/Warsaw",
+    }).format(now);
+    const timeStr = new Intl.DateTimeFormat("pl-PL", {
+      timeZone: "Europe/Warsaw",
+      hour: "2-digit",
+      minute: "2-digit",
+    }).format(now);
+
+    if (
+      reservation.date < todayStr ||
+      (reservation.date == todayStr && reservation.startTime < timeStr)
+    )
+      return res
+        .status(400)
+        .json({ error: "Nie możesz usunąć przeszłych rezerwacji!" });
 
     await prisma.reservation.delete({
       where: { id: reservationId },
