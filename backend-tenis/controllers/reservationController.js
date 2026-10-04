@@ -1,4 +1,4 @@
-import prisma from "../config/db.js";
+import prisma, { Prisma } from "../config/db.js";
 import { timeToMinutes } from "../utils/helpers.js";
 
 export const getReservations = async (req, res) => {
@@ -76,44 +76,19 @@ export const createReservation = async (req, res) => {
     const [currentHours, currentMins] = timeStr.split(":").map(Number);
     const currentMinutes = currentHours * 60 + currentMins;
 
-    const requestMinutes = timeToMinutes(startTime);
+    const newStartMin = startTime === "00:00" ? 0 : timeToMinutes(startTime);
 
     if (date < todayStr) {
       return res.status(400).json({ error: "Wybierz przyszłą datę." });
     }
 
-    if (date === todayStr && requestMinutes <= currentMinutes) {
+    if (date === todayStr && newStartMin <= currentMinutes) {
       return res.status(400).json({ error: "Ta godzina już minęła." });
     }
 
-    let newStartMin = timeToMinutes(startTime);
-    if (startTime === "00:00") {
-      newStartMin = 0;
-    }
-    const newEndMin = newStartMin + parseInt(duration);
-
-    const existingReservations = await prisma.reservation.findMany({
-      where: {
-        courtId: parseInt(courtId),
-        date: date,
-      },
-    });
-
-    const hasCollision = existingReservations.some((res) => {
-      const existStartMin = timeToMinutes(res.startTime);
-      const existEndMin = existStartMin + res.duration;
-
-      return newStartMin < existEndMin && newEndMin > existStartMin;
-    });
-
-    if (hasCollision) {
-      return res.status(400).json({
-        error:
-          "Niestety, ten termin nakłada się na inną rezerwację na tym korcie.",
-      });
-    }
-
     const parsedDuration = parseInt(duration);
+
+    const newEndMin = newStartMin + parsedDuration;
 
     if (parsedDuration !== 60 && parsedDuration !== 90) {
       return res.status(400).json({ error: "Zły czas rezerwacji" });
@@ -145,66 +120,100 @@ export const createReservation = async (req, res) => {
         .json({ error: "Klub jest nieczynny w ten dzień." });
     }
 
+    const scheduleOpenMin =
+      schedule.open === "00:00" ? 0 : timeToMinutes(schedule.open);
+
+    if (newStartMin < scheduleOpenMin) {
+      return res.status(400).json({ error: "Zbyt wczesna godzina rezerwacji" });
+    }
+
     if (newEndMin > timeToMinutes(schedule.close)) {
       return res.status(400).json({ error: "Zbyt długi czas rezerwacji" });
     }
 
-    let finalUserId = user.id;
+    const result = await prisma.$transaction(
+      async (tx) => {
+        let finalUserId = user.id;
 
-    const result = await prisma.$transaction(async (tx) => {
-      if (
-        user.role === "RECEPTIONIST" ||
-        user.role === "ADMIN" ||
-        user.role === "DEMO_ADMIN"
-      ) {
-        finalUserId = userId;
+        const existingReservations = await tx.reservation.findMany({
+          where: {
+            courtId: parseInt(courtId),
+            date: date,
+          },
+        });
 
-        if (userId === null) {
-          const existingUser = await tx.user.findFirst({
-            where: {
-              email: newClient.email,
-            },
-          });
+        const hasCollision = existingReservations.some((res) => {
+          const existStartMin =
+            res.startTime === "00:00" ? 0 : timeToMinutes(res.startTime);
+          const existEndMin = existStartMin + res.duration;
 
-          if (existingUser !== null) {
-            throw new Error("USER_EXISTS");
-          }
+          return newStartMin < existEndMin && newEndMin > existStartMin;
+        });
 
-          const guestData = await tx.user.create({
-            data: {
-              role: "GUEST",
-              phone: newClient.phone,
-              firstName: newClient.firstName,
-              lastName: newClient.lastName,
-              email: newClient.email,
-            },
-          });
-
-          finalUserId = guestData.id;
+        if (hasCollision) {
+          throw new Error("COLLISION");
         }
-      }
 
-      const newReservation = await tx.reservation.create({
-        data: {
-          courtId: parseInt(courtId),
-          date,
-          startTime,
-          duration: parseInt(duration),
-          userId: parseInt(finalUserId),
-        },
-      });
+        if (
+          user.role === "RECEPTIONIST" ||
+          user.role === "ADMIN" ||
+          user.role === "DEMO_ADMIN"
+        ) {
+          finalUserId = userId;
 
-      return newReservation;
-    });
+          if (userId === null) {
+            const existingUser = await tx.user.findFirst({
+              where: {
+                email: newClient.email,
+              },
+            });
+
+            if (existingUser !== null) {
+              throw new Error("USER_EXISTS");
+            }
+
+            const guestData = await tx.user.create({
+              data: {
+                role: "GUEST",
+                phone: newClient.phone,
+                firstName: newClient.firstName,
+                lastName: newClient.lastName,
+                email: newClient.email,
+              },
+            });
+
+            finalUserId = guestData.id;
+          }
+        }
+
+        const newReservation = await tx.reservation.create({
+          data: {
+            courtId: parseInt(courtId),
+            date,
+            startTime,
+            duration: parseInt(duration),
+            userId: parseInt(finalUserId),
+          },
+        });
+
+        return newReservation;
+      },
+      {
+        isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+      },
+    );
 
     res
       .status(201)
       .json({ message: "Kort zarezerwowany!", reservation: result });
   } catch (error) {
-    if (error.message === "USER_EXISTS") {
-      return res.status(400).json({
-        error: "Taki uzytkownik juz istnieje",
+    if (error.message === "COLLISION" || error.code === "P2034") {
+      return res.status(409).json({
+        error: "Niestety, ten termin jest już zajęty na tym korcie.",
       });
+    }
+    if (error.message === "USER_EXISTS") {
+      return res.status(400).json({ error: "Taki użytkownik już istnieje." });
     }
     console.error("Błąd podczas rezerwacji:", error);
     res.status(500).json({ error: "Wystąpił błąd serwera." });

@@ -35,8 +35,8 @@ export default function Navbar({ user, onLogout }) {
           <div className="nav__brand">
             <img src={logo} alt="logo" className="nav__logo" />
             <div className="nav__name-container">
-              <span className="nav__name-1">Klub Tenisowy </span>
-              <span className="nav__name-2">Rzeszów</span>
+              <span className="nav__name-1">Rzeszów </span>
+              <span className="nav__name-2">Tennis Club</span>
             </div>
           </div>
         </Link>

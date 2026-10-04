@@ -16,7 +16,7 @@ export default function About() {
       <div className="about__hero">
         <h1 className="about__hero-title">Tradycja, Pasja, Tenis</h1>
         <p className="about__hero-subtitle">
-          Poznaj historię Rzeszów Tenis Club
+          Poznaj historię Rzeszów Tennis Club
         </p>
       </div>
       <div className="about__content">

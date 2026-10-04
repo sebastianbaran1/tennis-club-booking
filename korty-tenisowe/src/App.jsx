@@ -21,12 +21,15 @@ function App() {
 
       if (token) {
         try {
-          const response = await fetch("http://localhost:5005/api/verify", {
-            method: "GET",
-            headers: {
-              Authorization: `Bearer ${token}`,
+          const response = await fetch(
+            `${import.meta.env.VITE_API_URL}/api/verify`,
+            {
+              method: "GET",
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
             },
-          });
+          );
 
           if (response.ok) {
             const data = await response.json();
@@ -49,14 +52,17 @@ function App() {
 
   const handleLoginSubmit = async (formData) => {
     try {
-      const response = await fetch("http://localhost:5005/api/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: formData.email,
-          password: formData.password,
-        }),
-      });
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/login`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: formData.email,
+            password: formData.password,
+          }),
+        },
+      );
 
       const data = await response.json();
 
@@ -83,11 +89,14 @@ function App() {
 
   const handleRegisterSubmit = async (formData) => {
     try {
-      const response = await fetch("http://localhost:5005/api/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/register`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formData),
+        },
+      );
 
       const data = await response.json();
 

@@ -100,7 +100,7 @@ export default function Events() {
           heading="Turniej dziecięcy"
           price="Bezpłatne"
           category="U-10 oraz U-12"
-          text="Oficjalne zakończenie wakacji z rakietą! Zapraszamy wszystkie dzieci trenujące w naszej szkółce na mini-turniej. Zapewniamy mnóstwo gier i zabaw ruchowych, medale ala kazaego uczestnika oraz stoaki poczęstunek."
+          text="Oficjalne zakończenie wakacji z rakietą! Zapraszamy wszystkie dzieci trenujące w naszej szkółce na mini-turniej. Zapewniamy mnóstwo gier i zabaw ruchowych, medale dla każdego uczestnika oraz słodki poczęstunek."
           isPast={false}
           onClick={handleClick}
         />

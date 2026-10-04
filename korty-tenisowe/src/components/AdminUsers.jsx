@@ -44,12 +44,15 @@ export default function AdminUsers() {
   const handleDeleteUser = async (userId) => {
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch(`http://localhost:5005/api/user/${userId}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/user/${userId}`,
+        {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
       if (response.ok) {
-        setAlertMessage("Uzytkownik został usunięty!");
+        setAlertMessage("Użytkownik został usunięty!");
         setRefreshUsers((prev) => prev + 1);
       } else {
         const data = await response.json();
@@ -65,22 +68,25 @@ export default function AdminUsers() {
   const handleSaveUser = async (userId) => {
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch(`http://localhost:5005/api/user/${userId}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/user/${userId}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            firstName: userEditFormData.firstName,
+            lastName: userEditFormData.lastName,
+            email: userEditFormData.email,
+            phone: userEditFormData.phone,
+            role: userEditFormData.role,
+          }),
         },
-        body: JSON.stringify({
-          firstName: userEditFormData.firstName,
-          lastName: userEditFormData.lastName,
-          email: userEditFormData.email,
-          phone: userEditFormData.phone,
-          role: userEditFormData.role,
-        }),
-      });
+      );
       if (response.ok) {
-        setAlertMessage("Uzytkownik został zaktualizowany!");
+        setAlertMessage("Użytkownik został zaktualizowany!");
         setRefreshUsers((prev) => prev + 1);
         setUserToEdit(null);
         setUserEditFormData({});
@@ -114,9 +120,12 @@ export default function AdminUsers() {
     const fetchUsers = async () => {
       try {
         const token = localStorage.getItem("token");
-        const response = await fetch("http://localhost:5005/api/usersAdmin", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const response = await fetch(
+          `${import.meta.env.VITE_API_URL}/api/usersAdmin`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          },
+        );
         const data = await response.json();
         if (response.ok) {
           setUsers(data.users);
@@ -342,7 +351,7 @@ export default function AdminUsers() {
                               ))}
                           </select>
                           {userEditFormData.role === "GUEST" && (
-                            <div>Zmiana roli gościa niemozliwa</div>
+                            <div>Zmiana roli gościa niemożliwa</div>
                           )}
                         </div>
                         <div className="user-edit-button-wrapper">

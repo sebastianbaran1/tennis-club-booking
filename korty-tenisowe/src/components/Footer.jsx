@@ -16,7 +16,7 @@ export default function Footer() {
             </div>
             <h2 className="footer__name">
               <span className="footer__name-1">Rzeszów</span>
-              <span className="footer__name-2">Tenis Klub</span>
+              <span className="footer__name-2">Tennis Club.</span>
             </h2>
           </div>
 
@@ -80,8 +80,8 @@ export default function Footer() {
 
         <div className="footer__bottom">
           <p className="footer__copyright">
-            © {new Date().getFullYear()} Rzeszów Tenis Klub | ul. Korty Tenisowe
-            1, 35-000 Rzeszów
+            © {new Date().getFullYear()} Rzeszów Tennis Club | ul. Korty
+            Tenisowe 1, 35-000 Rzeszów
           </p>
         </div>
       </div>

@@ -41,21 +41,24 @@ export default function BookingModal({
 
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch("http://localhost:5005/api/reservations", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/reservations`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            courtId,
+            date: selectedDate,
+            startTime,
+            duration: bookingDuration,
+            userId,
+            newClient,
+          }),
         },
-        body: JSON.stringify({
-          courtId,
-          date: selectedDate,
-          startTime,
-          duration: bookingDuration,
-          userId,
-          newClient,
-        }),
-      });
+      );
       const data = await response.json();
       if (response.ok) {
         handleClose();

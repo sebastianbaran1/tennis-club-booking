@@ -51,7 +51,7 @@ export default function Profile() {
       try {
         const token = localStorage.getItem("token");
         const response = await fetch(
-          `http://localhost:5005/api/users/${user.id}/reservations`,
+          `${import.meta.env.VITE_API_URL}/api/users/${user.id}/reservations`,
           {
             method: "GET",
             headers: {
@@ -112,7 +112,7 @@ export default function Profile() {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        `http://localhost:5005/api/reservations/${reservationId}`,
+        `${import.meta.env.VITE_API_URL}/api/reservations/${reservationId}`,
         {
           method: "DELETE",
           headers: {

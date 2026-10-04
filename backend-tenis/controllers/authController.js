@@ -5,6 +5,9 @@ import prisma from "../config/db.js";
 export const register = async (req, res) => {
   try {
     const { email, password, firstName, lastName, phone } = req.body;
+    if (!email || !password || !firstName || !lastName || !phone) {
+      return res.status(400).json({ error: "Wszystkie pola są wymagane." });
+    }
 
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(password, saltRounds);
@@ -83,11 +86,15 @@ export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
+    if (!email || !password) {
+      return res.status(400).json({ error: "Wszystkie pola są wymagane." });
+    }
+
     const user = await prisma.user.findUnique({
       where: { email },
     });
 
-    if (!user) {
+    if (!user || user.role === "GUEST") {
       return res
         .status(401)
         .json({ error: "Nieprawidłowy adres e-mail lub hasło." });

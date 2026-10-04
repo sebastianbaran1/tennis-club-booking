@@ -128,7 +128,7 @@ export default function AdminSchedule() {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        "http://localhost:5005/api/settings/schedule",
+        `${import.meta.env.VITE_API_URL}/api/settings/schedule`,
         {
           method: "PUT",
           headers: {
@@ -164,7 +164,7 @@ export default function AdminSchedule() {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        "http://localhost:5005/api/settings/exceptions",
+        `${import.meta.env.VITE_API_URL}/api/settings/exceptions`,
         {
           method: "PUT",
           headers: {
@@ -189,8 +189,8 @@ export default function AdminSchedule() {
     const fetchSchedule = async () => {
       try {
         const [scheduleRes, exceptionsRes] = await Promise.all([
-          fetch("http://localhost:5005/api/settings/schedule"),
-          fetch("http://localhost:5005/api/settings/exceptions"),
+          fetch(`${import.meta.env.VITE_API_URL}/api/settings/schedule`),
+          fetch(`${import.meta.env.VITE_API_URL}/api/settings/exceptions`),
         ]);
 
         const [scheduleData, exceptionsData] = await Promise.all([

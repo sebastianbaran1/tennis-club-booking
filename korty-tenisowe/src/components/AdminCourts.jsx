@@ -34,14 +34,17 @@ export default function AdminCourts() {
   const handleAddCourt = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch("http://localhost:5005/api/courts", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/courts`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ name: "Nowy kort", surface: "Mączka" }),
         },
-        body: JSON.stringify({ name: "Nowy kort", surface: "Mączka" }),
-      });
+      );
       if (response.ok) {
         setRefreshCourts((prev) => prev + 1);
       } else {
@@ -58,7 +61,7 @@ export default function AdminCourts() {
       const token = localStorage.getItem("token");
 
       const response = await fetch(
-        `http://localhost:5005/api/courts/${courtId}`,
+        `${import.meta.env.VITE_API_URL}/api/courts/${courtId}`,
         {
           method: "DELETE",
           headers: {
@@ -84,7 +87,7 @@ export default function AdminCourts() {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        `http://localhost:5005/api/courts/${courtId}`,
+        `${import.meta.env.VITE_API_URL}/api/courts/${courtId}`,
         {
           method: "PUT",
           headers: {
@@ -116,7 +119,9 @@ export default function AdminCourts() {
   useEffect(() => {
     const fetchCourts = async () => {
       try {
-        const response = await fetch("http://localhost:5005/api/courts");
+        const response = await fetch(
+          `${import.meta.env.VITE_API_URL}/api/courts`,
+        );
         const data = await response.json();
         if (response.ok) {
           setCourts(data.courts);
@@ -262,7 +267,7 @@ export default function AdminCourts() {
                             <input
                               type="radio"
                               name={`status-${court.id}`}
-                              id={`court-${court.id}-avalible`}
+                              id={`court-${court.id}-available`}
                               checked={courtEditFormData.isBlocked === false}
                               onChange={() => {
                                 setCourtEditFormData({
@@ -272,7 +277,7 @@ export default function AdminCourts() {
                                 });
                               }}
                             />
-                            <label htmlFor={`court-${court.id}-avalible`}>
+                            <label htmlFor={`court-${court.id}-available`}>
                               Dostępny
                             </label>
                           </div>
@@ -312,7 +317,7 @@ export default function AdminCourts() {
                           />
                           <button
                             className="court__button-save"
-                            type="submit"
+                            type="button"
                             onClick={() => handleSaveCourt(court.id)}
                           >
                             Zapisz

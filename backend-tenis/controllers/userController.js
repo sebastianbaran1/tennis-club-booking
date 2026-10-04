@@ -89,6 +89,8 @@ export const updateUser = async (req, res) => {
       data: { firstName, lastName, email, phone, role },
     });
 
+    userToEdit.password = undefined;
+
     res.status(200).json(userToEdit);
   } catch (error) {
     console.error("Błąd podczas edycji użytkownika:", error);
@@ -117,6 +119,8 @@ export const deleteUser = async (req, res) => {
       where: { id: userId },
       data: { isActive: false, email: randomEmail },
     });
+
+    userToDelete.password = undefined;
     res.status(200).json(userToDelete);
   } catch (error) {
     console.error("Błąd podczas usuwania użytkownika:", error);

@@ -28,7 +28,7 @@ export default function Contact() {
           </h2>
           <p className="contact__content-heading-paragraph">
             Nasza recepcja pracuje w godzinach otwarcia klubu. W przypadku spraw
-            pilnych prosimy o kontakt teletoniczny.
+            pilnych prosimy o kontakt telefoniczny.
           </p>
         </div>
         <div className="contact__content-cards">
@@ -56,7 +56,7 @@ export default function Contact() {
           <Card
             label="E - MAIL"
             title="Napisz do nas"
-            text="kontakt@rzeszowtenisklub.pl"
+            text="kontakt@rzeszowtennisclub.pl"
             subtext=""
           />
         </div>

@@ -112,7 +112,8 @@ export default function Calendar() {
     if (nowHours === 24) nowHours = 0;
     const currentMinutes = nowHours * 60 + nowMinutes;
 
-    return timeToMinutes(slotTime) <= currentMinutes;
+    const slotMinutes = slotTime === "00:00" ? 0 : timeToMinutes(slotTime);
+    return slotMinutes <= currentMinutes;
   };
 
   const isTooLate = (slotTime) => {
@@ -135,11 +136,11 @@ export default function Calendar() {
 
   const hasCollision = (slotTime, courtId) => {
     const slotTimeMinutes = slotTime === "00:00" ? 0 : timeToMinutes(slotTime);
-    return reservations.find(
-      (res) =>
-        timeToMinutes(res.startTime) - slotTimeMinutes === 30 &&
-        res.courtId === courtId,
-    );
+    return reservations.find((res) => {
+      const resStart =
+        res.startTime === "00:00" ? 0 : timeToMinutes(res.startTime);
+      return resStart - slotTimeMinutes === 30 && res.courtId === courtId;
+    });
   };
 
   const isClubClosedToday =
@@ -155,12 +156,15 @@ export default function Calendar() {
     const fetchUsers = async () => {
       try {
         const token = localStorage.getItem("token");
-        const response = await fetch(`http://localhost:5005/api/users`, {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
+        const response = await fetch(
+          `${import.meta.env.VITE_API_URL}/api/users`,
+          {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
           },
-        });
+        );
         const data = await response.json();
 
         if (response.ok) {
@@ -211,7 +215,7 @@ export default function Calendar() {
       try {
         const token = localStorage.getItem("token");
         const response = await fetch(
-          `http://localhost:5005/api/reservations?date=${selectedDate}`,
+          `${import.meta.env.VITE_API_URL}/api/reservations?date=${selectedDate}`,
           {
             method: "GET",
             headers: {
@@ -239,9 +243,9 @@ export default function Calendar() {
     const fetchStaticData = async () => {
       try {
         const [courtsRes, exceptionsRes, scheduleRes] = await Promise.all([
-          fetch("http://localhost:5005/api/courts"),
-          fetch("http://localhost:5005/api/settings/exceptions"),
-          fetch("http://localhost:5005/api/settings/schedule"),
+          fetch(`${import.meta.env.VITE_API_URL}/api/courts`),
+          fetch(`${import.meta.env.VITE_API_URL}/api/settings/exceptions`),
+          fetch(`${import.meta.env.VITE_API_URL}/api/settings/schedule`),
         ]);
         const [courtsData, exceptionsData, scheduleData] = await Promise.all([
           courtsRes.json(),
@@ -317,7 +321,7 @@ export default function Calendar() {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        `http://localhost:5005/api/reservations/${reservationId}`,
+        `${import.meta.env.VITE_API_URL}/api/reservations/${reservationId}`,
         {
           method: "DELETE",
           headers: {
@@ -423,17 +427,17 @@ export default function Calendar() {
                   const past = isPastSlot(slotTime);
                   const late = isTooLate(slotTime);
                   const blocked = isBlocked(court.id);
-                  const hasColision = hasCollision(slotTime, court.id);
+                  const collision = hasCollision(slotTime, court.id);
                   return (
                     <div
-                      className={`empty-slot ${blocked ? "slot-blocked" : past || hasColision ? "slot-past" : late ? "slot-late" : ""}`}
+                      className={`empty-slot ${blocked ? "slot-blocked" : past || collision ? "slot-past" : late ? "slot-late" : ""}`}
                       key={`empty-${court.id}-${slotTime}`}
                       style={{ gridRow: rIndex + 2, gridColumn: cIndex + 2 }}
                       onClick={() => {
                         !past &&
                           !late &&
                           !blocked &&
-                          !hasColision &&
+                          !collision &&
                           handleOpenBookingModal(court.id, slotTime);
                       }}
                     >
@@ -443,7 +447,7 @@ export default function Calendar() {
                           ? "Minęło"
                           : late
                             ? "Zbyt późno"
-                            : hasColision
+                            : collision
                               ? ""
                               : "+ Rezerwuj"}
                     </div>
