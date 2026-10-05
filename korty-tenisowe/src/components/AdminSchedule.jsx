@@ -73,7 +73,6 @@ function TimeSelector({
 export default function AdminSchedule() {
   const { setAlertMessage } = useOutletContext();
   const [activeTab, setActiveTab] = useState("weekly");
-  const [isScheduleLoading, setIsScheduleLoading] = useState(true);
   const [schedule, setSchedule] = useState({
     1: { name: "Poniedziałek", open: "08:00", close: "22:00" },
     2: { name: "Wtorek", open: "08:00", close: "22:00" },
@@ -84,17 +83,13 @@ export default function AdminSchedule() {
     0: { name: "Niedziela", open: "08:00", close: "22:00" },
   });
   const [slotToOpen, setSlotToOpen] = useState({ key: null, type: null });
+  const [isScheduleLoading, setIsScheduleLoading] = useState(true);
+
+  const [closedDays, setClosedDays] = useState([]);
   const [newClosedDay, setNewClosedDay] = useState("");
   const [isExceptionsLoading, setIsExceptionsLoading] = useState(true);
-  const [closedDays, setClosedDays] = useState([]);
-  const [error, setError] = useState(null);
 
-  const handleTimeChange = (key, fieldName, newValue) => {
-    setSchedule({
-      ...schedule,
-      [key]: { ...schedule[key], [fieldName]: newValue },
-    });
-  };
+  const [error, setError] = useState(null);
 
   const timeToMinutes = (timeString) => {
     const [hours, minutes] = timeString.split(":").map(Number);
@@ -113,6 +108,24 @@ export default function AdminSchedule() {
     }
 
     return closeMinutes - openMinutes > 0;
+  };
+
+  const handleTimeChange = (key, fieldName, newValue) => {
+    setSchedule({
+      ...schedule,
+      [key]: { ...schedule[key], [fieldName]: newValue },
+    });
+  };
+
+  const handleAddNewClosedDay = () => {
+    if (newClosedDay === "") return setAlertMessage("Wybierz dzień");
+    if (closedDays.includes(newClosedDay))
+      return setAlertMessage("Ten dzień juz jest na liście ");
+
+    setClosedDays(
+      [...closedDays, newClosedDay].sort((a, b) => a.localeCompare(b)),
+    );
+    setNewClosedDay("");
   };
 
   const handleSubmitSchedule = async () => {
@@ -147,17 +160,6 @@ export default function AdminSchedule() {
     } catch (error) {
       setAlertMessage("Błąd połączenia z serwerem.");
     }
-  };
-
-  const handleAddNewClosedDay = () => {
-    if (newClosedDay === "") return setAlertMessage("Wybierz dzień");
-    if (closedDays.includes(newClosedDay))
-      return setAlertMessage("Ten dzień juz jest na liście ");
-
-    setClosedDays(
-      [...closedDays, newClosedDay].sort((a, b) => a.localeCompare(b)),
-    );
-    setNewClosedDay("");
   };
 
   const handleSubmitExceptions = async () => {

@@ -45,6 +45,8 @@ export const getReservations = async (req, res) => {
             timeToMinutes(reservation.startTime) + 60 >= timeToMinutes(timeStr)
           );
         });
+      } else if (date < todayStr) {
+        futureReservations = [];
       }
       return res.json({ reservations: futureReservations });
     }

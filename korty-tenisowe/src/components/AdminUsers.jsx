@@ -20,13 +20,33 @@ export default function AdminUsers() {
   const [userSearch, setUserSearch] = useState("");
   const [userRoleFilter, setUserRoleFilter] = useState("all");
   const [userDateSort, setUserDateSort] = useState("ASC");
-  const [isUsersLoading, setIsUsersLoading] = useState(true);
+
   const [userToEdit, setUserToEdit] = useState(null);
   const [userEditFormData, setUserEditFormData] = useState({});
-  const [refreshUsers, setRefreshUsers] = useState(0);
   const [itemToDelete, setItemToDelete] = useState(null);
+
+  const [refreshUsers, setRefreshUsers] = useState(0);
+  const [isUsersLoading, setIsUsersLoading] = useState(true);
   const [error, setError] = useState(null);
+
   const roleOptions = ["USER", "RECEPTIONIST", "ADMIN"];
+
+  const filteredUsers = useMemo(() => {
+    return [...users]
+      .sort((a, b) =>
+        userDateSort === "DESC"
+          ? b.createdAt.localeCompare(a.createdAt)
+          : a.createdAt.localeCompare(b.createdAt),
+      )
+      .filter((user) => {
+        const userFilter =
+          `${user.firstName} ${user.lastName} ${user.email} ${user.phone}`.toLowerCase();
+        return (
+          userFilter.includes(userSearch.toLowerCase()) &&
+          (userRoleFilter === "all" || userRoleFilter === user.role)
+        );
+      });
+  }, [userDateSort, userSearch, users, userRoleFilter]);
 
   const toggleSort = () => {
     userDateSort === "ASC" ? setUserDateSort("DESC") : setUserDateSort("ASC");
@@ -98,23 +118,6 @@ export default function AdminUsers() {
       setAlertMessage("Błąd serwera.");
     }
   };
-
-  const filteredUsers = useMemo(() => {
-    return [...users]
-      .sort((a, b) =>
-        userDateSort === "DESC"
-          ? b.createdAt.localeCompare(a.createdAt)
-          : a.createdAt.localeCompare(b.createdAt),
-      )
-      .filter((user) => {
-        const userFilter =
-          `${user.firstName} ${user.lastName} ${user.email} ${user.phone}`.toLowerCase();
-        return (
-          userFilter.includes(userSearch.toLowerCase()) &&
-          (userRoleFilter === "all" || userRoleFilter === user.role)
-        );
-      });
-  }, [userDateSort, userSearch, users, userRoleFilter]);
 
   useEffect(() => {
     const fetchUsers = async () => {

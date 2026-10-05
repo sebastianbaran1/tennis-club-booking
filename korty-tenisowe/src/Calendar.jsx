@@ -1,8 +1,8 @@
 import { useOutletContext, Navigate } from "react-router-dom";
 import { useState, useEffect, useMemo, Fragment } from "react";
-import "./Calendar.css";
 import BookingModal from "./components/BookingModal";
 import useWindowConfirm from "./hooks/useWindowConfirm";
+import "./Calendar.css";
 
 const timeToMinutes = (timeString) => {
   if (!timeString || typeof timeString !== "string" || timeString === "--:--") {
@@ -15,40 +15,55 @@ const timeToMinutes = (timeString) => {
 
 export default function Calendar() {
   const { user, isUserLoading, setAlertMessage } = useOutletContext();
-  const [courts, setCourts] = useState([]);
-  const [reservations, setReservations] = useState([]);
-  const [exceptions, setExceptions] = useState([]);
-  const [schedule, setSchedule] = useState([]);
-  const [refresh, setRefresh] = useState(0);
-  const todayStr = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "Europe/Warsaw",
-  }).format(new Date());
-  const now = new Intl.DateTimeFormat("pl-PL", {
-    timeZone: "Europe/Warsaw",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(new Date());
-  const [selectedDate, setSelectedDate] = useState(todayStr);
-  const [selectedCourtIndex, setSelectedCourtIndex] = useState(0);
-  const [courtsPerPage, setCourtsPerPage] = useState(4);
-  const [bookingModal, setBookingModal] = useState({
-    isOpen: false,
-    courtId: null,
-    startTime: null,
-  });
-  const [isReservationsLoading, setIsReservationsLoading] = useState(true);
-  const [isStaticDataLoading, setIsStaticDataLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [clientList, setClientList] = useState([]);
-  const [isUsersLoading, setIsUsersLoading] = useState(true);
-  const isStaff = ["ADMIN", "RECEPTIONIST", "DEMO_ADMIN"].includes(user?.role);
-  const todaySchedule = schedule[new Date(selectedDate).getUTCDay()];
   const [confirmModal, windowConfirm] = useWindowConfirm(
     "Potwierdzenie",
     "Czy na pewno chcesz odwołać rezerwację",
     "",
     "Anuluj",
     "Odwołaj",
+  );
+
+  const todayStr = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Europe/Warsaw",
+  }).format(new Date());
+  const [selectedDate, setSelectedDate] = useState(todayStr);
+  const [selectedCourtIndex, setSelectedCourtIndex] = useState(0);
+  const [courtsPerPage, setCourtsPerPage] = useState(4);
+
+  const [courts, setCourts] = useState([]);
+  const [reservations, setReservations] = useState([]);
+  const [exceptions, setExceptions] = useState([]);
+  const [schedule, setSchedule] = useState([]);
+  const [clientList, setClientList] = useState([]);
+
+  const [refresh, setRefresh] = useState(0);
+  const [bookingModal, setBookingModal] = useState({
+    isOpen: false,
+    courtId: null,
+    startTime: null,
+  });
+
+  const [isReservationsLoading, setIsReservationsLoading] = useState(true);
+  const [isStaticDataLoading, setIsStaticDataLoading] = useState(true);
+  const [isUsersLoading, setIsUsersLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const now = new Intl.DateTimeFormat("pl-PL", {
+    timeZone: "Europe/Warsaw",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(new Date());
+
+  const isStaff = ["ADMIN", "RECEPTIONIST", "DEMO_ADMIN"].includes(user?.role);
+  const todaySchedule = schedule[new Date(selectedDate).getUTCDay()];
+
+  const isClubClosedToday =
+    exceptions.includes(selectedDate) ||
+    (todaySchedule?.open === "--:--" && todaySchedule?.close === "--:--");
+
+  const visibleCourts = courts.slice(
+    selectedCourtIndex,
+    selectedCourtIndex + courtsPerPage,
   );
 
   const timeSlots = useMemo(() => {
@@ -143,9 +158,73 @@ export default function Calendar() {
     });
   };
 
-  const isClubClosedToday =
-    exceptions.includes(selectedDate) ||
-    (todaySchedule?.open === "--:--" && todaySchedule?.close === "--:--");
+  const handleOpenBookingModal = (courtId, startTime) => {
+    setBookingModal({ isOpen: true, courtId, startTime });
+  };
+
+  const handleCancelReservation = async (reservationId) => {
+    const confirm = await windowConfirm();
+    if (!confirm) return;
+
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/reservations/${reservationId}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      if (response.ok) {
+        setRefresh((prev) => prev + 1);
+      } else {
+        const data = await response.json();
+        setAlertMessage(data.error);
+      }
+    } catch (error) {
+      setAlertMessage("Błąd serwera.");
+    }
+  };
+
+  const getRowIndex = (time) => {
+    let startMin = timeToMinutes(
+      schedule[new Date(selectedDate).getUTCDay()]?.open,
+    );
+    if (schedule[new Date(selectedDate).getUTCDay()]?.open === "00:00")
+      startMin = 0;
+    if (time === "00:00") return 2;
+    return (timeToMinutes(time) - startMin) / 30 + 2;
+  };
+
+  useEffect(() => {
+    const handleResize = () => {
+      const width = window.innerWidth;
+      if (width < 425) {
+        setCourtsPerPage(1);
+      } else if (width >= 425 && width < 768) {
+        setCourtsPerPage(2);
+      } else {
+        setCourtsPerPage(4);
+      }
+    };
+    handleResize();
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!courtsPerPage) return;
+
+    setSelectedCourtIndex((prev) => {
+      return Math.floor(prev / courtsPerPage) * courtsPerPage;
+    });
+  }, [courtsPerPage]);
 
   useEffect(() => {
     if (!isStaff) {
@@ -179,34 +258,7 @@ export default function Calendar() {
       }
     };
     fetchUsers();
-  }, [user?.role]);
-
-  useEffect(() => {
-    const handleResize = () => {
-      const width = window.innerWidth;
-      if (width < 425) {
-        setCourtsPerPage(1);
-      } else if (width >= 425 && width < 768) {
-        setCourtsPerPage(2);
-      } else {
-        setCourtsPerPage(4);
-      }
-    };
-    handleResize();
-    window.addEventListener("resize", handleResize);
-
-    return () => {
-      window.removeEventListener("resize", handleResize);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!courtsPerPage) return;
-
-    setSelectedCourtIndex((prev) => {
-      return Math.floor(prev / courtsPerPage) * courtsPerPage;
-    });
-  }, [courtsPerPage]);
+  }, [user?.role, refresh, isStaff]);
 
   useEffect(() => {
     if (!user || isUserLoading) return;
@@ -309,52 +361,6 @@ export default function Calendar() {
       </div>
     );
   }
-
-  const handleOpenBookingModal = (courtId, startTime) => {
-    setBookingModal({ isOpen: true, courtId, startTime });
-  };
-
-  const handleCancelReservation = async (reservationId) => {
-    const confirm = await windowConfirm();
-    if (!confirm) return;
-
-    try {
-      const token = localStorage.getItem("token");
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/reservations/${reservationId}`,
-        {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
-
-      if (response.ok) {
-        setRefresh((prev) => prev + 1);
-      } else {
-        const data = await response.json();
-        setAlertMessage(data.error);
-      }
-    } catch (error) {
-      setAlertMessage("Błąd serwera.");
-    }
-  };
-
-  const getRowIndex = (time) => {
-    let startMin = timeToMinutes(
-      schedule[new Date(selectedDate).getUTCDay()]?.open,
-    );
-    if (schedule[new Date(selectedDate).getUTCDay()]?.open === "00:00")
-      startMin = 0;
-    if (time === "00:00") return 2;
-    return (timeToMinutes(time) - startMin) / 30 + 2;
-  };
-
-  const visibleCourts = courts.slice(
-    selectedCourtIndex,
-    selectedCourtIndex + courtsPerPage,
-  );
 
   return (
     <div className="calendar-container-wrapper">
@@ -489,7 +495,13 @@ export default function Calendar() {
                           canCancel && handleCancelReservation(res.id)
                         }
                       >
-                        <span>{isMyRes ? "Twoja gra" : "Zajęte"}</span>
+                        <span>
+                          {isMyRes
+                            ? "Twoja gra"
+                            : isPast && isStaff
+                              ? "Zakończone"
+                              : "Zajęte"}
+                        </span>
 
                         {isStaff ? (
                           <span className="reservation-staff-details">

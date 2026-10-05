@@ -6,8 +6,6 @@ import edit from "../assets/edit.png";
 
 export default function AdminCourts() {
   const { setAlertMessage } = useOutletContext();
-  const [refreshCourts, setRefreshCourts] = useState(0);
-  const [isCourtsLoading, setIsCourtsLoading] = useState(true);
   const [courts, setCourts] = useState([
     {
       id: 1,
@@ -20,6 +18,9 @@ export default function AdminCourts() {
   const [courtToEdit, setCourtToEdit] = useState(null);
   const [courtEditFormData, setCourtEditFormData] = useState({});
   const [itemToDelete, setItemToDelete] = useState(null);
+
+  const [refreshCourts, setRefreshCourts] = useState(0);
+  const [isCourtsLoading, setIsCourtsLoading] = useState(true);
   const [error, setError] = useState(null);
 
   const courtEdit = (court) => {

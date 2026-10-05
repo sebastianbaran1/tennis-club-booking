@@ -1,15 +1,11 @@
 import { useOutletContext, Navigate } from "react-router-dom";
 import { useState, useEffect, useMemo } from "react";
 import Reservation from "./components/Reservation";
-import "./Profile.css";
 import useWindowConfirm from "./hooks/useWindowConfirm";
+import "./Profile.css";
 
 export default function Profile() {
   const { user, isUserLoading, setAlertMessage } = useOutletContext();
-  const [myReservations, setMyReservations] = useState([]);
-  const [activeTab, setActiveTab] = useState("Active");
-  const [isDataLoading, setIsDataLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [confirmModal, windowConfirm] = useWindowConfirm(
     "Potwierdzenie",
     "Czy na pewno chcesz odwołać rezerwację",
@@ -17,6 +13,10 @@ export default function Profile() {
     "Anuluj",
     "Odwołaj",
   );
+  const [myReservations, setMyReservations] = useState([]);
+  const [activeTab, setActiveTab] = useState("Active");
+  const [isDataLoading, setIsDataLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const currentWarsawTime = useMemo(() => {
     const timeNow = new Intl.DateTimeFormat("pl-PL", {
@@ -43,6 +43,35 @@ export default function Profile() {
       (res) => `${res.date}T${res.startTime}` < currentWarsawTime,
     );
   }, [myReservations, currentWarsawTime]);
+
+  const handleCancelReservation = async (reservationId) => {
+    const confirm = await windowConfirm();
+    if (!confirm) return;
+
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/reservations/${reservationId}`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      if (response.ok) {
+        setAlertMessage("Rezerwacja odwołana!");
+        setMyReservations((prev) => prev.filter((r) => r.id !== reservationId));
+      } else {
+        const data = await response.json();
+        setAlertMessage(data.error);
+      }
+    } catch (error) {
+      setAlertMessage("Błąd połączenia z serwerem.");
+    }
+  };
 
   useEffect(() => {
     if (!user || isUserLoading) return;
@@ -104,35 +133,6 @@ export default function Profile() {
       </div>
     );
   }
-
-  const handleCancelReservation = async (reservationId) => {
-    const confirm = await windowConfirm();
-    if (!confirm) return;
-
-    try {
-      const token = localStorage.getItem("token");
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/reservations/${reservationId}`,
-        {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
-
-      if (response.ok) {
-        setAlertMessage("Rezerwacja odwołana!");
-        setMyReservations((prev) => prev.filter((r) => r.id !== reservationId));
-      } else {
-        const data = await response.json();
-        setAlertMessage(data.error);
-      }
-    } catch (error) {
-      setAlertMessage("Błąd połączenia z serwerem.");
-    }
-  };
 
   return (
     <div className="profile-wrapper">
