@@ -150,3 +150,7 @@ export const verify = async (req, res) => {
     res.status(401).json({ error: "Token nieważny." });
   }
 };
+
+export const healthCheck = async (req, res) => {
+  res.status(200).json({ message: "Serwer działa poprawnie." });
+};
