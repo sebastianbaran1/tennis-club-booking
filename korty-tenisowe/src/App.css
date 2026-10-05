@@ -26,6 +26,7 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   color: #333;
+  background-color: #fcfbf8;
 }
 
 img {
@@ -70,4 +71,24 @@ p {
 }
 h1 {
   margin: 0;
+}
+
+.profile-loading,
+.admin-loading,
+.calendar-error {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 50vh;
+  color: var(--color-primary);
+  font-family: var(--serif-font);
+  opacity: 0;
+  animation: fadeInLoader 0.4s ease forwards;
+  background-color: #fcfbf8;
+}
+
+@keyframes fadeInLoader {
+  to {
+    opacity: 1;
+  }
 }

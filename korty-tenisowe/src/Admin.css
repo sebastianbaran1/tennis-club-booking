@@ -277,7 +277,8 @@
   flex-direction: row;
   gap: 20px;
 }
-.court__actions-button-edit {
+
+.court__actions-buttons button {
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -285,15 +286,8 @@
   border: none;
   background-color: transparent;
   cursor: pointer;
-}
-.court__actions-button-delete {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: flex-start;
-  border: none;
-  background-color: transparent;
-  cursor: pointer;
+  font-size: 0.85rem;
+  color: black;
 }
 
 .delete-icon {
@@ -518,8 +512,7 @@
   gap: 20px;
 }
 
-.user__actions-button-edit,
-.user__actions-button-delete {
+.user__actions button {
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -527,7 +520,10 @@
   border: none;
   background-color: transparent;
   cursor: pointer;
+  font-size: 0.85rem;
+  color: black;
 }
+
 .users__header-filters {
   display: flex;
   gap: 10px;

@@ -97,6 +97,7 @@
   color: var(--color-secondary);
   padding: clamp(12px, calc(2.857px + 2.857vw), 15px);
   border: none;
+  font-size: 0.85rem;
   border-radius: 3px;
   font-family: var(--sans-font);
   font-weight: 700;
