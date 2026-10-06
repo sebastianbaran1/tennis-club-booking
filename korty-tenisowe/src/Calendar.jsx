@@ -375,7 +375,10 @@ export default function Calendar() {
               type="date"
               value={selectedDate}
               min={todayStr}
-              onChange={(e) => setSelectedDate(e.target.value)}
+              onChange={(e) => {
+                setReservations([]);
+                setSelectedDate(e.target.value);
+              }}
               className="calendar-date-input"
               id="date-input"
             />

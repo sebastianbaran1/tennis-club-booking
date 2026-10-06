@@ -597,6 +597,7 @@
   top: 105%;
   left: 6.5%;
 }
+
 .user-edit-select {
   height: 30px;
   width: 87%;
@@ -605,6 +606,7 @@
   border: 1px solid #ccc;
   border-radius: 6px;
   background-color: #f8f9fa;
+  color: var(--color-secondary);
 }
 .user-edit-select:focus {
   outline: none;
@@ -654,6 +656,7 @@
   border: 1px solid #ccc;
   border-radius: 6px;
   background-color: white;
+  color: var(--color-secondary);
   cursor: pointer;
 }
 
