@@ -10,6 +10,7 @@ Aplikacja webowa typu Full-Stack (SPA) do obsługi rezerwacji kortów, zarządza
 - **Frontend:** React, React Router, CSS
 - **Backend:** Node.js, Express.js
 - **Baza Danych:** PostgreSQL, Prisma ORM
+- **Autoryzacja i Bezpieczeństwo:** JWT (JSON Web Tokens), bcrypt
 
 ## Kluczowe funkcjonalności 
 - **Zaawansowany system ról i uprawnień:** Aplikacja obsługuje pięć poziomów dostępu: Gość, Użytkownik, Recepcja, Administrator oraz specjalne konto Demo. To ostatnie umożliwia pełny wgląd do systemu przy jednoczesnej blokadzie edycji danych w panelu administracyjnym.
@@ -107,6 +108,7 @@ A Full-Stack web application (SPA) for handling court reservations, managing use
 - **Frontend:** React, React Router, CSS
 - **Backend:** Node.js, Express.js
 - **Database:** PostgreSQL, Prisma ORM
+- **Auth & Security:** JWT (JSON Web Tokens), bcrypt
 
 ## Key Features
 - **Advanced role and permission system:** The application supports five access levels: Guest, User, Reception, Administrator, and a special Demo account. The last one allows full insight into the system while blocking data editing in the admin panel.
